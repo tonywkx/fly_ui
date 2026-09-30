@@ -1,0 +1,16 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.DS_Store
+# pipeline caches: raw downloads never committed, baked output is a build artifact
+data/raw/
+data/cache/
+apps/web/public/data/
+# visual QA output
+snaps/
+test-results/
+playwright-report/
+.claude/settings.local.json

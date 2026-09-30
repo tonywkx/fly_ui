@@ -1,0 +1,40 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource/geist-mono";
+
+/* Tokens: DESIGN.md adapted per PRODUCT.md §Visual language. Components use these only. */
+@theme {
+  --color-void: #000000;
+  --color-bone: #ffffff;
+  --color-ash: #9a9a9a;
+  --color-mist: #bdbdbd;
+  --color-iris: #8052ff;
+  --color-saffron: #ffb829;
+  --color-verdant: #15846e;
+  --color-panel: rgb(0 0 0 / 0.62);
+
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+
+  --text-caption: 12px;
+  --text-label: 14px;
+  --text-body: 18px;
+  --text-heading-sm: 42px;
+  --text-heading-lg: 78px;
+  --text-display: 113px;
+
+  --radius-panel: 24px;
+  --spacing: 6px;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: var(--color-void);
+  color: var(--color-bone);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01" on;
+  -webkit-font-smoothing: antialiased;
+}
