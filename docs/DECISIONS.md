@@ -7,3 +7,5 @@
 - 2026-09-30 Realtime plots = uPlot + custom canvas raster (Bklit/visx too slow for 60 fps streams).
 - 2026-09-30 Fonts: Inter Variable + Geist Mono (PP Neue Montreal is commercial).
 - 2026-09-30 Docs/config for Claude written in English (token economy); chat with user in Russian.
+- 2026-09-30 No DuckDB-WASM / react-three-fiber (early chat idea): own binary format + vanilla three.js (frame loop outside React). Type-level graph replaces DuckDB queries.
+- 2026-09-30 Same TS engine for baked scenarios and live sandbox; Brian2 not used (validate against published results).
