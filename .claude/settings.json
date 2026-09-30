@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "attribution": { "commit": "", "pr": "" },
+  "env": {
+    "BASH_MAX_OUTPUT_LENGTH": "20000"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(pnpm:*)",
+      "Bash(corepack pnpm:*)",
+      "Bash(npx tsx:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Read(snaps/**)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(data/raw/**)",
+      "Read(data/cache/**)",
+      "Read(apps/web/public/data/**)",
+      "Read(**/node_modules/**)",
+      "Read(**/dist/**)",
+      "Read(**/*.bin)",
+      "Read(**/*.feather)",
+      "Read(**/*.swc)",
+      "Read(pnpm-lock.yaml)",
+      "Grep(data/**)",
+      "Grep(**/node_modules/**)",
+      "Grep(apps/web/public/data/**)",
+      "Glob(**/node_modules/**)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/format.sh" }]
+      }
+    ]
+  }
+}
