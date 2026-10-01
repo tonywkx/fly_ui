@@ -9,3 +9,4 @@
 - 2026-09-30 Docs/config for Claude written in English (token economy); chat with user in Russian.
 - 2026-09-30 No DuckDB-WASM / react-three-fiber (early chat idea): own binary format + vanilla three.js (frame loop outside React). Type-level graph replaces DuckDB queries.
 - 2026-09-30 Same TS engine for baked scenarios and live sandbox; Brian2 not used (validate against published results).
+- 2026-10-01 Scenario neuron sets: core (anchor types) + extended (types with summed weight ≥500 to key hubs), target 200–2000 neurons; gap-junction links (absent from connectome) go into `overrides` as electrical.
