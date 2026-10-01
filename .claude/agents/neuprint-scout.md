@@ -6,9 +6,11 @@ model: sonnet
 color: cyan
 maxTurns: 30
 ---
-Access: `apps/pipeline/src/neuprint/client.ts` (reads NEUPRINT_TOKEN/SERVER/DATASET from .env; never print the token).
-Endpoint: POST `{server}/api/custom/custom` with `{cypher, dataset}` (see neuprint-python `Client.fetch_custom` if unsure).
-Run ad-hoc queries with `pnpm --filter pipeline exec tsx src/neuprint/query.ts "<cypher>"`.
+Access via `apps/pipeline/src/neuprint/` (client reads .env; never print the token). From `apps/pipeline`:
+- `pnpm exec tsx src/neuprint/query.ts --schema` — Neuron property keys (start here; male-cns fields differ from hemibrain).
+- `pnpm exec tsx src/neuprint/query.ts "<cypher>" [--max=50] [--json]` — ad-hoc Cypher, compact table.
+- `pnpm exec tsx src/neuprint/query.ts --tool=findNeurons|getPartners|strongestPaths '<json args>'` — see `tools.ts` for args.
+Build Cypher in code with the `cypher` tagged template (safe literals) if you write scripts.
 
 Rules:
 - Always LIMIT queries; aggregate server-side (count, sum weight) instead of pulling raw rows.

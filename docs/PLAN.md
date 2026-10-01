@@ -17,7 +17,7 @@ Phase exit = its "Done when" is true and demoable.
 
 ## Phase 0 — Setup & scouting (2–3 evenings)
 - [x] 0.1 Monorepo skeleton, CLAUDE.md, PRODUCT.md, .claude (agents, skills, rules, hook), docs.
-- [ ] 0.2 neuPrint client in `apps/pipeline/src/neuprint/` (fetch + token from .env, typed Cypher helper, retry, p-limit) + `query.ts` CLI. Expose tool-shaped functions (findNeurons, getPartners, strongestPaths) so a future MCP server is a thin wrapper. **[T]** response parsing.
+- [x] 0.2 neuPrint client in `apps/pipeline/src/neuprint/` (fetch + token from .env, typed Cypher helper, retry, p-limit) + `query.ts` CLI. Expose tool-shaped functions (findNeurons, getPartners, strongestPaths) so a future MCP server is a thin wrapper. **[T]** response parsing.
 - [ ] 0.3 Scout escape circuit with `neuprint-scout` → `data/scout/escape.{json,md}`: types, bodyIds, roles (sensor/inter/descending/motor), key edges.
 - [ ] 0.4 Scout sugar + song circuits (same format). Decide per scenario neuron set size (target: 200–2000 "hero" neurons each).
 - [ ] 0.5 Commit the scenario manifests (small JSON, OK to commit); record choices in DECISIONS.md.
