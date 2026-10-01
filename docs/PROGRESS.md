@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-01 — 1.5 background cloud
+Done: `packages/data/src/cloud.ts` (`mulberry32`, `sampleCable`, `lodTiers`, `bboxOf`, `encodeCloud`/`decodeCloud`) + tests; `pickRandom`/`randomBodyIds` + `pnpm pull --random=N [--seed]`; `apps/pipeline/src/process/cloud.ts` `buildCloud` + CLI `pnpm cloud` → `data/build/cloud-lod{0,1,2}.bin` (gitignored).
+State: 5000 random CNS skeletons cached (cache 8496 bodies, ~636 MB); cloud = 2.16M pts → 200k/600k/1.2M tiers (1.14/3.43/6.87 MB), built in ~12 s. Not yet in a manifest (bake 1.8 reuses `buildCloud`).
+Next: 1.6 neuropil meshes: fetch ROI meshes (neuPrint ROI mesh API), decimate, encode (brain + VNC), codec in packages/data (TDD).
+Gotchas: SWC coords are 8 nm voxels, not nm (CNS ≈ 91k×65k×126k units); manifest bbox unit still to settle in 1.8. `pnpm cloud` re-queries all :Neuron ids to rebuild the same random sample (same --random/--seed as pull). Reading `data/cache` via shell is denied by permissions; use scripts.
+
 ## 2026-10-01 — 1.4 skeleton fetch
 Done: `client.skeleton(bodyId)` in `apps/pipeline/src/neuprint/client.ts` (null on not-found), `apps/pipeline/src/fetch/skeletons.ts` (`scoutBodyIds`, resumable `fetchSkeletons`) + tests, CLI `apps/pipeline/src/fetch.ts` → `pnpm pull [--scenario=x]`.
 State: all 3605 scenario bodies cached in `data/cache/skeletons/*.swc` (~400 MB raw, 0 missing, 0 failed); rerun is a no-op. Not yet simplified/encoded into chunks.
@@ -23,9 +29,3 @@ Done: `packages/data/src/manifest.ts` (zod Manifest, ChunkEntry, Scenario, `pars
 State: format v1 defined; no real chunk producers yet (kinds: skeletons/cloud/neuropil/graph/typegraph/meta). Layout recorded in DECISIONS.md.
 Next: 1.2 SWC parser + skeleton model (tree, radii, soma) in packages/data, TDD with tiny fixture SWCs.
 Gotchas: never run `pnpm fix` expecting it to touch only your files — it reformatted frozen scout JSONs (now excluded). Container sections are ≤4-byte dtypes only; decoder copies once if input byteOffset is unaligned. test-runner agent hit its 8-turn limit on test+typecheck+lint; ask for one command per call or run filtered output directly.
-
-## 2026-10-01 — 0.5 phase 0 decisions
-Done: `docs/DECISIONS.md` +6 lines (edge sign rules, scout edge ≥50, per-circuit extended thresholds, escape/sugar/song stimulus + readout + overrides); PLAN 0.5 ticked → Phase 0 closed. Removed stray `apps/pipeline/MN`.
-State: scenario manifests `data/scout/*.json` committed and frozen as Phase 1 input.
-Next: 1.1 `packages/data` zod manifest schema + chunk index + versioning, TDD.
-Gotchas: sugar sign ambiguity is deliberately deferred to a Phase 3 test (BM_Taste → MN9 spikes); CSR prune threshold still open (decide in 1.7).
