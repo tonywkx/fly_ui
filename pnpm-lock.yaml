@@ -29,6 +29,9 @@ importers:
 
   apps/pipeline:
     dependencies:
+      '@fly/data':
+        specifier: workspace:*
+        version: link:../../packages/data
       p-limit:
         specifier: ^7.3.3
         version: 7.3.3

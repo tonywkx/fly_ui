@@ -11,6 +11,7 @@
     "build": "pnpm --filter web build",
     "bake": "pnpm --filter pipeline bake",
     "scout": "pnpm --filter pipeline scout",
+    "pull": "pnpm --filter pipeline pull",
     "snap": "tsx scripts/snap.ts",
     "test": "vitest run",
     "test:watch": "vitest",
