@@ -16,3 +16,4 @@
 - 2026-10-01 Escape: GF = DNp01. Overrides DNp01→TTMn and DNp01→PSI electrical; DNp01→GFC2 optional sim boost.
 - 2026-10-01 Sugar: stimulus = all 40 BM_Taste (sugar-GRN proxy; male-cns has no Gr5a/Gr64f types); PER readout = MN9. Sign ambiguity (GABAergic GRN→MN9 routes) is deferred: Phase 3 test "BM_Taste stimulus → MN9 spikes" (anchor Shiu 2024); if it fails, add an override or fall back to stimulating DNge062.
 - 2026-10-01 Song: P1 = pC1_* family (9 core types). Readout pIP10 → vPR9/vMS11/TN1a → wing MNs + DLMn/DVMn. maleSpecific flag from fruDsx (≠ fru_low).
+- 2026-10-01 Data format: one `manifest.json` (zod, `formatVersion` must match exactly, else FormatVersionError → re-bake) + binary chunks `FLYD` container (16 B header, 12 B/section table, LE, 4-byte aligned sections; dtypes ≤4 B only, no Float64). Chunk tier `first-frame | lazy` drives the 15 MB budget.
