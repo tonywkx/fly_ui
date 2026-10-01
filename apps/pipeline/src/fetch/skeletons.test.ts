@@ -2,7 +2,7 @@ import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { fetchSkeletons, scoutBodyIds } from './skeletons';
+import { fetchSkeletons, pickRandom, scoutBodyIds } from './skeletons';
 
 const SWC = '1 1 0 0 0 10 -1\n2 0 1 0 0 2 1\n';
 
@@ -15,6 +15,27 @@ afterEach(async () => {
 });
 
 const clientWith = (impl: (id: number) => Promise<string | null>) => ({ skeleton: vi.fn(impl) });
+
+describe('pickRandom', () => {
+  const ids = Array.from({ length: 100 }, (_, i) => i * 7);
+
+  test('n unique ids from the input, sorted', () => {
+    const got = pickRandom(ids, 10, 1);
+    expect(got).toHaveLength(10);
+    expect(new Set(got).size).toBe(10);
+    for (const id of got) expect(ids).toContain(id);
+    expect(got).toEqual([...got].sort((a, b) => a - b));
+  });
+
+  test('deterministic for a seed, independent of input order', () => {
+    expect(pickRandom([...ids].reverse(), 10, 1)).toEqual(pickRandom(ids, 10, 1));
+    expect(pickRandom(ids, 10, 2)).not.toEqual(pickRandom(ids, 10, 1));
+  });
+
+  test('n beyond the population returns everything', () => {
+    expect(pickRandom([3, 1, 2], 10, 1)).toEqual([1, 2, 3]);
+  });
+});
 
 describe('scoutBodyIds', () => {
   test('collects unique sorted bodyIds across types and scenarios', () => {

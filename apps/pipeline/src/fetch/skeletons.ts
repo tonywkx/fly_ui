@@ -1,6 +1,6 @@
 import { access, mkdir, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { parseSwc } from '@fly/data';
+import { mulberry32, parseSwc } from '@fly/data';
 import { z } from 'zod';
 import type { NeuprintClient } from '../neuprint/client';
 
@@ -11,6 +11,18 @@ export function scoutBodyIds(scouts: unknown[]): number[] {
   const ids = new Set<number>();
   for (const s of scouts) for (const t of scoutSchema.parse(s).types) for (const id of t.bodyIds) ids.add(id);
   return [...ids].sort((a, b) => a - b);
+}
+
+/** Deterministic sample of n unique ids (sorted); input order does not matter. */
+export function pickRandom(ids: number[], n: number, seed: number): number[] {
+  const pool = [...new Set(ids)].sort((a, b) => a - b);
+  const rand = mulberry32(seed);
+  const k = Math.min(n, pool.length);
+  for (let i = 0; i < k; i++) {
+    const j = i + Math.floor(rand() * (pool.length - i));
+    [pool[i], pool[j]] = [pool[j] as number, pool[i] as number];
+  }
+  return pool.slice(0, k).sort((a, b) => a - b);
 }
 
 export interface FetchSkeletonsOptions {

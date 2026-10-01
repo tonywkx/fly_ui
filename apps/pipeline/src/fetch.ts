@@ -2,10 +2,17 @@ import { readdir, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { env } from './env';
-import { fetchSkeletons, scoutBodyIds } from './fetch/skeletons';
+import { fetchSkeletons, pickRandom, scoutBodyIds } from './fetch/skeletons';
 import { clientFromEnv } from './neuprint/fromEnv';
 
-const { values } = parseArgs({ options: { scenario: { type: 'string', multiple: true } } });
+const { values } = parseArgs({
+  options: {
+    scenario: { type: 'string', multiple: true },
+    /** Extra random bodies from the whole CNS (background cloud, PLAN 1.5). */
+    random: { type: 'string' },
+    seed: { type: 'string', default: '1' },
+  },
+});
 
 const scoutDir = join(env.root, 'data/scout');
 const dir = join(env.root, 'data/cache/skeletons');
@@ -16,10 +23,21 @@ const scenarios =
 const scouts = await Promise.all(
   scenarios.map(async (s) => JSON.parse(await readFile(join(scoutDir, `${s}.json`), 'utf8')) as unknown),
 );
-const ids = scoutBodyIds(scouts);
-console.log(`skeletons: ${ids.length} bodies from ${scenarios.join(', ')} → ${dir}`);
-
 const client = clientFromEnv({ concurrency: 8 });
+
+let ids = scoutBodyIds(scouts);
+let from = scenarios.join(', ');
+if (values.random) {
+  const all = await client.query<{ id: number }>('MATCH (n:Neuron) RETURN n.bodyId AS id');
+  const extra = pickRandom(
+    all.map((r) => r.id),
+    Number(values.random),
+    Number(values.seed),
+  );
+  ids = [...new Set([...ids, ...extra])].sort((a, b) => a - b);
+  from += ` + ${extra.length} random of ${all.length} neurons`;
+}
+console.log(`skeletons: ${ids.length} bodies from ${from} → ${dir}`);
 
 const t0 = performance.now();
 const res = await fetchSkeletons({
