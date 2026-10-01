@@ -25,6 +25,23 @@ export function pickRandom(ids: number[], n: number, seed: number): number[] {
   return pool.slice(0, k).sort((a, b) => a - b);
 }
 
+/** pickRandom over every :Neuron in the dataset (same n + seed → same bodies). */
+export async function randomBodyIds(
+  client: Pick<NeuprintClient, 'query'>,
+  n: number,
+  seed: number,
+): Promise<{ ids: number[]; population: number }> {
+  const all = await client.query<{ id: number }>('MATCH (n:Neuron) RETURN n.bodyId AS id');
+  return {
+    ids: pickRandom(
+      all.map((r) => r.id),
+      n,
+      seed,
+    ),
+    population: all.length,
+  };
+}
+
 export interface FetchSkeletonsOptions {
   client: Pick<NeuprintClient, 'skeleton'>;
   ids: number[];

@@ -2,7 +2,7 @@ import { readdir, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { env } from './env';
-import { fetchSkeletons, pickRandom, scoutBodyIds } from './fetch/skeletons';
+import { fetchSkeletons, randomBodyIds, scoutBodyIds } from './fetch/skeletons';
 import { clientFromEnv } from './neuprint/fromEnv';
 
 const { values } = parseArgs({
@@ -28,14 +28,9 @@ const client = clientFromEnv({ concurrency: 8 });
 let ids = scoutBodyIds(scouts);
 let from = scenarios.join(', ');
 if (values.random) {
-  const all = await client.query<{ id: number }>('MATCH (n:Neuron) RETURN n.bodyId AS id');
-  const extra = pickRandom(
-    all.map((r) => r.id),
-    Number(values.random),
-    Number(values.seed),
-  );
-  ids = [...new Set([...ids, ...extra])].sort((a, b) => a - b);
-  from += ` + ${extra.length} random of ${all.length} neurons`;
+  const extra = await randomBodyIds(client, Number(values.random), Number(values.seed));
+  ids = [...new Set([...ids, ...extra.ids])].sort((a, b) => a - b);
+  from += ` + ${extra.ids.length} random of ${extra.population} neurons`;
 }
 console.log(`skeletons: ${ids.length} bodies from ${from} → ${dir}`);
 

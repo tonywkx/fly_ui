@@ -6,7 +6,8 @@
     "typecheck": "tsc --noEmit",
     "scout": "tsx src/scout.ts",
     "bake": "tsx src/bake.ts",
-    "pull": "tsx src/fetch.ts"
+    "pull": "tsx src/fetch.ts",
+    "cloud": "tsx src/cloud.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",
