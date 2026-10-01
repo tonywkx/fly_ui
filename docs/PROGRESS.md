@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-01 — 0.5 phase 0 decisions
+Done: `docs/DECISIONS.md` +6 lines (edge sign rules, scout edge ≥50, per-circuit extended thresholds, escape/sugar/song stimulus + readout + overrides); PLAN 0.5 ticked → Phase 0 closed. Removed stray `apps/pipeline/MN`.
+State: scenario manifests `data/scout/*.json` committed and frozen as Phase 1 input.
+Next: 1.1 `packages/data` zod manifest schema + chunk index + versioning, TDD.
+Gotchas: sugar sign ambiguity is deliberately deferred to a Phase 3 test (BM_Taste → MN9 spikes); CSR prune threshold still open (decide in 1.7).
+
 ## 2026-10-01 — 0.4 sugar + song scouting
 Done: `data/scout/sugar.{json,md}` (277 types / 945 neurons, core 85) and `data/scout/song.{json,md}` (234 types / 1703, core 158), same shape as escape.json. Song types add `maleSpecific` + `fruDsx`.
 State: sugar path: BM_Taste (40, GRN proxy) → GNG015/GNG095 (GABA), GNG568 → DNge051, DNge055 → MN9/MN6/MN8/MN11/MN12D. Song path: pC1_* (P1) → pMP2/pIP10 → dPR1, TN1a_*, vPR9 → vMS11 → wing MNs (hg1, ps1, …) + DLMn/DVMn.
