@@ -1,7 +1,11 @@
 import { env } from './env';
+import { clientFromEnv } from './neuprint/fromEnv';
 
-if (!env.neuprintToken) {
-  console.error('NEUPRINT_TOKEN missing: copy .env.example to .env and fill it in');
+const client = clientFromEnv();
+const datasets = await client.datasets();
+if (!datasets.includes(env.neuprintDataset)) {
+  console.error(`dataset ${env.neuprintDataset} not found; available: ${datasets.join(', ')}`);
   process.exit(1);
 }
-console.log(`scout: ${env.neuprintDataset} @ ${env.neuprintServer} — not implemented yet (PLAN 0.2)`);
+console.log(`neuPrint OK: ${env.neuprintDataset} @ ${env.neuprintServer}`);
+console.log('scouting is done by the neuprint-scout agent via src/neuprint/query.ts (PLAN 0.3)');
