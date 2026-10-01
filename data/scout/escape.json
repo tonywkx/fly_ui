@@ -1,0 +1,6697 @@
+{
+  "scenario": "escape",
+  "dataset": "male-cns:v1.0",
+  "generatedAt": "2026-10-01T12:10:37.222Z",
+  "types": [
+    {
+      "type": "LC4",
+      "role": "sensor",
+      "count": 126,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "visual_projection",
+      "somaSide": {
+        "R": 55,
+        "L": 71
+      },
+      "bodyIds": [
+        20808, 22966, 520449, 511914, 17987, 19543, 28945, 19634, 17548, 21721, 16917, 532254, 18432, 16809,
+        19954, 17668, 20859, 38065, 27829, 17926, 31262, 23226, 518983, 12349, 23098, 17478, 34845, 17653,
+        20440, 17340, 22975, 24523, 20967, 35616, 535341, 512366, 30480, 31301, 512705, 22034, 515476, 30803,
+        524899, 32597, 526286, 33137, 27750, 17860, 21287, 18189, 20572, 29469, 23929, 20399, 30087, 518439,
+        17608, 22847, 20673, 518016, 20976, 31308, 17270, 516909, 515900, 31429, 19794, 17266, 20588, 22772,
+        20917, 77614, 24338, 18396, 22194, 23392, 21225, 533129, 25584, 28980, 22328, 514956, 29514, 22922,
+        517752, 21165, 16628, 519931, 18478, 27624, 20282, 81112, 26112, 21336, 23792, 14888, 519650, 518730,
+        29417, 12824, 527408, 12032, 111787, 35262, 23202, 17054, 16128, 21804, 20016, 15018, 19260, 514508,
+        19550, 21151, 518544, 19420, 107513, 20542, 29563, 17364, 37587, 530029, 16138, 18127, 100485, 21313
+      ],
+      "tier": "core",
+      "note": "looming/GF input (Ache 2019, von Reyn 2017); strongest input to DNp01 (6362) and DNp04 (11597)"
+    },
+    {
+      "type": "LPLC2",
+      "role": "sensor",
+      "count": 185,
+      "nt": "acetylcholine",
+      "ntConf": 0.95,
+      "superclass": "visual_projection",
+      "somaSide": {
+        "R": 91,
+        "L": 94
+      },
+      "bodyIds": [
+        26147, 20334, 24605, 27716, 17880, 25253, 18936, 35294, 18672, 33185, 14102, 31563, 514670, 27023,
+        22218, 29216, 30893, 11498, 37431, 38542, 41097, 18900, 112292, 26915, 33303, 21299, 24308, 22677,
+        30207, 23665, 24118, 27796, 17551, 23878, 33406, 28011, 20162, 20103, 524366, 20694, 21769, 19830,
+        55627, 29873, 29955, 30895, 32237, 28871, 25027, 25316, 531014, 23349, 37613, 20047, 34681, 35838,
+        25286, 28188, 15804, 24187, 29702, 21808, 29183, 34110, 25267, 27566, 30512, 24401, 33396, 12384,
+        17544, 13726, 29391, 26393, 22253, 19911, 23247, 19787, 23919, 20269, 134521, 34051, 19249, 19589,
+        19608, 24268, 19034, 14030, 31105, 13764, 21703, 25497, 520764, 20471, 24840, 20584, 22557, 34407,
+        27355, 32737, 25524, 517819, 30041, 25854, 17990, 20749, 19229, 29815, 25136, 20240, 521115, 21318,
+        50287, 515971, 35632, 28741, 518731, 24568, 536444, 34655, 19842, 32507, 26528, 33965, 21045, 29287,
+        33694, 25572, 533895, 18929, 20799, 37925, 34372, 27399, 29753, 20182, 21562, 27471, 17774, 31257,
+        32223, 28044, 30938, 22261, 29014, 40841, 21899, 23550, 29598, 100103, 17059, 26730, 35889, 25575,
+        25636, 525844, 517079, 14465, 21361, 26416, 31988, 17775, 20329, 39620, 23590, 24800, 19146, 21862,
+        23497, 35680, 19549, 25511, 129687, 28003, 29986, 25209, 33439, 95241, 111903, 29319, 13132, 20535,
+        40811, 31964, 517078
+      ],
+      "tier": "core",
+      "note": "looming detector (Klapoetke 2017); 4862 to DNp01"
+    },
+    {
+      "type": "LPLC1",
+      "role": "sensor",
+      "count": 134,
+      "nt": "acetylcholine",
+      "ntConf": 0.94,
+      "superclass": "visual_projection",
+      "somaSide": {
+        "L": 68,
+        "R": 66
+      },
+      "bodyIds": [
+        30877, 20783, 22867, 21684, 12052, 24177, 534743, 23941, 39151, 22274, 22260, 25870, 23030, 21240,
+        21967, 25178, 14731, 16377, 12661, 19855, 29383, 24794, 25386, 23938, 30286, 25031, 13110, 28656,
+        33599, 20036, 19114, 82816, 21722, 12114, 25435, 21003, 518794, 21677, 25624, 22324, 514792, 24820,
+        19685, 31132, 28586, 23333, 22329, 42517, 31592, 31661, 33897, 23116, 14689, 32343, 26033, 22790,
+        514191, 512087, 519153, 19578, 19403, 20031, 29435, 22447, 26880, 15253, 20074, 13086, 115313, 28239,
+        33910, 536395, 26333, 18710, 18477, 32290, 19653, 26656, 125927, 25169, 526999, 15058, 20758, 25260,
+        24802, 29937, 28080, 24222, 36377, 23751, 21850, 117237, 13180, 25679, 17857, 30814, 21074, 24508,
+        20508, 24920, 23906, 517600, 15893, 26365, 29529, 20083, 22911, 21220, 21180, 107939, 22449, 28033,
+        28249, 15049, 18742, 14535, 19210, 520078, 28723, 37441, 21282, 24791, 555734, 17734, 12397, 20292,
+        20865, 514846, 21540, 39206, 18506, 116613, 21023, 16768
+      ],
+      "tier": "core",
+      "note": "looming-ish; dominant into DNp06 (2773)"
+    },
+    {
+      "type": "LC6",
+      "role": "sensor",
+      "count": 124,
+      "nt": "acetylcholine",
+      "ntConf": 0.93,
+      "superclass": "visual_projection",
+      "somaSide": {
+        "R": 65,
+        "L": 59
+      },
+      "bodyIds": [
+        53419, 41690, 37941, 513999, 43534, 42082, 38484, 58807, 29633, 28862, 31943, 25611, 517372, 46718,
+        67975, 39281, 52174, 33865, 37963, 54962, 47907, 36184, 75415, 40105, 73812, 34666, 43886, 40800,
+        30440, 51872, 27211, 63625, 34570, 46842, 35321, 70691, 36832, 40378, 47357, 78501, 18842, 34803,
+        30714, 69404, 33885, 28279, 63399, 37926, 32661, 48608, 42475, 30710, 60450, 36978, 34450, 32005,
+        32259, 36795, 24824, 41222, 531848, 68763, 133366, 46033, 47933, 49381, 38017, 30134, 35534, 42624,
+        38148, 64805, 37903, 63314, 126711, 89700, 34538, 37009, 62835, 39125, 25193, 29315, 42123, 45897,
+        51695, 43248, 529652, 35825, 50736, 45034, 35598, 32782, 37485, 519975, 38360, 34931, 42411, 68133,
+        69677, 45466, 31607, 44281, 80160, 52810, 30436, 59586, 44469, 37503, 29119, 32763, 37103, 39513,
+        33215, 59269, 38881, 57850, 43668, 91189, 49085, 580966, 66510, 35424, 42265, 36311
+      ],
+      "tier": "core",
+      "note": "looming (Wu 2016); mostly to DNp70, weak to GF"
+    },
+    {
+      "type": "DNp01",
+      "role": "descending",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.53,
+      "superclass": "descending_neuron",
+      "somaSide": {
+        "R": 1,
+        "L": 1
+      },
+      "bodyIds": [10001, 10010],
+      "tier": "core",
+      "note": "Giant Fiber (GF_L/GF_R); NT conf low (0.53) but ACh per literature (Allen 2006)"
+    },
+    {
+      "type": "DNp02",
+      "role": "descending",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.88,
+      "superclass": "descending_neuron",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [10197, 10117],
+      "tier": "core"
+    },
+    {
+      "type": "DNp04",
+      "role": "descending",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "descending_neuron",
+      "somaSide": {
+        "R": 1,
+        "L": 1
+      },
+      "bodyIds": [11137, 531898],
+      "tier": "core"
+    },
+    {
+      "type": "DNp06",
+      "role": "descending",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.95,
+      "superclass": "descending_neuron",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [10228, 10584],
+      "tier": "core"
+    },
+    {
+      "type": "DNp11",
+      "role": "descending",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.92,
+      "superclass": "descending_neuron",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [10259, 10106],
+      "tier": "core"
+    },
+    {
+      "type": "TTMn",
+      "role": "motor",
+      "count": 2,
+      "nt": "glutamate",
+      "ntConf": 0.55,
+      "superclass": "vnc_motor",
+      "somaSide": {
+        "R": 1,
+        "L": 1
+      },
+      "bodyIds": [800146, 804642],
+      "tier": "core",
+      "note": "tergotrochanteral (jump) MN; glutamate; GF->TTMn is electrical"
+    },
+    {
+      "type": "PSI",
+      "role": "inter",
+      "count": 2,
+      "nt": "unclear",
+      "ntConf": 0.39,
+      "superclass": "vnc_efferent",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [802401, 903327],
+      "tier": "core",
+      "note": "peripheral synapsing interneuron; superclass vnc_efferent in male-cns; NT unclear (ACh in literature)"
+    },
+    {
+      "type": "DLMn a, b",
+      "role": "motor",
+      "count": 2,
+      "nt": "unclear",
+      "ntConf": 0.41,
+      "superclass": "vnc_motor",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [801970, 801295],
+      "tier": "core",
+      "note": "DLM flight MNs (Glu in vivo); type names are grouped \"a, b\" / \"c-f\""
+    },
+    {
+      "type": "DLMn c-f",
+      "role": "motor",
+      "count": 8,
+      "nt": "unclear",
+      "ntConf": 0.48,
+      "superclass": "vnc_motor",
+      "somaSide": {
+        "R": 4,
+        "L": 4
+      },
+      "bodyIds": [801998, 803048, 1050014552, 800718, 800890, 801895, 803013, 802544],
+      "tier": "core",
+      "note": "DLM flight MNs; main sink of GFC2/PSI/AN19B001/IN19B043"
+    },
+    {
+      "type": "GFC1",
+      "role": "inter",
+      "count": 3,
+      "nt": "acetylcholine",
+      "ntConf": 0.52,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 2,
+        "L": 1
+      },
+      "bodyIds": [811175, 908466, 805471],
+      "tier": "core"
+    },
+    {
+      "type": "GFC2",
+      "role": "inter",
+      "count": 10,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 5,
+        "L": 5
+      },
+      "bodyIds": [803025, 802799, 903232, 802478, 802551, 802335, 803601, 802595, 907675, 802599],
+      "tier": "core",
+      "note": "GF-coupled; top GF chemical output (144); strong to TTMn (481) and DLMn (785)"
+    },
+    {
+      "type": "GFC3",
+      "role": "inter",
+      "count": 13,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 6,
+        "R": 7
+      },
+      "bodyIds": [
+        906088, 811742, 800385, 810947, 807833, 812335, 924572, 813687, 810440, 811881, 902784, 803795, 807558
+      ],
+      "tier": "core"
+    },
+    {
+      "type": "GFC4",
+      "role": "inter",
+      "count": 8,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 4,
+        "R": 4
+      },
+      "bodyIds": [805095, 810966, 812297, 910170, 814061, 907419, 812963, 813974],
+      "tier": "core"
+    },
+    {
+      "type": "LPLC4",
+      "role": "sensor",
+      "count": 97,
+      "nt": "acetylcholine",
+      "ntConf": 0.95,
+      "superclass": "visual_projection",
+      "somaSide": {
+        "L": 48,
+        "R": 49
+      },
+      "bodyIds": [
+        96253, 18895, 18661, 556556, 30276, 10801, 18384, 29335, 18718, 14588, 33085, 24128, 92625, 14132,
+        21738, 524089, 32341, 33539, 41839, 13909, 519933, 20914, 18746, 18155, 21164, 18986, 18605, 22800,
+        23394, 26167, 19202, 19529, 18314, 19599, 21352, 27882, 18079, 15664, 15599, 20481, 19050, 24992,
+        52652, 28191, 18918, 531620, 29386, 18282, 18558, 32508, 91616, 18145, 141054, 16469, 15935, 18809,
+        18365, 23271, 17831, 17302, 23237, 19677, 515901, 28228, 25840, 30640, 18943, 22883, 17677, 16304,
+        19580, 20872, 18631, 26059, 12574, 15951, 20210, 17307, 518588, 35618, 522464, 535397, 22028, 26163,
+        22918, 20040, 21483, 21159, 17993, 23115, 18970, 23664, 28140, 20219, 20801, 20175, 21216
+      ],
+      "tier": "extended"
+    },
+    {
+      "type": "DNp70",
+      "role": "descending",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.93,
+      "superclass": "descending_neuron",
+      "somaSide": {
+        "R": 1,
+        "L": 1
+      },
+      "bodyIds": [11133, 10580],
+      "tier": "extended",
+      "note": "extended: strongest DN input to DNp01 (1416); fed by LC6"
+    },
+    {
+      "type": "DNp103",
+      "role": "descending",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.95,
+      "superclass": "descending_neuron",
+      "somaSide": {
+        "R": 1,
+        "L": 1
+      },
+      "bodyIds": [10283, 10417],
+      "tier": "extended"
+    },
+    {
+      "type": "DNp31",
+      "role": "descending",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.95,
+      "superclass": "descending_neuron",
+      "somaSide": {
+        "R": 1,
+        "L": 1
+      },
+      "bodyIds": [10264, 10249],
+      "tier": "extended"
+    },
+    {
+      "type": "AN19B001",
+      "role": "inter",
+      "count": 4,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "ascending_neuron",
+      "somaSide": {
+        "L": 2,
+        "R": 2
+      },
+      "bodyIds": [800012, 24133, 36930, 17757],
+      "tier": "extended",
+      "note": "on LC4/LPLC2->DN->AN19B001->GFC2/DLMn paths"
+    },
+    {
+      "type": "STTMm",
+      "role": "motor",
+      "count": 4,
+      "nt": "unclear",
+      "ntConf": 0.49,
+      "superclass": "vnc_motor",
+      "somaSide": {
+        "L": 2,
+        "R": 2
+      },
+      "bodyIds": [924167, 801391, 824223, 830847],
+      "tier": "extended"
+    },
+    {
+      "type": "Tergotr. MN",
+      "role": "motor",
+      "count": 12,
+      "nt": "unclear",
+      "ntConf": 0.62,
+      "superclass": "vnc_motor",
+      "somaSide": {
+        "R": 6,
+        "L": 6
+      },
+      "bodyIds": [
+        804866, 802552, 804514, 817347, 924716, 806204, 813755, 803237, 805741, 905849, 804465, 909521
+      ],
+      "tier": "extended",
+      "note": "12 neurons; likely other leg-promoter MNs, NOT necessarily TTMn; uncertain"
+    },
+    {
+      "type": "IN19B043",
+      "role": "inter",
+      "count": 9,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 5,
+        "R": 4
+      },
+      "bodyIds": [805926, 905984, 908183, 804556, 906554, 907803, 807532, 803023, 802531],
+      "tier": "extended"
+    },
+    {
+      "type": "IN19B067",
+      "role": "inter",
+      "count": 14,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 7,
+        "R": 7
+      },
+      "bodyIds": [
+        802139, 904161, 906553, 906613, 907385, 908143, 903416, 807534, 806106, 904399, 806513, 906228,
+        910309, 803382
+      ],
+      "tier": "extended"
+    },
+    {
+      "type": "IN03B089",
+      "role": "inter",
+      "count": 18,
+      "nt": "gaba",
+      "ntConf": 0.89,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 9,
+        "L": 9
+      },
+      "bodyIds": [
+        814184, 814945, 912271, 807698, 808361, 903417, 813691, 820205, 814841, 814151, 814569, 814810,
+        808771, 814352, 912387, 813950, 814444, 814186
+      ],
+      "tier": "extended"
+    },
+    {
+      "type": "IN06B066",
+      "role": "inter",
+      "count": 25,
+      "nt": "gaba",
+      "ntConf": 0.9,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 12,
+        "L": 13
+      },
+      "bodyIds": [
+        805611, 808519, 802309, 805188, 811091, 809320, 811983, 910267, 807661, 810368, 907274, 810744,
+        807444, 808805, 809991, 909003, 940582, 810169, 910202, 806869, 809014, 815337, 802889, 905703, 903853
+      ],
+      "tier": "extended"
+    },
+    {
+      "type": "IN17A071,IN17A081",
+      "role": "inter",
+      "count": 5,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 2,
+        "R": 3
+      },
+      "bodyIds": [807642, 808346, 905767, 908898, 803744],
+      "tier": "extended"
+    },
+    {
+      "type": "IN13A022",
+      "role": "inter",
+      "count": 8,
+      "nt": "gaba",
+      "ntConf": 0.85,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 4,
+        "R": 4
+      },
+      "bodyIds": [802487, 806795, 903701, 908895, 1050765441, 806737, 936362, 804906],
+      "tier": "extended"
+    },
+    {
+      "type": "IN19B075",
+      "role": "inter",
+      "count": 8,
+      "nt": "acetylcholine",
+      "ntConf": 0.93,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 4,
+        "L": 4
+      },
+      "bodyIds": [810905, 806588, 809510, 807117, 907276, 809151, 810188, 905268],
+      "tier": "extended"
+    },
+    {
+      "type": "IN03B086_d",
+      "role": "inter",
+      "count": 9,
+      "nt": "gaba",
+      "ntConf": 0.84,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 5,
+        "L": 4
+      },
+      "bodyIds": [818193, 817473, 817928, 818645, 817605, 817796, 817588, 907362, 822879],
+      "tier": "extended"
+    },
+    {
+      "type": "IN07B055",
+      "role": "inter",
+      "count": 9,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 5,
+        "R": 4
+      },
+      "bodyIds": [807885, 801529, 805694, 806981, 809212, 808493, 807919, 808097, 809044],
+      "tier": "extended"
+    },
+    {
+      "type": "IN13B008",
+      "role": "inter",
+      "count": 2,
+      "nt": "gaba",
+      "ntConf": 0.88,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [802063, 800920],
+      "tier": "extended"
+    },
+    {
+      "type": "IN18B034",
+      "role": "inter",
+      "count": 4,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 2,
+        "R": 2
+      },
+      "bodyIds": [804743, 805525, 804856, 803920],
+      "tier": "extended"
+    },
+    {
+      "type": "PVLP122",
+      "role": "inter",
+      "count": 6,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "cb_intrinsic",
+      "somaSide": {
+        "R": 3,
+        "L": 3
+      },
+      "bodyIds": [12184, 12215, 11927, 521693, 523921, 10992],
+      "tier": "extended"
+    },
+    {
+      "type": "IN04B036",
+      "role": "inter",
+      "count": 10,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 5,
+        "R": 5
+      },
+      "bodyIds": [806828, 904186, 805270, 803106, 808595, 804034, 802942, 804794, 807819, 805831],
+      "tier": "extended"
+    },
+    {
+      "type": "IN19B040",
+      "role": "inter",
+      "count": 4,
+      "nt": "acetylcholine",
+      "ntConf": 0.85,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 2,
+        "L": 2
+      },
+      "bodyIds": [805489, 805244, 805227, 805532],
+      "tier": "extended"
+    },
+    {
+      "type": "IN20A.22A001",
+      "role": "inter",
+      "count": 12,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 6,
+        "L": 6
+      },
+      "bodyIds": [
+        907751, 903500, 802257, 801287, 801349, 800756, 801146, 800095, 800263, 906687, 800466, 933395
+      ],
+      "tier": "extended"
+    },
+    {
+      "type": "IN07B044",
+      "role": "inter",
+      "count": 6,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 3,
+        "R": 3
+      },
+      "bodyIds": [1050186736, 808271, 806435, 908022, 808019, 806536],
+      "tier": "extended"
+    },
+    {
+      "type": "IN06B077",
+      "role": "inter",
+      "count": 7,
+      "nt": "gaba",
+      "ntConf": 0.89,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 4,
+        "R": 3
+      },
+      "bodyIds": [805964, 805349, 805467, 903314, 804996, 806203, 804995],
+      "tier": "extended"
+    },
+    {
+      "type": "IN03B057",
+      "role": "inter",
+      "count": 4,
+      "nt": "gaba",
+      "ntConf": 0.88,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 2,
+        "R": 2
+      },
+      "bodyIds": [806138, 812751, 810289, 811947],
+      "tier": "extended"
+    },
+    {
+      "type": "IN06A103",
+      "role": "inter",
+      "count": 6,
+      "nt": "gaba",
+      "ntConf": 0.88,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 3,
+        "L": 3
+      },
+      "bodyIds": [810493, 813418, 810689, 911524, 815600, 809800],
+      "tier": "extended"
+    },
+    {
+      "type": "EA06B010",
+      "role": "inter",
+      "count": 2,
+      "nt": "glutamate",
+      "ntConf": 0.76,
+      "superclass": "efferent_ascending",
+      "somaSide": {
+        "R": 1,
+        "L": 1
+      },
+      "bodyIds": [75379, 63441],
+      "tier": "extended"
+    },
+    {
+      "type": "SAD073",
+      "role": "inter",
+      "count": 4,
+      "nt": "gaba",
+      "ntConf": 0.84,
+      "superclass": "cb_intrinsic",
+      "somaSide": {
+        "L": 2,
+        "R": 2
+      },
+      "bodyIds": [11205, 10315, 13274, 16931],
+      "tier": "extended"
+    },
+    {
+      "type": "IN12B015",
+      "role": "inter",
+      "count": 2,
+      "nt": "gaba",
+      "ntConf": 0.89,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 1,
+        "L": 1
+      },
+      "bodyIds": [926518, 801828],
+      "tier": "extended"
+    },
+    {
+      "type": "IN01A020",
+      "role": "inter",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [11270, 923228],
+      "tier": "extended"
+    },
+    {
+      "type": "SAD064",
+      "role": "inter",
+      "count": 6,
+      "nt": "acetylcholine",
+      "ntConf": 0.93,
+      "superclass": "cb_intrinsic",
+      "somaSide": {
+        "R": 3,
+        "L": 3
+      },
+      "bodyIds": [13114, 15791, 17375, 527699, 15665, 25438],
+      "tier": "extended"
+    },
+    {
+      "type": "IN19B057",
+      "role": "inter",
+      "count": 7,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 4,
+        "R": 3
+      },
+      "bodyIds": [809518, 808460, 907977, 1052809763, 808230, 808298, 813681],
+      "tier": "extended"
+    },
+    {
+      "type": "AVLP452",
+      "role": "inter",
+      "count": 4,
+      "nt": "acetylcholine",
+      "ntConf": 0.92,
+      "superclass": "cb_intrinsic",
+      "somaSide": {
+        "L": 2,
+        "R": 2
+      },
+      "bodyIds": [519389, 531983, 85544, 531899],
+      "tier": "extended"
+    },
+    {
+      "type": "IN14A004",
+      "role": "inter",
+      "count": 6,
+      "nt": "glutamate",
+      "ntConf": 0.72,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 3,
+        "L": 3
+      },
+      "bodyIds": [802041, 800905, 801270, 801040, 807545, 902943],
+      "tier": "extended"
+    },
+    {
+      "type": "IN07B066",
+      "role": "inter",
+      "count": 9,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 4,
+        "R": 5
+      },
+      "bodyIds": [809891, 809868, 809586, 808438, 810540, 809244, 809827, 807361, 809856],
+      "tier": "extended"
+    },
+    {
+      "type": "AN05B006",
+      "role": "inter",
+      "count": 3,
+      "nt": "gaba",
+      "ntConf": 0.87,
+      "superclass": "ascending_neuron",
+      "somaSide": {
+        "L": 2,
+        "R": 1
+      },
+      "bodyIds": [14899, 18940, 521675],
+      "tier": "extended"
+    },
+    {
+      "type": "IN03B081",
+      "role": "inter",
+      "count": 6,
+      "nt": "gaba",
+      "ntConf": 0.87,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 3,
+        "L": 3
+      },
+      "bodyIds": [814539, 813127, 811939, 814284, 812307, 814956],
+      "tier": "extended"
+    },
+    {
+      "type": "DNg82",
+      "role": "descending",
+      "count": 4,
+      "nt": "acetylcholine",
+      "ntConf": 0.92,
+      "superclass": "descending_neuron",
+      "somaSide": {
+        "L": 2,
+        "R": 2
+      },
+      "bodyIds": [17199, 519570, 68005, 17120],
+      "tier": "extended"
+    },
+    {
+      "type": "IN03B086_b",
+      "role": "inter",
+      "count": 3,
+      "nt": "gaba",
+      "ntConf": 0.89,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 2,
+        "L": 1
+      },
+      "bodyIds": [817093, 807273, 911281],
+      "tier": "extended"
+    },
+    {
+      "type": "IN03B086_a",
+      "role": "inter",
+      "count": 3,
+      "nt": "gaba",
+      "ntConf": 0.88,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 2,
+        "R": 1
+      },
+      "bodyIds": [817809, 818227, 818138],
+      "tier": "extended"
+    },
+    {
+      "type": "IN13A032",
+      "role": "inter",
+      "count": 4,
+      "nt": "gaba",
+      "ntConf": 0.88,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 2,
+        "L": 2
+      },
+      "bodyIds": [807827, 809012, 807786, 905075],
+      "tier": "extended"
+    },
+    {
+      "type": "DNpe042",
+      "role": "descending",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.95,
+      "superclass": "descending_neuron",
+      "somaSide": {
+        "R": 1,
+        "L": 1
+      },
+      "bodyIds": [12628, 10091],
+      "tier": "extended"
+    },
+    {
+      "type": "TN1a_g",
+      "role": "inter",
+      "count": 4,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 2,
+        "R": 2
+      },
+      "bodyIds": [801245, 804350, 804639, 804949],
+      "tier": "extended"
+    },
+    {
+      "type": "IN07B058",
+      "role": "inter",
+      "count": 4,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 2,
+        "R": 2
+      },
+      "bodyIds": [807517, 935149, 806969, 806587],
+      "tier": "extended"
+    },
+    {
+      "type": "PVLP010",
+      "role": "inter",
+      "count": 2,
+      "nt": "glutamate",
+      "ntConf": 0.61,
+      "superclass": "cb_intrinsic",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [10074, 531985],
+      "tier": "extended"
+    },
+    {
+      "type": "IN12A058",
+      "role": "inter",
+      "count": 4,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 2,
+        "R": 2
+      },
+      "bodyIds": [811185, 809221, 911703, 810381],
+      "tier": "extended"
+    },
+    {
+      "type": "CL038",
+      "role": "inter",
+      "count": 4,
+      "nt": "glutamate",
+      "ntConf": 0.75,
+      "superclass": "cb_intrinsic",
+      "somaSide": {
+        "R": 2,
+        "L": 2
+      },
+      "bodyIds": [527704, 555227, 17144, 532569],
+      "tier": "extended"
+    },
+    {
+      "type": "IN18B038",
+      "role": "inter",
+      "count": 10,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 5,
+        "L": 5
+      },
+      "bodyIds": [803811, 802310, 803841, 804253, 803485, 803971, 804972, 804628, 806440, 809167],
+      "tier": "extended"
+    },
+    {
+      "type": "IN03B086_e",
+      "role": "inter",
+      "count": 3,
+      "nt": "gaba",
+      "ntConf": 0.89,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 1,
+        "L": 2
+      },
+      "bodyIds": [815478, 817206, 814038],
+      "tier": "extended"
+    },
+    {
+      "type": "CB1638",
+      "role": "inter",
+      "count": 11,
+      "nt": "acetylcholine",
+      "ntConf": 0.9,
+      "superclass": "cb_intrinsic",
+      "somaSide": {
+        "R": 5,
+        "L": 6
+      },
+      "bodyIds": [41612, 46221, 81419, 136628, 567484, 265578, 179528, 27620, 29523, 34869, 167070],
+      "tier": "extended"
+    },
+    {
+      "type": "IN19A002",
+      "role": "inter",
+      "count": 6,
+      "nt": "gaba",
+      "ntConf": 0.9,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 3,
+        "R": 3
+      },
+      "bodyIds": [800163, 809317, 903567, 800008, 902552, 800141],
+      "tier": "extended"
+    },
+    {
+      "type": "IN18B042",
+      "role": "inter",
+      "count": 6,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 3,
+        "R": 3
+      },
+      "bodyIds": [804783, 805973, 807056, 806508, 806975, 905284],
+      "tier": "extended"
+    },
+    {
+      "type": "IN08A002",
+      "role": "inter",
+      "count": 6,
+      "nt": "glutamate",
+      "ntConf": 0.79,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 3,
+        "R": 3
+      },
+      "bodyIds": [903604, 800256, 800340, 800081, 800353, 800318],
+      "tier": "extended"
+    },
+    {
+      "type": "PVLP123",
+      "role": "inter",
+      "count": 10,
+      "nt": "acetylcholine",
+      "ntConf": 0.95,
+      "superclass": "cb_intrinsic",
+      "somaSide": {
+        "R": 5,
+        "L": 5
+      },
+      "bodyIds": [16445, 17584, 512415, 15414, 17616, 18907, 16482, 15323, 514481, 17426],
+      "tier": "extended"
+    },
+    {
+      "type": "IN00A062",
+      "role": "inter",
+      "count": 3,
+      "nt": "gaba",
+      "ntConf": 0.82,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "M": 3
+      },
+      "bodyIds": [806876, 807265, 808257],
+      "tier": "extended"
+    },
+    {
+      "type": "DNa08",
+      "role": "descending",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.95,
+      "superclass": "descending_neuron",
+      "somaSide": {
+        "R": 1,
+        "L": 1
+      },
+      "bodyIds": [11392, 13509],
+      "tier": "extended"
+    },
+    {
+      "type": "AN08B098",
+      "role": "inter",
+      "count": 10,
+      "nt": "acetylcholine",
+      "ntConf": 0.95,
+      "superclass": "ascending_neuron",
+      "somaSide": {
+        "L": 5,
+        "R": 5
+      },
+      "bodyIds": [101681, 162384, 162487, 97309, 79158, 539202, 88408, 57245, 814460, 76294],
+      "tier": "extended"
+    },
+    {
+      "type": "TN1a_i",
+      "role": "inter",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [804090, 803766],
+      "tier": "extended"
+    },
+    {
+      "type": "IN06B013",
+      "role": "inter",
+      "count": 4,
+      "nt": "gaba",
+      "ntConf": 0.88,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 2,
+        "R": 2
+      },
+      "bodyIds": [800949, 802421, 801189, 800892],
+      "tier": "extended"
+    },
+    {
+      "type": "IN07B047",
+      "role": "inter",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [805803, 806481],
+      "tier": "extended"
+    },
+    {
+      "type": "AVLP094",
+      "role": "inter",
+      "count": 2,
+      "nt": "gaba",
+      "ntConf": 0.78,
+      "superclass": "cb_intrinsic",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [22292, 21548],
+      "tier": "extended"
+    },
+    {
+      "type": "IN10B032",
+      "role": "inter",
+      "count": 19,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 9,
+        "R": 10
+      },
+      "bodyIds": [
+        803769, 907021, 903084, 908974, 910111, 1053121323, 822919, 909315, 801024, 806891, 810237, 807321,
+        1051811012, 826083, 809929, 804242, 805221, 910107, 910869
+      ],
+      "tier": "extended"
+    },
+    {
+      "type": "IN18B031",
+      "role": "inter",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 1,
+        "L": 1
+      },
+      "bodyIds": [802471, 905139],
+      "tier": "extended"
+    },
+    {
+      "type": "IN20A.22A003",
+      "role": "inter",
+      "count": 4,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 2,
+        "R": 2
+      },
+      "bodyIds": [802383, 803035, 803228, 906407],
+      "tier": "extended"
+    },
+    {
+      "type": "IN06B016",
+      "role": "inter",
+      "count": 4,
+      "nt": "gaba",
+      "ntConf": 0.89,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 2,
+        "L": 2
+      },
+      "bodyIds": [800441, 800560, 913397, 800220],
+      "tier": "extended"
+    },
+    {
+      "type": "PVLP151",
+      "role": "inter",
+      "count": 4,
+      "nt": "acetylcholine",
+      "ntConf": 0.95,
+      "superclass": "cb_intrinsic",
+      "somaSide": {
+        "L": 2,
+        "R": 2
+      },
+      "bodyIds": [10173, 11826, 11677, 12275],
+      "tier": "extended"
+    },
+    {
+      "type": "CL367",
+      "role": "inter",
+      "count": 2,
+      "nt": "gaba",
+      "ntConf": 0.84,
+      "superclass": "cb_intrinsic",
+      "somaSide": {
+        "R": 1,
+        "L": 1
+      },
+      "bodyIds": [11361, 11832],
+      "tier": "extended"
+    },
+    {
+      "type": "AVLP498",
+      "role": "inter",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.95,
+      "superclass": "cb_intrinsic",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [30511, 11630],
+      "tier": "extended"
+    },
+    {
+      "type": "IN03B086_c",
+      "role": "inter",
+      "count": 2,
+      "nt": "gaba",
+      "ntConf": 0.84,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 1,
+        "L": 1
+      },
+      "bodyIds": [816458, 815862],
+      "tier": "extended"
+    },
+    {
+      "type": "AVLP396",
+      "role": "inter",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.95,
+      "superclass": "cb_intrinsic",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [10780, 12041],
+      "tier": "extended"
+    },
+    {
+      "type": "IN21A002",
+      "role": "inter",
+      "count": 6,
+      "nt": "glutamate",
+      "ntConf": 0.68,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 3,
+        "L": 3
+      },
+      "bodyIds": [800371, 911639, 801017, 800857, 800976, 801091],
+      "tier": "extended"
+    },
+    {
+      "type": "IN00A047",
+      "role": "inter",
+      "count": 5,
+      "nt": "gaba",
+      "ntConf": 0.84,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "M": 5
+      },
+      "bodyIds": [908152, 928393, 806825, 811111, 940733],
+      "tier": "extended"
+    },
+    {
+      "type": "DNg40",
+      "role": "descending",
+      "count": 2,
+      "nt": "glutamate",
+      "ntConf": 0.62,
+      "superclass": "descending_neuron",
+      "somaSide": {
+        "R": 1,
+        "L": 1
+      },
+      "bodyIds": [10923, 10361],
+      "tier": "extended"
+    },
+    {
+      "type": "IN06B079",
+      "role": "inter",
+      "count": 12,
+      "nt": "gaba",
+      "ntConf": 0.88,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 6,
+        "L": 6
+      },
+      "bodyIds": [
+        813612, 805299, 810298, 910212, 1051364845, 812144, 813721, 809204, 907275, 809259, 811347, 910553
+      ],
+      "tier": "extended"
+    },
+    {
+      "type": "TN1a_h",
+      "role": "inter",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [801247, 803438],
+      "tier": "extended"
+    },
+    {
+      "type": "IN07B048",
+      "role": "inter",
+      "count": 6,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 3,
+        "R": 3
+      },
+      "bodyIds": [807060, 852709, 904535, 806583, 805813, 805139],
+      "tier": "extended"
+    },
+    {
+      "type": "IN07B077",
+      "role": "inter",
+      "count": 6,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 3,
+        "R": 3
+      },
+      "bodyIds": [912454, 812281, 813106, 811131, 811417, 811407],
+      "tier": "extended"
+    },
+    {
+      "type": "IN07B080",
+      "role": "inter",
+      "count": 7,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 4,
+        "L": 3
+      },
+      "bodyIds": [807815, 807993, 808174, 812188, 808873, 809291, 808003],
+      "tier": "extended"
+    },
+    {
+      "type": "PVLP062",
+      "role": "inter",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.95,
+      "superclass": "cb_intrinsic",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [11272, 534038],
+      "tier": "extended"
+    },
+    {
+      "type": "IN12B012",
+      "role": "inter",
+      "count": 6,
+      "nt": "gaba",
+      "ntConf": 0.89,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 3,
+        "R": 3
+      },
+      "bodyIds": [912063, 904271, 802001, 802173, 903264, 801494],
+      "tier": "extended"
+    },
+    {
+      "type": "IN03B035",
+      "role": "inter",
+      "count": 8,
+      "nt": "gaba",
+      "ntConf": 0.89,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 4,
+        "L": 4
+      },
+      "bodyIds": [804769, 801713, 801849, 803287, 800093, 801457, 804272, 804442],
+      "tier": "extended"
+    },
+    {
+      "type": "IN07B054",
+      "role": "inter",
+      "count": 9,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 4,
+        "L": 5
+      },
+      "bodyIds": [806903, 808137, 804364, 807512, 806662, 806125, 803377, 806397, 807263],
+      "tier": "extended"
+    },
+    {
+      "type": "IN07B084",
+      "role": "inter",
+      "count": 4,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 2,
+        "R": 2
+      },
+      "bodyIds": [811393, 811639, 940636, 809115],
+      "tier": "extended"
+    },
+    {
+      "type": "AN12B001",
+      "role": "inter",
+      "count": 2,
+      "nt": "gaba",
+      "ntConf": 0.87,
+      "superclass": "ascending_neuron",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [10689, 10797],
+      "tier": "extended"
+    },
+    {
+      "type": "IN19B086",
+      "role": "inter",
+      "count": 9,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 5,
+        "L": 4
+      },
+      "bodyIds": [908897, 910308, 807770, 946036, 816276, 912340, 811927, 809254, 806313],
+      "tier": "extended"
+    },
+    {
+      "type": "JO-B1_a",
+      "role": "sensor",
+      "count": 17,
+      "nt": "acetylcholine",
+      "ntConf": 0.84,
+      "superclass": "cb_sensory",
+      "somaSide": {
+        "?": 17
+      },
+      "bodyIds": [
+        296920599, 519458, 195871166, 42619, 79679, 82361, 106702, 213985, 519875, 522305, 522306, 547920,
+        922950, 928361, 957696, 932780, 724236497
+      ],
+      "tier": "extended",
+      "note": "only mechanosensory (Johnston organ) type with notable GF input (545); somaSide absent for JO"
+    },
+    {
+      "type": "IN21A026",
+      "role": "inter",
+      "count": 3,
+      "nt": "glutamate",
+      "ntConf": 0.61,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 1,
+        "L": 2
+      },
+      "bodyIds": [808185, 808060, 808305],
+      "tier": "extended"
+    },
+    {
+      "type": "IN13B011",
+      "role": "inter",
+      "count": 6,
+      "nt": "gaba",
+      "ntConf": 0.9,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 3,
+        "R": 3
+      },
+      "bodyIds": [801542, 801378, 800156, 801254, 802167, 802012],
+      "tier": "extended"
+    },
+    {
+      "type": "DNp03",
+      "role": "descending",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.96,
+      "superclass": "descending_neuron",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [10752, 10989],
+      "tier": "extended"
+    },
+    {
+      "type": "AVLP442",
+      "role": "inter",
+      "count": 2,
+      "nt": "acetylcholine",
+      "ntConf": 0.95,
+      "superclass": "cb_intrinsic",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [10098, 31440],
+      "tier": "extended"
+    },
+    {
+      "type": "IN21A063",
+      "role": "inter",
+      "count": 5,
+      "nt": "glutamate",
+      "ntConf": 0.73,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 2,
+        "R": 3
+      },
+      "bodyIds": [809628, 905894, 909556, 813090, 805064],
+      "tier": "extended"
+    },
+    {
+      "type": "IN06B087",
+      "role": "inter",
+      "count": 6,
+      "nt": "gaba",
+      "ntConf": 0.86,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "R": 3,
+        "L": 3
+      },
+      "bodyIds": [807529, 810226, 810944, 815005, 814714, 807966],
+      "tier": "extended"
+    },
+    {
+      "type": "AVLP093",
+      "role": "inter",
+      "count": 2,
+      "nt": "gaba",
+      "ntConf": 0.76,
+      "superclass": "cb_intrinsic",
+      "somaSide": {
+        "L": 1,
+        "R": 1
+      },
+      "bodyIds": [20885, 26056],
+      "tier": "extended"
+    },
+    {
+      "type": "IN17A017",
+      "role": "inter",
+      "count": 6,
+      "nt": "acetylcholine",
+      "ntConf": 0.97,
+      "superclass": "vnc_intrinsic",
+      "somaSide": {
+        "L": 3,
+        "R": 3
+      },
+      "bodyIds": [932581, 800133, 801087, 801342, 801133, 902722],
+      "tier": "extended"
+    }
+  ],
+  "edges": [
+    {
+      "pre": "LPLC2",
+      "post": "LPLC2",
+      "weight": 46178,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC1",
+      "post": "LPLC1",
+      "weight": 20774,
+      "sign": 1
+    },
+    {
+      "pre": "LC4",
+      "post": "LC4",
+      "weight": 18392,
+      "sign": 1
+    },
+    {
+      "pre": "LC4",
+      "post": "DNp04",
+      "weight": 11597,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B043",
+      "post": "DLMn c-f",
+      "weight": 8108,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B067",
+      "post": "DLMn c-f",
+      "weight": 7448,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC2",
+      "post": "PVLP151",
+      "weight": 6771,
+      "sign": 1
+    },
+    {
+      "pre": "LC4",
+      "post": "DNp01",
+      "weight": 6362,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC4",
+      "post": "LPLC4",
+      "weight": 5599,
+      "sign": 1
+    },
+    {
+      "pre": "LC6",
+      "post": "LC6",
+      "weight": 5410,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC2",
+      "post": "DNp103",
+      "weight": 5065,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC2",
+      "post": "DNp01",
+      "weight": 4862,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B089",
+      "post": "DLMn c-f",
+      "weight": 4565,
+      "sign": -1
+    },
+    {
+      "pre": "LC4",
+      "post": "PVLP122",
+      "weight": 4534,
+      "sign": 1
+    },
+    {
+      "pre": "LC4",
+      "post": "DNp02",
+      "weight": 4209,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B066",
+      "post": "DLMn c-f",
+      "weight": 4198,
+      "sign": -1
+    },
+    {
+      "pre": "LPLC4",
+      "post": "DNp03",
+      "weight": 3740,
+      "sign": 1
+    },
+    {
+      "pre": "LC4",
+      "post": "DNp11",
+      "weight": 3666,
+      "sign": 1
+    },
+    {
+      "pre": "IN08A002",
+      "post": "IN19A002",
+      "weight": 3645,
+      "sign": -1
+    },
+    {
+      "pre": "LPLC1",
+      "post": "DNp03",
+      "weight": 3602,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC2",
+      "post": "LPLC4",
+      "weight": 3476,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC2",
+      "post": "DNp04",
+      "weight": 3398,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC2",
+      "post": "DNg40",
+      "weight": 2998,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC2",
+      "post": "LC4",
+      "weight": 2902,
+      "sign": 1
+    },
+    {
+      "pre": "IN20A.22A001",
+      "post": "Tergotr. MN",
+      "weight": 2807,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC1",
+      "post": "DNp06",
+      "weight": 2773,
+      "sign": 1
+    },
+    {
+      "pre": "LC6",
+      "post": "PVLP151",
+      "weight": 2679,
+      "sign": 1
+    },
+    {
+      "pre": "LC4",
+      "post": "DNp03",
+      "weight": 2507,
+      "sign": 1
+    },
+    {
+      "pre": "LC4",
+      "post": "AVLP452",
+      "weight": 2471,
+      "sign": 1
+    },
+    {
+      "pre": "LC6",
+      "post": "AVLP498",
+      "weight": 2453,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC1",
+      "post": "LC4",
+      "weight": 2398,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B086_d",
+      "post": "DLMn c-f",
+      "weight": 2361,
+      "sign": -1
+    },
+    {
+      "pre": "IN17A071,IN17A081",
+      "post": "DLMn c-f",
+      "weight": 2306,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B075",
+      "post": "DLMn c-f",
+      "weight": 2181,
+      "sign": 1
+    },
+    {
+      "pre": "LC4",
+      "post": "PVLP010",
+      "weight": 2176,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC4",
+      "post": "DNp31",
+      "weight": 2022,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B067",
+      "post": "DLMn a, b",
+      "weight": 1961,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B043",
+      "post": "DLMn a, b",
+      "weight": 1953,
+      "sign": 1
+    },
+    {
+      "pre": "IN20A.22A001",
+      "post": "STTMm",
+      "weight": 1814,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B089",
+      "post": "DLMn a, b",
+      "weight": 1747,
+      "sign": -1
+    },
+    {
+      "pre": "LC4",
+      "post": "SAD064",
+      "weight": 1732,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC2",
+      "post": "DNp06",
+      "weight": 1719,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B066",
+      "post": "DLMn a, b",
+      "weight": 1565,
+      "sign": -1
+    },
+    {
+      "pre": "IN04B036",
+      "post": "GFC2",
+      "weight": 1553,
+      "sign": 1
+    },
+    {
+      "pre": "IN13A022",
+      "post": "GFC2",
+      "weight": 1543,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP123",
+      "post": "DNp06",
+      "weight": 1528,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B055",
+      "post": "GFC2",
+      "weight": 1527,
+      "sign": 1
+    },
+    {
+      "pre": "LC4",
+      "post": "PVLP151",
+      "weight": 1526,
+      "sign": 1
+    },
+    {
+      "pre": "IN08A002",
+      "post": "IN20A.22A001",
+      "weight": 1477,
+      "sign": -1
+    },
+    {
+      "pre": "IN13B008",
+      "post": "GFC2",
+      "weight": 1461,
+      "sign": -1
+    },
+    {
+      "pre": "DNp70",
+      "post": "DNp01",
+      "weight": 1416,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B035",
+      "post": "IN20A.22A001",
+      "weight": 1275,
+      "sign": -1
+    },
+    {
+      "pre": "IN19B040",
+      "post": "DLMn c-f",
+      "weight": 1253,
+      "sign": 1
+    },
+    {
+      "pre": "LC6",
+      "post": "AVLP396",
+      "weight": 1241,
+      "sign": 1
+    },
+    {
+      "pre": "SAD064",
+      "post": "LC4",
+      "weight": 1241,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B057",
+      "post": "DLMn c-f",
+      "weight": 1238,
+      "sign": -1
+    },
+    {
+      "pre": "IN18B034",
+      "post": "DLMn c-f",
+      "weight": 1233,
+      "sign": 1
+    },
+    {
+      "pre": "IN20A.22A001",
+      "post": "GFC2",
+      "weight": 1231,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "DNp01",
+      "weight": 1216,
+      "sign": 1
+    },
+    {
+      "pre": "SAD064",
+      "post": "DNp01",
+      "weight": 1215,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B077",
+      "post": "DLMn c-f",
+      "weight": 1203,
+      "sign": -1
+    },
+    {
+      "pre": "SAD073",
+      "post": "DNp01",
+      "weight": 1177,
+      "sign": -1
+    },
+    {
+      "pre": "LPLC4",
+      "post": "DNg82",
+      "weight": 1155,
+      "sign": 1
+    },
+    {
+      "pre": "LC4",
+      "post": "DNp06",
+      "weight": 1152,
+      "sign": 1
+    },
+    {
+      "pre": "AN19B001",
+      "post": "DLMn c-f",
+      "weight": 1139,
+      "sign": 1
+    },
+    {
+      "pre": "DNp31",
+      "post": "DLMn c-f",
+      "weight": 1128,
+      "sign": 1
+    },
+    {
+      "pre": "IN17A017",
+      "post": "Tergotr. MN",
+      "weight": 1115,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "GFC2",
+      "weight": 1089,
+      "sign": 1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "AN08B098",
+      "weight": 1042,
+      "sign": -1
+    },
+    {
+      "pre": "LPLC1",
+      "post": "DNp11",
+      "weight": 1041,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B066",
+      "post": "IN19B067",
+      "weight": 1037,
+      "sign": -1
+    },
+    {
+      "pre": "IN12B012",
+      "post": "IN20A.22A001",
+      "weight": 1025,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "DNp06",
+      "weight": 1018,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP498",
+      "post": "AVLP396",
+      "weight": 1007,
+      "sign": 1
+    },
+    {
+      "pre": "IN01A020",
+      "post": "DLMn c-f",
+      "weight": 1002,
+      "sign": 1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "AN19B001",
+      "weight": 1000,
+      "sign": -1
+    },
+    {
+      "pre": "LPLC1",
+      "post": "DNp103",
+      "weight": 998,
+      "sign": 1
+    },
+    {
+      "pre": "IN13A022",
+      "post": "TTMn",
+      "weight": 987,
+      "sign": -1
+    },
+    {
+      "pre": "LC4",
+      "post": "DNg40",
+      "weight": 980,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC2",
+      "post": "PVLP122",
+      "weight": 972,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP123",
+      "post": "DNg40",
+      "weight": 969,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B081",
+      "post": "DLMn c-f",
+      "weight": 959,
+      "sign": -1
+    },
+    {
+      "pre": "IN17A071,IN17A081",
+      "post": "DLMn a, b",
+      "weight": 941,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B066",
+      "post": "IN19B043",
+      "weight": 940,
+      "sign": -1
+    },
+    {
+      "pre": "SAD073",
+      "post": "DNg40",
+      "weight": 930,
+      "sign": -1
+    },
+    {
+      "pre": "LPLC2",
+      "post": "AVLP396",
+      "weight": 922,
+      "sign": 1
+    },
+    {
+      "pre": "IN06A103",
+      "post": "DLMn c-f",
+      "weight": 919,
+      "sign": -1
+    },
+    {
+      "pre": "IN04B036",
+      "post": "IN19A002",
+      "weight": 914,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B040",
+      "post": "IN19B040",
+      "weight": 901,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B066",
+      "post": "IN19B057",
+      "weight": 878,
+      "sign": -1
+    },
+    {
+      "pre": "IN12B015",
+      "post": "DLMn c-f",
+      "weight": 864,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B044",
+      "post": "GFC2",
+      "weight": 857,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B075",
+      "post": "DLMn a, b",
+      "weight": 849,
+      "sign": 1
+    },
+    {
+      "pre": "LC6",
+      "post": "DNp103",
+      "weight": 848,
+      "sign": 1
+    },
+    {
+      "pre": "IN12B012",
+      "post": "Tergotr. MN",
+      "weight": 830,
+      "sign": -1
+    },
+    {
+      "pre": "IN13B011",
+      "post": "IN20A.22A001",
+      "weight": 829,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "DNg40",
+      "weight": 824,
+      "sign": 1
+    },
+    {
+      "pre": "DNp02",
+      "post": "AN19B001",
+      "weight": 818,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN19A002",
+      "weight": 815,
+      "sign": 1
+    },
+    {
+      "pre": "DNp06",
+      "post": "AN19B001",
+      "weight": 806,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B089",
+      "post": "IN19B043",
+      "weight": 791,
+      "sign": -1
+    },
+    {
+      "pre": "IN19B057",
+      "post": "DLMn c-f",
+      "weight": 787,
+      "sign": 1
+    },
+    {
+      "pre": "DNg82",
+      "post": "DLMn c-f",
+      "weight": 784,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "DNp06",
+      "weight": 776,
+      "sign": -1
+    },
+    {
+      "pre": "DNa08",
+      "post": "IN19B043",
+      "weight": 773,
+      "sign": 1
+    },
+    {
+      "pre": "CL367",
+      "post": "PVLP122",
+      "weight": 754,
+      "sign": -1
+    },
+    {
+      "pre": "CL367",
+      "post": "DNp103",
+      "weight": 749,
+      "sign": -1
+    },
+    {
+      "pre": "CL367",
+      "post": "PVLP123",
+      "weight": 749,
+      "sign": -1
+    },
+    {
+      "pre": "IN17A017",
+      "post": "STTMm",
+      "weight": 746,
+      "sign": 1
+    },
+    {
+      "pre": "IN12A058",
+      "post": "DLMn c-f",
+      "weight": 728,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "PVLP122",
+      "weight": 726,
+      "sign": 1
+    },
+    {
+      "pre": "TN1a_g",
+      "post": "DLMn c-f",
+      "weight": 720,
+      "sign": 1
+    },
+    {
+      "pre": "DNp31",
+      "post": "IN06B066",
+      "weight": 720,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B086_e",
+      "post": "DLMn c-f",
+      "weight": 711,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "DNp01",
+      "weight": 711,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "PVLP123",
+      "weight": 708,
+      "sign": -1
+    },
+    {
+      "pre": "IN06B016",
+      "post": "AN19B001",
+      "weight": 703,
+      "sign": -1
+    },
+    {
+      "pre": "IN06B066",
+      "post": "IN19B086",
+      "weight": 692,
+      "sign": -1
+    },
+    {
+      "pre": "DNp103",
+      "post": "AN05B006",
+      "weight": 680,
+      "sign": 1
+    },
+    {
+      "pre": "DNa08",
+      "post": "DLMn c-f",
+      "weight": 678,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP151",
+      "post": "LPLC2",
+      "weight": 678,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "DNp70",
+      "weight": 676,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP498",
+      "post": "DNp70",
+      "weight": 653,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP151",
+      "post": "DNp06",
+      "weight": 643,
+      "sign": 1
+    },
+    {
+      "pre": "DNp70",
+      "post": "AVLP452",
+      "weight": 642,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B086_a",
+      "post": "DLMn c-f",
+      "weight": 634,
+      "sign": -1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN13B008",
+      "weight": 634,
+      "sign": 1
+    },
+    {
+      "pre": "IN20A.22A001",
+      "post": "IN12B012",
+      "weight": 629,
+      "sign": 1
+    },
+    {
+      "pre": "EA06B010",
+      "post": "GFC2",
+      "weight": 626,
+      "sign": -1
+    },
+    {
+      "pre": "IN20A.22A003",
+      "post": "IN20A.22A001",
+      "weight": 624,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B013",
+      "post": "DLMn c-f",
+      "weight": 622,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP123",
+      "post": "DNp01",
+      "weight": 620,
+      "sign": 1
+    },
+    {
+      "pre": "IN08A002",
+      "post": "IN12B012",
+      "weight": 614,
+      "sign": -1
+    },
+    {
+      "pre": "DNp103",
+      "post": "AN19B001",
+      "weight": 611,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP123",
+      "post": "PVLP123",
+      "weight": 609,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B086_c",
+      "post": "DLMn c-f",
+      "weight": 607,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP151",
+      "post": "DNp01",
+      "weight": 603,
+      "sign": 1
+    },
+    {
+      "pre": "DNpe042",
+      "post": "DNp103",
+      "weight": 600,
+      "sign": 1
+    },
+    {
+      "pre": "CL038",
+      "post": "DNpe042",
+      "weight": 597,
+      "sign": -1
+    },
+    {
+      "pre": "IN18B042",
+      "post": "DLMn c-f",
+      "weight": 590,
+      "sign": 1
+    },
+    {
+      "pre": "DNp11",
+      "post": "IN18B038",
+      "weight": 582,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B086_b",
+      "post": "DLMn c-f",
+      "weight": 580,
+      "sign": -1
+    },
+    {
+      "pre": "AN19B001",
+      "post": "IN19B067",
+      "weight": 577,
+      "sign": 1
+    },
+    {
+      "pre": "SAD064",
+      "post": "DNp11",
+      "weight": 576,
+      "sign": 1
+    },
+    {
+      "pre": "DNp70",
+      "post": "DNg40",
+      "weight": 575,
+      "sign": 1
+    },
+    {
+      "pre": "TN1a_i",
+      "post": "DLMn c-f",
+      "weight": 574,
+      "sign": 1
+    },
+    {
+      "pre": "SAD064",
+      "post": "DNp02",
+      "weight": 570,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "DNp103",
+      "weight": 570,
+      "sign": 1
+    },
+    {
+      "pre": "DNp11",
+      "post": "AN19B001",
+      "weight": 568,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B075",
+      "post": "IN19B043",
+      "weight": 568,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B043",
+      "post": "IN19B067",
+      "weight": 566,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B035",
+      "post": "GFC2",
+      "weight": 558,
+      "sign": -1
+    },
+    {
+      "pre": "CL038",
+      "post": "DNp01",
+      "weight": 549,
+      "sign": -1
+    },
+    {
+      "pre": "IN20A.22A003",
+      "post": "GFC2",
+      "weight": 546,
+      "sign": 1
+    },
+    {
+      "pre": "JO-B1_a",
+      "post": "DNp01",
+      "weight": 545,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B079",
+      "post": "DLMn c-f",
+      "weight": 542,
+      "sign": -1
+    },
+    {
+      "pre": "CL367",
+      "post": "DNp01",
+      "weight": 537,
+      "sign": -1
+    },
+    {
+      "pre": "IN03B086_d",
+      "post": "DLMn a, b",
+      "weight": 535,
+      "sign": -1
+    },
+    {
+      "pre": "IN13A032",
+      "post": "STTMm",
+      "weight": 530,
+      "sign": -1
+    },
+    {
+      "pre": "IN12B012",
+      "post": "GFC2",
+      "weight": 526,
+      "sign": -1
+    },
+    {
+      "pre": "AN12B001",
+      "post": "DNp01",
+      "weight": 525,
+      "sign": -1
+    },
+    {
+      "pre": "LPLC2",
+      "post": "DNpe042",
+      "weight": 522,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP123",
+      "post": "PVLP010",
+      "weight": 521,
+      "sign": 1
+    },
+    {
+      "pre": "AN19B001",
+      "post": "IN06B066",
+      "weight": 518,
+      "sign": 1
+    },
+    {
+      "pre": "DNp04",
+      "post": "AN19B001",
+      "weight": 511,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B077",
+      "post": "DLMn c-f",
+      "weight": 511,
+      "sign": 1
+    },
+    {
+      "pre": "IN14A004",
+      "post": "GFC3",
+      "weight": 510,
+      "sign": -1
+    },
+    {
+      "pre": "IN21A026",
+      "post": "TTMn",
+      "weight": 507,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "AVLP452",
+      "weight": 506,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B047",
+      "post": "DLMn a, b",
+      "weight": 503,
+      "sign": 1
+    },
+    {
+      "pre": "DNpe042",
+      "post": "DNp01",
+      "weight": 494,
+      "sign": 1
+    },
+    {
+      "pre": "IN13B011",
+      "post": "GFC2",
+      "weight": 494,
+      "sign": -1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN07B044",
+      "weight": 488,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP062",
+      "post": "DNp01",
+      "weight": 486,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN18B034",
+      "weight": 483,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "TTMn",
+      "weight": 481,
+      "sign": 1
+    },
+    {
+      "pre": "IN17A017",
+      "post": "GFC2",
+      "weight": 476,
+      "sign": 1
+    },
+    {
+      "pre": "IN13A022",
+      "post": "STTMm",
+      "weight": 476,
+      "sign": -1
+    },
+    {
+      "pre": "AN19B001",
+      "post": "IN19B043",
+      "weight": 473,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B089",
+      "post": "IN19B067",
+      "weight": 471,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B058",
+      "post": "GFC2",
+      "weight": 464,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "DLMn c-f",
+      "weight": 463,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP062",
+      "post": "DNg40",
+      "weight": 460,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC2",
+      "post": "PVLP123",
+      "weight": 457,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B054",
+      "post": "AN19B001",
+      "weight": 452,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B038",
+      "post": "IN03B035",
+      "weight": 450,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B040",
+      "post": "IN19B067",
+      "weight": 450,
+      "sign": 1
+    },
+    {
+      "pre": "IN10B032",
+      "post": "AN19B001",
+      "weight": 449,
+      "sign": 1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "DNp70",
+      "weight": 448,
+      "sign": -1
+    },
+    {
+      "pre": "DNa08",
+      "post": "IN19B067",
+      "weight": 446,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP442",
+      "post": "DNp103",
+      "weight": 438,
+      "sign": 1
+    },
+    {
+      "pre": "AN19B001",
+      "post": "EA06B010",
+      "weight": 438,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP123",
+      "post": "DNp103",
+      "weight": 437,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP442",
+      "post": "CL038",
+      "weight": 436,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B040",
+      "post": "IN19B043",
+      "weight": 436,
+      "sign": 1
+    },
+    {
+      "pre": "DNp70",
+      "post": "IN18B038",
+      "weight": 432,
+      "sign": 1
+    },
+    {
+      "pre": "DNp04",
+      "post": "PVLP010",
+      "weight": 432,
+      "sign": 1
+    },
+    {
+      "pre": "TN1a_h",
+      "post": "DLMn c-f",
+      "weight": 428,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B057",
+      "post": "IN19B043",
+      "weight": 428,
+      "sign": -1
+    },
+    {
+      "pre": "CL367",
+      "post": "DNpe042",
+      "weight": 427,
+      "sign": -1
+    },
+    {
+      "pre": "IN17A017",
+      "post": "IN12B012",
+      "weight": 425,
+      "sign": 1
+    },
+    {
+      "pre": "AN19B001",
+      "post": "IN06B013",
+      "weight": 424,
+      "sign": 1
+    },
+    {
+      "pre": "IN10B032",
+      "post": "PSI",
+      "weight": 424,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP442",
+      "post": "DNp70",
+      "weight": 423,
+      "sign": 1
+    },
+    {
+      "pre": "IN04B036",
+      "post": "IN04B036",
+      "weight": 420,
+      "sign": 1
+    },
+    {
+      "pre": "LC4",
+      "post": "PVLP123",
+      "weight": 419,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B075",
+      "post": "IN19B067",
+      "weight": 417,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B057",
+      "post": "DLMn a, b",
+      "weight": 416,
+      "sign": 1
+    },
+    {
+      "pre": "DNp70",
+      "post": "CB1638",
+      "weight": 413,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "DNg40",
+      "weight": 413,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "CL038",
+      "weight": 412,
+      "sign": 1
+    },
+    {
+      "pre": "AN19B001",
+      "post": "DLMn a, b",
+      "weight": 407,
+      "sign": 1
+    },
+    {
+      "pre": "PSI",
+      "post": "DLMn c-f",
+      "weight": 406,
+      "sign": 0
+    },
+    {
+      "pre": "PVLP151",
+      "post": "DNp103",
+      "weight": 406,
+      "sign": 1
+    },
+    {
+      "pre": "DNp03",
+      "post": "DLMn c-f",
+      "weight": 405,
+      "sign": 1
+    },
+    {
+      "pre": "IN06A103",
+      "post": "GFC2",
+      "weight": 405,
+      "sign": -1
+    },
+    {
+      "pre": "DNp103",
+      "post": "IN07B054",
+      "weight": 402,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B086_b",
+      "post": "DLMn a, b",
+      "weight": 400,
+      "sign": -1
+    },
+    {
+      "pre": "AN08B098",
+      "post": "DNp01",
+      "weight": 399,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B040",
+      "post": "DLMn a, b",
+      "weight": 397,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B048",
+      "post": "DLMn c-f",
+      "weight": 396,
+      "sign": 1
+    },
+    {
+      "pre": "CB1638",
+      "post": "DNp01",
+      "weight": 396,
+      "sign": 1
+    },
+    {
+      "pre": "CB1638",
+      "post": "DNp02",
+      "weight": 396,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B086",
+      "post": "IN13A022",
+      "weight": 392,
+      "sign": 1
+    },
+    {
+      "pre": "GFC3",
+      "post": "IN08A002",
+      "weight": 389,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN13A022",
+      "weight": 387,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B031",
+      "post": "GFC2",
+      "weight": 386,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B066",
+      "post": "IN00A047",
+      "weight": 384,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP442",
+      "post": "PVLP122",
+      "weight": 383,
+      "sign": 1
+    },
+    {
+      "pre": "IN13A032",
+      "post": "GFC2",
+      "weight": 381,
+      "sign": -1
+    },
+    {
+      "pre": "IN03B089",
+      "post": "IN19B075",
+      "weight": 379,
+      "sign": -1
+    },
+    {
+      "pre": "DNp04",
+      "post": "PVLP122",
+      "weight": 377,
+      "sign": 1
+    },
+    {
+      "pre": "CL038",
+      "post": "DNp103",
+      "weight": 375,
+      "sign": -1
+    },
+    {
+      "pre": "IN20A.22A001",
+      "post": "IN07B044",
+      "weight": 375,
+      "sign": 1
+    },
+    {
+      "pre": "AN19B001",
+      "post": "GFC2",
+      "weight": 373,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP498",
+      "post": "PVLP122",
+      "weight": 372,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN07B055",
+      "weight": 371,
+      "sign": 1
+    },
+    {
+      "pre": "DNp103",
+      "post": "IN07B080",
+      "weight": 370,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B016",
+      "post": "IN01A020",
+      "weight": 361,
+      "sign": -1
+    },
+    {
+      "pre": "LC4",
+      "post": "LPLC2",
+      "weight": 361,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP094",
+      "post": "DNp70",
+      "weight": 359,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B066",
+      "post": "GFC3",
+      "weight": 359,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "PVLP151",
+      "weight": 358,
+      "sign": 1
+    },
+    {
+      "pre": "IN12B012",
+      "post": "STTMm",
+      "weight": 358,
+      "sign": -1
+    },
+    {
+      "pre": "IN06B016",
+      "post": "GFC2",
+      "weight": 356,
+      "sign": -1
+    },
+    {
+      "pre": "EA06B010",
+      "post": "DLMn c-f",
+      "weight": 355,
+      "sign": -1
+    },
+    {
+      "pre": "GFC3",
+      "post": "IN21A002",
+      "weight": 355,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B087",
+      "post": "DLMn c-f",
+      "weight": 354,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP452",
+      "post": "DNp01",
+      "weight": 354,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP396",
+      "post": "DNp103",
+      "weight": 354,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B067",
+      "post": "IN06B066",
+      "weight": 353,
+      "sign": 1
+    },
+    {
+      "pre": "AN19B001",
+      "post": "IN07B055",
+      "weight": 349,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "GFC3",
+      "weight": 348,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B034",
+      "post": "DLMn a, b",
+      "weight": 347,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B066",
+      "post": "IN17A071,IN17A081",
+      "weight": 346,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP396",
+      "post": "DNp70",
+      "weight": 344,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "LC4",
+      "weight": 344,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B077",
+      "post": "IN19B043",
+      "weight": 342,
+      "sign": -1
+    },
+    {
+      "pre": "IN03B086_a",
+      "post": "DLMn a, b",
+      "weight": 341,
+      "sign": -1
+    },
+    {
+      "pre": "DNp31",
+      "post": "IN19B043",
+      "weight": 337,
+      "sign": 1
+    },
+    {
+      "pre": "LC4",
+      "post": "DNp103",
+      "weight": 335,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B066",
+      "post": "GFC2",
+      "weight": 335,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP123",
+      "post": "DNp02",
+      "weight": 333,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP442",
+      "post": "DNpe042",
+      "weight": 333,
+      "sign": 1
+    },
+    {
+      "pre": "IN14A004",
+      "post": "GFC4",
+      "weight": 333,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "DNpe042",
+      "weight": 331,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B077",
+      "post": "DLMn a, b",
+      "weight": 330,
+      "sign": -1
+    },
+    {
+      "pre": "IN13B008",
+      "post": "IN20A.22A001",
+      "weight": 330,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP151",
+      "post": "DNg40",
+      "weight": 325,
+      "sign": 1
+    },
+    {
+      "pre": "IN13A032",
+      "post": "TTMn",
+      "weight": 325,
+      "sign": -1
+    },
+    {
+      "pre": "GFC2",
+      "post": "DLMn a, b",
+      "weight": 322,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "CL367",
+      "weight": 320,
+      "sign": 1
+    },
+    {
+      "pre": "IN04B036",
+      "post": "IN21A002",
+      "weight": 320,
+      "sign": 1
+    },
+    {
+      "pre": "IN13B008",
+      "post": "IN07B044",
+      "weight": 318,
+      "sign": -1
+    },
+    {
+      "pre": "EA06B010",
+      "post": "PSI",
+      "weight": 318,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP396",
+      "post": "DNpe042",
+      "weight": 317,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP151",
+      "post": "PVLP122",
+      "weight": 315,
+      "sign": 1
+    },
+    {
+      "pre": "GFC4",
+      "post": "IN08A002",
+      "weight": 308,
+      "sign": 1
+    },
+    {
+      "pre": "IN21A063",
+      "post": "TTMn",
+      "weight": 308,
+      "sign": -1
+    },
+    {
+      "pre": "AN19B001",
+      "post": "IN14A004",
+      "weight": 306,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC4",
+      "post": "DNp11",
+      "weight": 305,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B043",
+      "post": "IN19B043",
+      "weight": 305,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP442",
+      "post": "PVLP123",
+      "weight": 304,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B084",
+      "post": "DLMn c-f",
+      "weight": 303,
+      "sign": 1
+    },
+    {
+      "pre": "DNp31",
+      "post": "IN06B013",
+      "weight": 303,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B038",
+      "post": "IN20A.22A001",
+      "weight": 303,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP093",
+      "post": "DNp70",
+      "weight": 300,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "PVLP122",
+      "weight": 300,
+      "sign": -1
+    },
+    {
+      "pre": "LPLC1",
+      "post": "LPLC2",
+      "weight": 296,
+      "sign": 1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "DNg40",
+      "weight": 293,
+      "sign": -1
+    },
+    {
+      "pre": "IN06B077",
+      "post": "IN19B067",
+      "weight": 293,
+      "sign": -1
+    },
+    {
+      "pre": "IN19B086",
+      "post": "DLMn c-f",
+      "weight": 292,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP093",
+      "post": "DNg40",
+      "weight": 292,
+      "sign": -1
+    },
+    {
+      "pre": "DNp70",
+      "post": "PVLP122",
+      "weight": 292,
+      "sign": 1
+    },
+    {
+      "pre": "DNp70",
+      "post": "AN08B098",
+      "weight": 291,
+      "sign": 1
+    },
+    {
+      "pre": "DNp06",
+      "post": "AN05B006",
+      "weight": 290,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B057",
+      "post": "DLMn a, b",
+      "weight": 290,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP396",
+      "post": "PVLP122",
+      "weight": 288,
+      "sign": 1
+    },
+    {
+      "pre": "CL038",
+      "post": "DNp70",
+      "weight": 285,
+      "sign": -1
+    },
+    {
+      "pre": "IN13A022",
+      "post": "IN07B058",
+      "weight": 284,
+      "sign": -1
+    },
+    {
+      "pre": "DNp103",
+      "post": "DNp01",
+      "weight": 283,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B057",
+      "post": "IN19B067",
+      "weight": 283,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B066",
+      "post": "AN08B098",
+      "weight": 280,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B031",
+      "post": "IN13A022",
+      "weight": 275,
+      "sign": 1
+    },
+    {
+      "pre": "IN20A.22A001",
+      "post": "IN19A002",
+      "weight": 274,
+      "sign": 1
+    },
+    {
+      "pre": "AN19B001",
+      "post": "IN00A047",
+      "weight": 273,
+      "sign": 1
+    },
+    {
+      "pre": "SAD064",
+      "post": "PVLP122",
+      "weight": 272,
+      "sign": 1
+    },
+    {
+      "pre": "DNp103",
+      "post": "IN07B058",
+      "weight": 270,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC2",
+      "post": "LPLC1",
+      "weight": 270,
+      "sign": 1
+    },
+    {
+      "pre": "IN20A.22A003",
+      "post": "Tergotr. MN",
+      "weight": 267,
+      "sign": 1
+    },
+    {
+      "pre": "DNa08",
+      "post": "IN06B066",
+      "weight": 266,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B066",
+      "post": "IN13A022",
+      "weight": 266,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B084",
+      "post": "DLMn a, b",
+      "weight": 260,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP396",
+      "post": "DNp01",
+      "weight": 259,
+      "sign": 1
+    },
+    {
+      "pre": "IN00A062",
+      "post": "DNp01",
+      "weight": 257,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP123",
+      "post": "CL038",
+      "weight": 255,
+      "sign": 1
+    },
+    {
+      "pre": "SAD064",
+      "post": "CB1638",
+      "weight": 254,
+      "sign": 1
+    },
+    {
+      "pre": "IN13A022",
+      "post": "IN06B066",
+      "weight": 254,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B044",
+      "post": "IN20A.22A001",
+      "weight": 253,
+      "sign": 1
+    },
+    {
+      "pre": "DNpe042",
+      "post": "AN08B098",
+      "weight": 252,
+      "sign": 1
+    },
+    {
+      "pre": "AN12B001",
+      "post": "DNp02",
+      "weight": 252,
+      "sign": -1
+    },
+    {
+      "pre": "IN18B038",
+      "post": "IN18B038",
+      "weight": 252,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "STTMm",
+      "weight": 250,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "AVLP396",
+      "weight": 249,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B042",
+      "post": "DLMn a, b",
+      "weight": 249,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP442",
+      "post": "PVLP151",
+      "weight": 246,
+      "sign": 1
+    },
+    {
+      "pre": "DNp06",
+      "post": "DNg40",
+      "weight": 245,
+      "sign": 1
+    },
+    {
+      "pre": "SAD073",
+      "post": "DNp70",
+      "weight": 245,
+      "sign": -1
+    },
+    {
+      "pre": "IN10B032",
+      "post": "GFC3",
+      "weight": 244,
+      "sign": 1
+    },
+    {
+      "pre": "IN01A020",
+      "post": "DLMn a, b",
+      "weight": 242,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B054",
+      "post": "GFC2",
+      "weight": 242,
+      "sign": 1
+    },
+    {
+      "pre": "CB1638",
+      "post": "PVLP122",
+      "weight": 241,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "SAD064",
+      "weight": 241,
+      "sign": 1
+    },
+    {
+      "pre": "IN20A.22A001",
+      "post": "TTMn",
+      "weight": 241,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B047",
+      "post": "DLMn c-f",
+      "weight": 240,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B038",
+      "post": "GFC2",
+      "weight": 235,
+      "sign": 1
+    },
+    {
+      "pre": "IN13A022",
+      "post": "IN18B031",
+      "weight": 235,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP062",
+      "post": "DNp06",
+      "weight": 231,
+      "sign": 1
+    },
+    {
+      "pre": "DNp70",
+      "post": "AVLP094",
+      "weight": 229,
+      "sign": 1
+    },
+    {
+      "pre": "LC6",
+      "post": "DNp70",
+      "weight": 224,
+      "sign": 1
+    },
+    {
+      "pre": "IN10B032",
+      "post": "IN07B080",
+      "weight": 224,
+      "sign": 1
+    },
+    {
+      "pre": "CB1638",
+      "post": "AVLP452",
+      "weight": 223,
+      "sign": 1
+    },
+    {
+      "pre": "DNg40",
+      "post": "PVLP122",
+      "weight": 223,
+      "sign": -1
+    },
+    {
+      "pre": "DNp06",
+      "post": "AN08B098",
+      "weight": 221,
+      "sign": 1
+    },
+    {
+      "pre": "CL038",
+      "post": "PVLP122",
+      "weight": 221,
+      "sign": -1
+    },
+    {
+      "pre": "IN03B089",
+      "post": "IN19B040",
+      "weight": 220,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP498",
+      "post": "DNpe042",
+      "weight": 218,
+      "sign": 1
+    },
+    {
+      "pre": "TN1a_i",
+      "post": "DLMn a, b",
+      "weight": 217,
+      "sign": 1
+    },
+    {
+      "pre": "DNp06",
+      "post": "GFC3",
+      "weight": 217,
+      "sign": 1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "GFC3",
+      "weight": 217,
+      "sign": -1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "IN07B080",
+      "weight": 217,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B080",
+      "post": "PSI",
+      "weight": 217,
+      "sign": 1
+    },
+    {
+      "pre": "SAD064",
+      "post": "DNp103",
+      "weight": 216,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B055",
+      "post": "IN07B055",
+      "weight": 215,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B016",
+      "post": "IN12B012",
+      "weight": 215,
+      "sign": -1
+    },
+    {
+      "pre": "IN19B057",
+      "post": "IN17A071,IN17A081",
+      "weight": 215,
+      "sign": 1
+    },
+    {
+      "pre": "IN13B008",
+      "post": "TTMn",
+      "weight": 214,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP396",
+      "post": "DNp06",
+      "weight": 212,
+      "sign": 1
+    },
+    {
+      "pre": "DNg40",
+      "post": "SAD073",
+      "weight": 212,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP123",
+      "post": "DNp11",
+      "weight": 210,
+      "sign": 1
+    },
+    {
+      "pre": "IN10B032",
+      "post": "IN10B032",
+      "weight": 210,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B048",
+      "post": "DLMn a, b",
+      "weight": 209,
+      "sign": 1
+    },
+    {
+      "pre": "AN19B001",
+      "post": "IN21A063",
+      "weight": 209,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "PVLP123",
+      "weight": 209,
+      "sign": 1
+    },
+    {
+      "pre": "SAD064",
+      "post": "DNg40",
+      "weight": 208,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B079",
+      "post": "IN06B077",
+      "weight": 208,
+      "sign": -1
+    },
+    {
+      "pre": "IN13A022",
+      "post": "IN07B080",
+      "weight": 208,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP123",
+      "post": "CL367",
+      "weight": 207,
+      "sign": 1
+    },
+    {
+      "pre": "IN13A022",
+      "post": "IN20A.22A001",
+      "weight": 207,
+      "sign": -1
+    },
+    {
+      "pre": "IN12B015",
+      "post": "AN19B001",
+      "weight": 206,
+      "sign": -1
+    },
+    {
+      "pre": "TN1a_g",
+      "post": "DLMn a, b",
+      "weight": 206,
+      "sign": 1
+    },
+    {
+      "pre": "CB1638",
+      "post": "AVLP094",
+      "weight": 204,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN13A032",
+      "weight": 204,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP396",
+      "post": "PVLP123",
+      "weight": 204,
+      "sign": 1
+    },
+    {
+      "pre": "IN00A047",
+      "post": "IN18B034",
+      "weight": 203,
+      "sign": -1
+    },
+    {
+      "pre": "IN19B067",
+      "post": "IN19B067",
+      "weight": 202,
+      "sign": 1
+    },
+    {
+      "pre": "DNg82",
+      "post": "DLMn a, b",
+      "weight": 201,
+      "sign": 1
+    },
+    {
+      "pre": "LC4",
+      "post": "AVLP094",
+      "weight": 200,
+      "sign": 1
+    },
+    {
+      "pre": "DNp06",
+      "post": "IN07B080",
+      "weight": 199,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B055",
+      "post": "GFC3",
+      "weight": 198,
+      "sign": 1
+    },
+    {
+      "pre": "SAD064",
+      "post": "DNp06",
+      "weight": 195,
+      "sign": 1
+    },
+    {
+      "pre": "IN04B036",
+      "post": "IN17A017",
+      "weight": 195,
+      "sign": 1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "DNp103",
+      "weight": 194,
+      "sign": -1
+    },
+    {
+      "pre": "IN00A047",
+      "post": "PSI",
+      "weight": 193,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP123",
+      "post": "PVLP122",
+      "weight": 192,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B016",
+      "post": "STTMm",
+      "weight": 191,
+      "sign": -1
+    },
+    {
+      "pre": "DNp103",
+      "post": "DNpe042",
+      "weight": 190,
+      "sign": 1
+    },
+    {
+      "pre": "DNp04",
+      "post": "AVLP452",
+      "weight": 189,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B066",
+      "post": "IN19B075",
+      "weight": 189,
+      "sign": -1
+    },
+    {
+      "pre": "LC4",
+      "post": "LPLC1",
+      "weight": 188,
+      "sign": 1
+    },
+    {
+      "pre": "DNpe042",
+      "post": "DNp70",
+      "weight": 186,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B031",
+      "post": "IN13A032",
+      "weight": 186,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B013",
+      "post": "IN01A020",
+      "weight": 185,
+      "sign": -1
+    },
+    {
+      "pre": "IN06B013",
+      "post": "IN19B067",
+      "weight": 185,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP123",
+      "post": "CB1638",
+      "weight": 184,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "DNp11",
+      "weight": 181,
+      "sign": 1
+    },
+    {
+      "pre": "TN1a_h",
+      "post": "DLMn a, b",
+      "weight": 180,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B055",
+      "post": "IN07B054",
+      "weight": 180,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B038",
+      "post": "IN08A002",
+      "weight": 180,
+      "sign": 1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "IN18B038",
+      "weight": 180,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP452",
+      "post": "DNp06",
+      "weight": 179,
+      "sign": 1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "DNp06",
+      "weight": 179,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B044",
+      "post": "TTMn",
+      "weight": 179,
+      "sign": 1
+    },
+    {
+      "pre": "SAD064",
+      "post": "SAD064",
+      "weight": 178,
+      "sign": 1
+    },
+    {
+      "pre": "DNp103",
+      "post": "IN00A062",
+      "weight": 177,
+      "sign": 1
+    },
+    {
+      "pre": "IN06A103",
+      "post": "IN18B034",
+      "weight": 177,
+      "sign": -1
+    },
+    {
+      "pre": "IN06B016",
+      "post": "PSI",
+      "weight": 176,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP442",
+      "post": "DNp06",
+      "weight": 175,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B055",
+      "post": "IN07B066",
+      "weight": 173,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B048",
+      "post": "IN19B075",
+      "weight": 173,
+      "sign": 1
+    },
+    {
+      "pre": "DNp103",
+      "post": "IN06B016",
+      "weight": 172,
+      "sign": 1
+    },
+    {
+      "pre": "IN13A022",
+      "post": "IN01A020",
+      "weight": 170,
+      "sign": -1
+    },
+    {
+      "pre": "IN19A002",
+      "post": "IN17A017",
+      "weight": 170,
+      "sign": -1
+    },
+    {
+      "pre": "IN00A062",
+      "post": "PSI",
+      "weight": 170,
+      "sign": -1
+    },
+    {
+      "pre": "SAD073",
+      "post": "DNpe042",
+      "weight": 169,
+      "sign": -1
+    },
+    {
+      "pre": "IN12B015",
+      "post": "IN00A062",
+      "weight": 168,
+      "sign": -1
+    },
+    {
+      "pre": "IN12A058",
+      "post": "DLMn a, b",
+      "weight": 167,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B031",
+      "post": "STTMm",
+      "weight": 167,
+      "sign": 1
+    },
+    {
+      "pre": "AN19B001",
+      "post": "IN20A.22A001",
+      "weight": 166,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "GFC4",
+      "weight": 165,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B075",
+      "post": "IN19B075",
+      "weight": 165,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B055",
+      "post": "TTMn",
+      "weight": 165,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B086",
+      "post": "DLMn a, b",
+      "weight": 164,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN18B031",
+      "weight": 163,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B013",
+      "post": "IN19B043",
+      "weight": 163,
+      "sign": -1
+    },
+    {
+      "pre": "IN19B067",
+      "post": "IN19B043",
+      "weight": 162,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B081",
+      "post": "IN19B043",
+      "weight": 162,
+      "sign": -1
+    },
+    {
+      "pre": "IN03B089",
+      "post": "IN19B057",
+      "weight": 162,
+      "sign": -1
+    },
+    {
+      "pre": "IN06B087",
+      "post": "DLMn a, b",
+      "weight": 161,
+      "sign": -1
+    },
+    {
+      "pre": "IN12B015",
+      "post": "GFC3",
+      "weight": 161,
+      "sign": -1
+    },
+    {
+      "pre": "IN20A.22A001",
+      "post": "IN13B011",
+      "weight": 161,
+      "sign": 1
+    },
+    {
+      "pre": "IN04B036",
+      "post": "IN20A.22A001",
+      "weight": 161,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP151",
+      "post": "PVLP151",
+      "weight": 161,
+      "sign": 1
+    },
+    {
+      "pre": "DNp11",
+      "post": "IN12B015",
+      "weight": 160,
+      "sign": 1
+    },
+    {
+      "pre": "AN08B098",
+      "post": "AN08B098",
+      "weight": 159,
+      "sign": 1
+    },
+    {
+      "pre": "GFC4",
+      "post": "IN21A002",
+      "weight": 159,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B086_e",
+      "post": "DLMn a, b",
+      "weight": 158,
+      "sign": -1
+    },
+    {
+      "pre": "DNp31",
+      "post": "DLMn a, b",
+      "weight": 156,
+      "sign": 1
+    },
+    {
+      "pre": "IN13A022",
+      "post": "IN07B055",
+      "weight": 155,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP498",
+      "post": "DNp103",
+      "weight": 154,
+      "sign": 1
+    },
+    {
+      "pre": "DNpe042",
+      "post": "AN19B001",
+      "weight": 153,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC4",
+      "post": "SAD073",
+      "weight": 153,
+      "sign": 1
+    },
+    {
+      "pre": "DNp103",
+      "post": "GFC3",
+      "weight": 152,
+      "sign": 1
+    },
+    {
+      "pre": "CB1638",
+      "post": "AVLP093",
+      "weight": 151,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP094",
+      "post": "DNp01",
+      "weight": 150,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B066",
+      "post": "IN07B066",
+      "weight": 150,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC1",
+      "post": "LPLC4",
+      "weight": 150,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP123",
+      "post": "PVLP151",
+      "weight": 149,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "DNp11",
+      "weight": 147,
+      "sign": -1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "IN07B054",
+      "weight": 147,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B055",
+      "post": "IN18B034",
+      "weight": 147,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B055",
+      "post": "IN07B044",
+      "weight": 145,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B054",
+      "post": "IN07B054",
+      "weight": 145,
+      "sign": 1
+    },
+    {
+      "pre": "DNp31",
+      "post": "IN19B067",
+      "weight": 145,
+      "sign": 1
+    },
+    {
+      "pre": "DNp01",
+      "post": "GFC2",
+      "weight": 144,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B066",
+      "post": "IN07B054",
+      "weight": 143,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "LC4",
+      "weight": 142,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP151",
+      "post": "AVLP396",
+      "weight": 141,
+      "sign": 1
+    },
+    {
+      "pre": "DNp02",
+      "post": "DNg40",
+      "weight": 141,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B057",
+      "post": "IN19B057",
+      "weight": 141,
+      "sign": 1
+    },
+    {
+      "pre": "DNp103",
+      "post": "DNp06",
+      "weight": 140,
+      "sign": 1
+    },
+    {
+      "pre": "TN1a_h",
+      "post": "IN18B042",
+      "weight": 140,
+      "sign": 1
+    },
+    {
+      "pre": "IN17A017",
+      "post": "IN20A.22A001",
+      "weight": 140,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP151",
+      "post": "DNp04",
+      "weight": 139,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B034",
+      "post": "GFC2",
+      "weight": 139,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN20A.22A001",
+      "weight": 139,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B038",
+      "post": "IN21A002",
+      "weight": 139,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP498",
+      "post": "PVLP151",
+      "weight": 139,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B057",
+      "post": "IN19B043",
+      "weight": 138,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B055",
+      "post": "IN07B058",
+      "weight": 137,
+      "sign": 1
+    },
+    {
+      "pre": "DNp11",
+      "post": "DNg40",
+      "weight": 136,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP123",
+      "post": "DNp70",
+      "weight": 136,
+      "sign": 1
+    },
+    {
+      "pre": "IN12B012",
+      "post": "IN21A002",
+      "weight": 136,
+      "sign": -1
+    },
+    {
+      "pre": "IN20A.22A001",
+      "post": "IN07B055",
+      "weight": 135,
+      "sign": 1
+    },
+    {
+      "pre": "DNp06",
+      "post": "SAD073",
+      "weight": 133,
+      "sign": 1
+    },
+    {
+      "pre": "DNp103",
+      "post": "DNg40",
+      "weight": 132,
+      "sign": 1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "DNp01",
+      "weight": 132,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "DNp02",
+      "weight": 132,
+      "sign": -1
+    },
+    {
+      "pre": "DNg40",
+      "post": "DNp02",
+      "weight": 131,
+      "sign": -1
+    },
+    {
+      "pre": "IN00A062",
+      "post": "GFC1",
+      "weight": 131,
+      "sign": -1
+    },
+    {
+      "pre": "IN06B016",
+      "post": "Tergotr. MN",
+      "weight": 130,
+      "sign": -1
+    },
+    {
+      "pre": "IN03B035",
+      "post": "Tergotr. MN",
+      "weight": 130,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "DNp02",
+      "weight": 128,
+      "sign": 1
+    },
+    {
+      "pre": "IN12B012",
+      "post": "IN17A017",
+      "weight": 128,
+      "sign": -1
+    },
+    {
+      "pre": "DNp06",
+      "post": "IN07B054",
+      "weight": 127,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC1",
+      "post": "PVLP122",
+      "weight": 127,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B080",
+      "post": "GFC2",
+      "weight": 126,
+      "sign": 1
+    },
+    {
+      "pre": "DNp31",
+      "post": "IN01A020",
+      "weight": 126,
+      "sign": 1
+    },
+    {
+      "pre": "IN01A020",
+      "post": "IN13A022",
+      "weight": 126,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC1",
+      "post": "DNp31",
+      "weight": 125,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "EA06B010",
+      "weight": 125,
+      "sign": 1
+    },
+    {
+      "pre": "EA06B010",
+      "post": "AN19B001",
+      "weight": 124,
+      "sign": -1
+    },
+    {
+      "pre": "IN12B015",
+      "post": "DNp01",
+      "weight": 124,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B047",
+      "post": "IN00A047",
+      "weight": 124,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN06B066",
+      "weight": 124,
+      "sign": 1
+    },
+    {
+      "pre": "IN17A017",
+      "post": "IN19A002",
+      "weight": 124,
+      "sign": 1
+    },
+    {
+      "pre": "IN20A.22A001",
+      "post": "IN20A.22A001",
+      "weight": 124,
+      "sign": 1
+    },
+    {
+      "pre": "DNp02",
+      "post": "SAD073",
+      "weight": 124,
+      "sign": 1
+    },
+    {
+      "pre": "IN13B011",
+      "post": "Tergotr. MN",
+      "weight": 124,
+      "sign": -1
+    },
+    {
+      "pre": "GFC1",
+      "post": "GFC1",
+      "weight": 123,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP062",
+      "post": "DNp103",
+      "weight": 122,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B043",
+      "post": "IN06B066",
+      "weight": 122,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B054",
+      "post": "IN07B066",
+      "weight": 122,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B055",
+      "post": "IN20A.22A001",
+      "weight": 122,
+      "sign": 1
+    },
+    {
+      "pre": "IN01A020",
+      "post": "STTMm",
+      "weight": 122,
+      "sign": 1
+    },
+    {
+      "pre": "IN08A002",
+      "post": "STTMm",
+      "weight": 122,
+      "sign": -1
+    },
+    {
+      "pre": "DNp70",
+      "post": "AVLP093",
+      "weight": 121,
+      "sign": 1
+    },
+    {
+      "pre": "DNp03",
+      "post": "DLMn a, b",
+      "weight": 121,
+      "sign": 1
+    },
+    {
+      "pre": "DNp03",
+      "post": "IN19B043",
+      "weight": 121,
+      "sign": 1
+    },
+    {
+      "pre": "IN12B015",
+      "post": "DLMn a, b",
+      "weight": 120,
+      "sign": -1
+    },
+    {
+      "pre": "IN06B066",
+      "post": "IN07B048",
+      "weight": 120,
+      "sign": -1
+    },
+    {
+      "pre": "IN06A103",
+      "post": "IN00A047",
+      "weight": 119,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B077",
+      "post": "IN03B081",
+      "weight": 119,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B031",
+      "post": "IN21A002",
+      "weight": 119,
+      "sign": 1
+    },
+    {
+      "pre": "SAD073",
+      "post": "SAD073",
+      "weight": 119,
+      "sign": -1
+    },
+    {
+      "pre": "DNp11",
+      "post": "DNp01",
+      "weight": 118,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B054",
+      "post": "GFC1",
+      "weight": 118,
+      "sign": 1
+    },
+    {
+      "pre": "GFC3",
+      "post": "PSI",
+      "weight": 118,
+      "sign": 1
+    },
+    {
+      "pre": "CL367",
+      "post": "DNp06",
+      "weight": 117,
+      "sign": -1
+    },
+    {
+      "pre": "IN03B081",
+      "post": "IN19B067",
+      "weight": 117,
+      "sign": -1
+    },
+    {
+      "pre": "CB1638",
+      "post": "DNp06",
+      "weight": 116,
+      "sign": 1
+    },
+    {
+      "pre": "IN08A002",
+      "post": "IN13A032",
+      "weight": 116,
+      "sign": -1
+    },
+    {
+      "pre": "IN13B011",
+      "post": "IN17A017",
+      "weight": 116,
+      "sign": -1
+    },
+    {
+      "pre": "IN19B067",
+      "post": "IN17A071,IN17A081",
+      "weight": 116,
+      "sign": 1
+    },
+    {
+      "pre": "IN08A002",
+      "post": "Tergotr. MN",
+      "weight": 116,
+      "sign": -1
+    },
+    {
+      "pre": "DNa08",
+      "post": "DLMn a, b",
+      "weight": 115,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B055",
+      "post": "GFC1",
+      "weight": 115,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B066",
+      "post": "GFC4",
+      "weight": 115,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B035",
+      "post": "IN19A002",
+      "weight": 115,
+      "sign": -1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "IN06B016",
+      "weight": 114,
+      "sign": -1
+    },
+    {
+      "pre": "IN19B086",
+      "post": "IN19B075",
+      "weight": 114,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "LPLC1",
+      "weight": 114,
+      "sign": -1
+    },
+    {
+      "pre": "DNp103",
+      "post": "EA06B010",
+      "weight": 113,
+      "sign": 1
+    },
+    {
+      "pre": "IN06A103",
+      "post": "IN19B043",
+      "weight": 113,
+      "sign": -1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN19B067",
+      "weight": 113,
+      "sign": 1
+    },
+    {
+      "pre": "DNp01",
+      "post": "GFC4",
+      "weight": 112,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B035",
+      "post": "IN07B055",
+      "weight": 112,
+      "sign": -1
+    },
+    {
+      "pre": "DNp11",
+      "post": "IN21A026",
+      "weight": 112,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC2",
+      "post": "SAD064",
+      "weight": 112,
+      "sign": 1
+    },
+    {
+      "pre": "IN12B015",
+      "post": "DNp103",
+      "weight": 111,
+      "sign": -1
+    },
+    {
+      "pre": "DNp70",
+      "post": "DNpe042",
+      "weight": 111,
+      "sign": 1
+    },
+    {
+      "pre": "IN12B015",
+      "post": "AN08B098",
+      "weight": 110,
+      "sign": -1
+    },
+    {
+      "pre": "DNp04",
+      "post": "DNg40",
+      "weight": 110,
+      "sign": 1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "DNp02",
+      "weight": 110,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B058",
+      "post": "GFC1",
+      "weight": 110,
+      "sign": 1
+    },
+    {
+      "pre": "IN08A002",
+      "post": "IN07B044",
+      "weight": 110,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP442",
+      "post": "PVLP010",
+      "weight": 110,
+      "sign": 1
+    },
+    {
+      "pre": "IN20A.22A003",
+      "post": "IN07B055",
+      "weight": 109,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "CB1638",
+      "weight": 108,
+      "sign": -1
+    },
+    {
+      "pre": "DNp103",
+      "post": "DNp103",
+      "weight": 108,
+      "sign": 1
+    },
+    {
+      "pre": "CL038",
+      "post": "PVLP123",
+      "weight": 108,
+      "sign": -1
+    },
+    {
+      "pre": "DNp103",
+      "post": "AN08B098",
+      "weight": 107,
+      "sign": 1
+    },
+    {
+      "pre": "DNp01",
+      "post": "DNp11",
+      "weight": 107,
+      "sign": 1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "DNpe042",
+      "weight": 107,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP452",
+      "post": "PVLP122",
+      "weight": 107,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B066",
+      "post": "IN07B055",
+      "weight": 106,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B055",
+      "post": "IN07B080",
+      "weight": 106,
+      "sign": 1
+    },
+    {
+      "pre": "DNp04",
+      "post": "PVLP151",
+      "weight": 105,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC2",
+      "post": "DNp70",
+      "weight": 104,
+      "sign": 1
+    },
+    {
+      "pre": "DNpe042",
+      "post": "GFC3",
+      "weight": 104,
+      "sign": 1
+    },
+    {
+      "pre": "DNp70",
+      "post": "GFC3",
+      "weight": 104,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP094",
+      "post": "PVLP010",
+      "weight": 104,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP396",
+      "post": "PVLP151",
+      "weight": 104,
+      "sign": 1
+    },
+    {
+      "pre": "IN17A071,IN17A081",
+      "post": "IN07B080",
+      "weight": 102,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B086",
+      "post": "IN17A071,IN17A081",
+      "weight": 102,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "PVLP151",
+      "weight": 102,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP151",
+      "post": "CL367",
+      "weight": 101,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B086",
+      "post": "IN06B066",
+      "weight": 101,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B034",
+      "post": "IN19B043",
+      "weight": 101,
+      "sign": 1
+    },
+    {
+      "pre": "AN19B001",
+      "post": "IN21A002",
+      "weight": 101,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B058",
+      "post": "IN18B031",
+      "weight": 100,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B058",
+      "post": "PSI",
+      "weight": 100,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "AVLP452",
+      "weight": 99,
+      "sign": 1
+    },
+    {
+      "pre": "DNp06",
+      "post": "GFC2",
+      "weight": 99,
+      "sign": 1
+    },
+    {
+      "pre": "JO-B1_a",
+      "post": "JO-B1_a",
+      "weight": 99,
+      "sign": 1
+    },
+    {
+      "pre": "SAD073",
+      "post": "AVLP396",
+      "weight": 98,
+      "sign": -1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN14A004",
+      "weight": 98,
+      "sign": 1
+    },
+    {
+      "pre": "DNp01",
+      "post": "GFC3",
+      "weight": 97,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B066",
+      "post": "IN00A062",
+      "weight": 97,
+      "sign": -1
+    },
+    {
+      "pre": "IN19B057",
+      "post": "IN19B067",
+      "weight": 97,
+      "sign": 1
+    },
+    {
+      "pre": "IN06A103",
+      "post": "IN19B067",
+      "weight": 97,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP452",
+      "post": "LC4",
+      "weight": 97,
+      "sign": 1
+    },
+    {
+      "pre": "SAD073",
+      "post": "AVLP498",
+      "weight": 96,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP151",
+      "post": "DNpe042",
+      "weight": 96,
+      "sign": 1
+    },
+    {
+      "pre": "CL367",
+      "post": "CL038",
+      "weight": 95,
+      "sign": -1
+    },
+    {
+      "pre": "PSI",
+      "post": "DNp01",
+      "weight": 95,
+      "sign": 0
+    },
+    {
+      "pre": "IN19B067",
+      "post": "IN13A022",
+      "weight": 95,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B044",
+      "post": "IN21A002",
+      "weight": 95,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP094",
+      "post": "DNg40",
+      "weight": 94,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "DNp103",
+      "weight": 94,
+      "sign": -1
+    },
+    {
+      "pre": "CL367",
+      "post": "DNp70",
+      "weight": 94,
+      "sign": -1
+    },
+    {
+      "pre": "IN18B031",
+      "post": "IN07B055",
+      "weight": 94,
+      "sign": 1
+    },
+    {
+      "pre": "DNp103",
+      "post": "PSI",
+      "weight": 94,
+      "sign": 1
+    },
+    {
+      "pre": "SAD064",
+      "post": "AVLP452",
+      "weight": 93,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B077",
+      "post": "DLMn a, b",
+      "weight": 93,
+      "sign": 1
+    },
+    {
+      "pre": "IN21A063",
+      "post": "DLMn c-f",
+      "weight": 93,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "DNp70",
+      "weight": 93,
+      "sign": -1
+    },
+    {
+      "pre": "IN19B075",
+      "post": "IN06B066",
+      "weight": 93,
+      "sign": 1
+    },
+    {
+      "pre": "IN13A022",
+      "post": "IN07B044",
+      "weight": 93,
+      "sign": -1
+    },
+    {
+      "pre": "LPLC4",
+      "post": "LPLC2",
+      "weight": 93,
+      "sign": 1
+    },
+    {
+      "pre": "IN04B036",
+      "post": "TTMn",
+      "weight": 93,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC2",
+      "post": "CB1638",
+      "weight": 92,
+      "sign": 1
+    },
+    {
+      "pre": "IN12B015",
+      "post": "GFC2",
+      "weight": 92,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B066",
+      "post": "IN07B058",
+      "weight": 92,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B042",
+      "post": "IN19B043",
+      "weight": 92,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B034",
+      "post": "IN19B067",
+      "weight": 92,
+      "sign": 1
+    },
+    {
+      "pre": "DNp11",
+      "post": "IN07B066",
+      "weight": 91,
+      "sign": 1
+    },
+    {
+      "pre": "TN1a_i",
+      "post": "IN18B042",
+      "weight": 91,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B042",
+      "post": "IN19B067",
+      "weight": 91,
+      "sign": 1
+    },
+    {
+      "pre": "CB1638",
+      "post": "PVLP010",
+      "weight": 91,
+      "sign": 1
+    },
+    {
+      "pre": "IN06A103",
+      "post": "DLMn a, b",
+      "weight": 90,
+      "sign": -1
+    },
+    {
+      "pre": "DLMn c-f",
+      "post": "DLMn c-f",
+      "weight": 90,
+      "sign": 0
+    },
+    {
+      "pre": "IN08A002",
+      "post": "GFC2",
+      "weight": 90,
+      "sign": -1
+    },
+    {
+      "pre": "IN13B011",
+      "post": "IN07B044",
+      "weight": 90,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP452",
+      "post": "PVLP010",
+      "weight": 90,
+      "sign": 1
+    },
+    {
+      "pre": "DNp01",
+      "post": "TTMn",
+      "weight": 90,
+      "sign": 1
+    },
+    {
+      "pre": "IN00A047",
+      "post": "AN19B001",
+      "weight": 89,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP396",
+      "post": "AVLP498",
+      "weight": 89,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP062",
+      "post": "CB1638",
+      "weight": 88,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP442",
+      "post": "DNp01",
+      "weight": 88,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B044",
+      "post": "IN07B055",
+      "weight": 88,
+      "sign": 1
+    },
+    {
+      "pre": "DNp31",
+      "post": "IN12A058",
+      "weight": 88,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "AVLP094",
+      "weight": 87,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP123",
+      "post": "DNpe042",
+      "weight": 87,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B075",
+      "post": "IN03B089",
+      "weight": 87,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP062",
+      "post": "PVLP010",
+      "weight": 87,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP093",
+      "post": "DNp01",
+      "weight": 86,
+      "sign": -1
+    },
+    {
+      "pre": "DNpe042",
+      "post": "IN07B058",
+      "weight": 86,
+      "sign": 1
+    },
+    {
+      "pre": "IN19A002",
+      "post": "IN07B080",
+      "weight": 86,
+      "sign": -1
+    },
+    {
+      "pre": "IN13B011",
+      "post": "IN21A002",
+      "weight": 86,
+      "sign": -1
+    },
+    {
+      "pre": "DNp11",
+      "post": "SAD073",
+      "weight": 86,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN00A047",
+      "weight": 85,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B054",
+      "post": "IN20A.22A001",
+      "weight": 85,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B066",
+      "post": "AN19B001",
+      "weight": 84,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B079",
+      "post": "DLMn a, b",
+      "weight": 84,
+      "sign": -1
+    },
+    {
+      "pre": "IN00A047",
+      "post": "DNp01",
+      "weight": 84,
+      "sign": -1
+    },
+    {
+      "pre": "IN19B067",
+      "post": "IN00A047",
+      "weight": 84,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B031",
+      "post": "IN20A.22A001",
+      "weight": 84,
+      "sign": 1
+    },
+    {
+      "pre": "DNp70",
+      "post": "AN05B006",
+      "weight": 83,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "CB1638",
+      "weight": 83,
+      "sign": 1
+    },
+    {
+      "pre": "DNp103",
+      "post": "GFC1",
+      "weight": 83,
+      "sign": 1
+    },
+    {
+      "pre": "DNpe042",
+      "post": "IN07B054",
+      "weight": 83,
+      "sign": 1
+    },
+    {
+      "pre": "DNp06",
+      "post": "IN07B058",
+      "weight": 83,
+      "sign": 1
+    },
+    {
+      "pre": "DNg82",
+      "post": "IN07B084",
+      "weight": 83,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B048",
+      "post": "IN19B057",
+      "weight": 83,
+      "sign": 1
+    },
+    {
+      "pre": "DNp06",
+      "post": "PSI",
+      "weight": 83,
+      "sign": 1
+    },
+    {
+      "pre": "DNpe042",
+      "post": "AN05B006",
+      "weight": 82,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B055",
+      "post": "AN08B098",
+      "weight": 82,
+      "sign": 1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "GFC2",
+      "weight": 82,
+      "sign": -1
+    },
+    {
+      "pre": "IN19A002",
+      "post": "IN08A002",
+      "weight": 82,
+      "sign": -1
+    },
+    {
+      "pre": "IN01A020",
+      "post": "IN13A032",
+      "weight": 82,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B054",
+      "post": "IN07B044",
+      "weight": 81,
+      "sign": 1
+    },
+    {
+      "pre": "AN19B001",
+      "post": "IN07B044",
+      "weight": 81,
+      "sign": 1
+    },
+    {
+      "pre": "IN20A.22A003",
+      "post": "STTMm",
+      "weight": 81,
+      "sign": 1
+    },
+    {
+      "pre": "SAD073",
+      "post": "CB1638",
+      "weight": 80,
+      "sign": -1
+    },
+    {
+      "pre": "SAD073",
+      "post": "DNp103",
+      "weight": 80,
+      "sign": -1
+    },
+    {
+      "pre": "IN19B075",
+      "post": "IN19B057",
+      "weight": 80,
+      "sign": 1
+    },
+    {
+      "pre": "IN10B032",
+      "post": "AN12B001",
+      "weight": 79,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B067",
+      "post": "IN13B008",
+      "weight": 79,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B031",
+      "post": "IN18B031",
+      "weight": 79,
+      "sign": 1
+    },
+    {
+      "pre": "GFC4",
+      "post": "PSI",
+      "weight": 79,
+      "sign": 1
+    },
+    {
+      "pre": "DNp70",
+      "post": "PVLP010",
+      "weight": 79,
+      "sign": 1
+    },
+    {
+      "pre": "CL367",
+      "post": "AVLP396",
+      "weight": 78,
+      "sign": -1
+    },
+    {
+      "pre": "DNp04",
+      "post": "DNp103",
+      "weight": 78,
+      "sign": 1
+    },
+    {
+      "pre": "IN12B015",
+      "post": "EA06B010",
+      "weight": 78,
+      "sign": -1
+    },
+    {
+      "pre": "EA06B010",
+      "post": "IN06B013",
+      "weight": 78,
+      "sign": -1
+    },
+    {
+      "pre": "IN19B057",
+      "post": "IN06B066",
+      "weight": 78,
+      "sign": 1
+    },
+    {
+      "pre": "IN08A002",
+      "post": "IN07B055",
+      "weight": 78,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B054",
+      "post": "IN21A026",
+      "weight": 78,
+      "sign": 1
+    },
+    {
+      "pre": "DNp70",
+      "post": "AN19B001",
+      "weight": 77,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B086",
+      "post": "IN00A047",
+      "weight": 77,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B038",
+      "post": "IN19A002",
+      "weight": 77,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP123",
+      "post": "AVLP396",
+      "weight": 76,
+      "sign": 1
+    },
+    {
+      "pre": "DNp03",
+      "post": "IN06B013",
+      "weight": 76,
+      "sign": 1
+    },
+    {
+      "pre": "IN12B015",
+      "post": "IN06B016",
+      "weight": 76,
+      "sign": -1
+    },
+    {
+      "pre": "IN04B036",
+      "post": "IN06B016",
+      "weight": 76,
+      "sign": 1
+    },
+    {
+      "pre": "DNp01",
+      "post": "IN18B034",
+      "weight": 75,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B089",
+      "post": "IN19B086",
+      "weight": 75,
+      "sign": -1
+    },
+    {
+      "pre": "LPLC1",
+      "post": "PVLP123",
+      "weight": 75,
+      "sign": 1
+    },
+    {
+      "pre": "IN10B032",
+      "post": "AN05B006",
+      "weight": 74,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP452",
+      "post": "DNp70",
+      "weight": 74,
+      "sign": 1
+    },
+    {
+      "pre": "IN00A047",
+      "post": "GFC1",
+      "weight": 74,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B080",
+      "post": "IN07B080",
+      "weight": 74,
+      "sign": 1
+    },
+    {
+      "pre": "EA06B010",
+      "post": "IN18B034",
+      "weight": 73,
+      "sign": -1
+    },
+    {
+      "pre": "IN06B066",
+      "post": "IN18B042",
+      "weight": 73,
+      "sign": -1
+    },
+    {
+      "pre": "SAD073",
+      "post": "PVLP122",
+      "weight": 73,
+      "sign": -1
+    },
+    {
+      "pre": "DNp70",
+      "post": "IN07B058",
+      "weight": 72,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN20A.22A003",
+      "weight": 72,
+      "sign": 1
+    },
+    {
+      "pre": "IN14A004",
+      "post": "IN21A002",
+      "weight": 72,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP498",
+      "post": "PVLP123",
+      "weight": 72,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC2",
+      "post": "DNp11",
+      "weight": 71,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B048",
+      "post": "IN07B047",
+      "weight": 71,
+      "sign": 1
+    },
+    {
+      "pre": "GFC3",
+      "post": "IN14A004",
+      "weight": 71,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP093",
+      "post": "PVLP010",
+      "weight": 71,
+      "sign": -1
+    },
+    {
+      "pre": "IN12B015",
+      "post": "IN00A047",
+      "weight": 70,
+      "sign": -1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN07B058",
+      "weight": 70,
+      "sign": 1
+    },
+    {
+      "pre": "IN00A062",
+      "post": "IN07B066",
+      "weight": 70,
+      "sign": -1
+    },
+    {
+      "pre": "AN12B001",
+      "post": "IN10B032",
+      "weight": 70,
+      "sign": -1
+    },
+    {
+      "pre": "DNp70",
+      "post": "SAD073",
+      "weight": 70,
+      "sign": 1
+    },
+    {
+      "pre": "IN13A022",
+      "post": "DNp01",
+      "weight": 69,
+      "sign": -1
+    },
+    {
+      "pre": "DNp04",
+      "post": "GFC3",
+      "weight": 69,
+      "sign": 1
+    },
+    {
+      "pre": "DNpe042",
+      "post": "IN00A062",
+      "weight": 69,
+      "sign": 1
+    },
+    {
+      "pre": "DNp06",
+      "post": "IN00A062",
+      "weight": 69,
+      "sign": 1
+    },
+    {
+      "pre": "DNa08",
+      "post": "IN19B040",
+      "weight": 69,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "PVLP010",
+      "weight": 69,
+      "sign": 1
+    },
+    {
+      "pre": "TN1a_i",
+      "post": "TN1a_h",
+      "weight": 69,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B058",
+      "post": "AN19B001",
+      "weight": 68,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "AVLP396",
+      "weight": 68,
+      "sign": -1
+    },
+    {
+      "pre": "AN08B098",
+      "post": "DNg40",
+      "weight": 68,
+      "sign": 1
+    },
+    {
+      "pre": "CL038",
+      "post": "DNg40",
+      "weight": 68,
+      "sign": -1
+    },
+    {
+      "pre": "IN21A063",
+      "post": "GFC2",
+      "weight": 68,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B055",
+      "post": "GFC4",
+      "weight": 68,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B086_e",
+      "post": "IN01A020",
+      "weight": 68,
+      "sign": -1
+    },
+    {
+      "pre": "DNp03",
+      "post": "IN19B067",
+      "weight": 68,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B057",
+      "post": "IN19B075",
+      "weight": 68,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN19B086",
+      "weight": 68,
+      "sign": 1
+    },
+    {
+      "pre": "AN12B001",
+      "post": "SAD064",
+      "weight": 68,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP094",
+      "post": "CB1638",
+      "weight": 67,
+      "sign": -1
+    },
+    {
+      "pre": "IN18B038",
+      "post": "DLMn c-f",
+      "weight": 67,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B077",
+      "post": "IN06B013",
+      "weight": 67,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B066",
+      "post": "IN07B080",
+      "weight": 67,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN07B080",
+      "weight": 67,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B077",
+      "post": "IN06B077",
+      "weight": 66,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP151",
+      "post": "PVLP010",
+      "weight": 66,
+      "sign": 1
+    },
+    {
+      "pre": "IN04B036",
+      "post": "STTMm",
+      "weight": 66,
+      "sign": 1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "EA06B010",
+      "weight": 65,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B066",
+      "post": "GFC1",
+      "weight": 65,
+      "sign": 1
+    },
+    {
+      "pre": "IN13A022",
+      "post": "IN07B054",
+      "weight": 65,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B054",
+      "post": "IN07B055",
+      "weight": 65,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B058",
+      "post": "IN07B080",
+      "weight": 65,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP452",
+      "post": "CB1638",
+      "weight": 64,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B055",
+      "post": "EA06B010",
+      "weight": 64,
+      "sign": 1
+    },
+    {
+      "pre": "DNp11",
+      "post": "IN07B054",
+      "weight": 64,
+      "sign": 1
+    },
+    {
+      "pre": "IN13A022",
+      "post": "IN07B066",
+      "weight": 64,
+      "sign": -1
+    },
+    {
+      "pre": "IN03B035",
+      "post": "IN17A017",
+      "weight": 64,
+      "sign": -1
+    },
+    {
+      "pre": "LC4",
+      "post": "LPLC4",
+      "weight": 64,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B043",
+      "post": "IN03B089",
+      "weight": 63,
+      "sign": 1
+    },
+    {
+      "pre": "IN00A062",
+      "post": "IN07B054",
+      "weight": 63,
+      "sign": -1
+    },
+    {
+      "pre": "DNp03",
+      "post": "IN12A058",
+      "weight": 63,
+      "sign": 1
+    },
+    {
+      "pre": "IN19A002",
+      "post": "IN20A.22A001",
+      "weight": 63,
+      "sign": -1
+    },
+    {
+      "pre": "SAD064",
+      "post": "PVLP123",
+      "weight": 63,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP498",
+      "post": "AVLP498",
+      "weight": 62,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP062",
+      "post": "DNp70",
+      "weight": 62,
+      "sign": 1
+    },
+    {
+      "pre": "IN12A058",
+      "post": "IN06B013",
+      "weight": 62,
+      "sign": 1
+    },
+    {
+      "pre": "IN12B012",
+      "post": "IN07B055",
+      "weight": 62,
+      "sign": -1
+    },
+    {
+      "pre": "DNp02",
+      "post": "IN07B080",
+      "weight": 62,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B086",
+      "post": "IN19B057",
+      "weight": 62,
+      "sign": 1
+    },
+    {
+      "pre": "IN13A032",
+      "post": "Tergotr. MN",
+      "weight": 62,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "AVLP442",
+      "weight": 61,
+      "sign": 1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "IN18B034",
+      "weight": 61,
+      "sign": -1
+    },
+    {
+      "pre": "DNp06",
+      "post": "IN18B038",
+      "weight": 61,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "PVLP062",
+      "weight": 61,
+      "sign": -1
+    },
+    {
+      "pre": "DNp103",
+      "post": "PVLP122",
+      "weight": 61,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "AVLP093",
+      "weight": 60,
+      "sign": -1
+    },
+    {
+      "pre": "PSI",
+      "post": "EA06B010",
+      "weight": 60,
+      "sign": 0
+    },
+    {
+      "pre": "IN06B016",
+      "post": "GFC3",
+      "weight": 60,
+      "sign": -1
+    },
+    {
+      "pre": "DNp02",
+      "post": "IN07B058",
+      "weight": 60,
+      "sign": 1
+    },
+    {
+      "pre": "IN19B067",
+      "post": "IN19B040",
+      "weight": 60,
+      "sign": 1
+    },
+    {
+      "pre": "IN06A103",
+      "post": "PSI",
+      "weight": 60,
+      "sign": -1
+    },
+    {
+      "pre": "DNg40",
+      "post": "AN05B006",
+      "weight": 59,
+      "sign": -1
+    },
+    {
+      "pre": "CB1638",
+      "post": "DNp11",
+      "weight": 59,
+      "sign": 1
+    },
+    {
+      "pre": "GFC3",
+      "post": "GFC3",
+      "weight": 59,
+      "sign": 1
+    },
+    {
+      "pre": "DNpe042",
+      "post": "PVLP122",
+      "weight": 59,
+      "sign": 1
+    },
+    {
+      "pre": "IN20A.22A003",
+      "post": "TTMn",
+      "weight": 59,
+      "sign": 1
+    },
+    {
+      "pre": "DNpe042",
+      "post": "CL038",
+      "weight": 58,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP010",
+      "post": "DNp04",
+      "weight": 58,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP452",
+      "post": "DNpe042",
+      "weight": 58,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B016",
+      "post": "EA06B010",
+      "weight": 58,
+      "sign": -1
+    },
+    {
+      "pre": "IN06B013",
+      "post": "IN03B057",
+      "weight": 58,
+      "sign": -1
+    },
+    {
+      "pre": "IN06B077",
+      "post": "IN19B057",
+      "weight": 58,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP498",
+      "post": "LC6",
+      "weight": 58,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP122",
+      "post": "PVLP062",
+      "weight": 58,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP396",
+      "post": "DNg40",
+      "weight": 57,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B044",
+      "post": "IN13A022",
+      "weight": 57,
+      "sign": 1
+    },
+    {
+      "pre": "IN21A063",
+      "post": "IN14A004",
+      "weight": 57,
+      "sign": -1
+    },
+    {
+      "pre": "TN1a_g",
+      "post": "TN1a_h",
+      "weight": 57,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B054",
+      "post": "AN08B098",
+      "weight": 56,
+      "sign": 1
+    },
+    {
+      "pre": "DNp01",
+      "post": "AN08B098",
+      "weight": 56,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B048",
+      "post": "IN06B066",
+      "weight": 56,
+      "sign": 1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "IN07B058",
+      "weight": 56,
+      "sign": -1
+    },
+    {
+      "pre": "IN13A022",
+      "post": "IN13A022",
+      "weight": 56,
+      "sign": -1
+    },
+    {
+      "pre": "IN06B066",
+      "post": "IN13B008",
+      "weight": 56,
+      "sign": -1
+    },
+    {
+      "pre": "PVLP123",
+      "post": "AVLP442",
+      "weight": 55,
+      "sign": 1
+    },
+    {
+      "pre": "PVLP151",
+      "post": "CB1638",
+      "weight": 55,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B013",
+      "post": "DLMn a, b",
+      "weight": 55,
+      "sign": -1
+    },
+    {
+      "pre": "DNp70",
+      "post": "PVLP123",
+      "weight": 55,
+      "sign": 1
+    },
+    {
+      "pre": "AN12B001",
+      "post": "PVLP123",
+      "weight": 55,
+      "sign": -1
+    },
+    {
+      "pre": "DNp04",
+      "post": "DNp06",
+      "weight": 54,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B066",
+      "post": "IN00A062",
+      "weight": 54,
+      "sign": 1
+    },
+    {
+      "pre": "AN05B006",
+      "post": "IN07B066",
+      "weight": 54,
+      "sign": -1
+    },
+    {
+      "pre": "IN13B011",
+      "post": "IN18B034",
+      "weight": 54,
+      "sign": -1
+    },
+    {
+      "pre": "IN01A020",
+      "post": "IN19A002",
+      "weight": 54,
+      "sign": 1
+    },
+    {
+      "pre": "LC6",
+      "post": "LPLC1",
+      "weight": 54,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B034",
+      "post": "IN00A047",
+      "weight": 53,
+      "sign": 1
+    },
+    {
+      "pre": "GFC2",
+      "post": "IN04B036",
+      "weight": 53,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B054",
+      "post": "IN18B034",
+      "weight": 53,
+      "sign": 1
+    },
+    {
+      "pre": "DNp06",
+      "post": "TTMn",
+      "weight": 53,
+      "sign": 1
+    },
+    {
+      "pre": "IN12B015",
+      "post": "AN05B006",
+      "weight": 52,
+      "sign": -1
+    },
+    {
+      "pre": "IN17A071,IN17A081",
+      "post": "AN19B001",
+      "weight": 52,
+      "sign": 1
+    },
+    {
+      "pre": "CB1638",
+      "post": "CB1638",
+      "weight": 52,
+      "sign": 1
+    },
+    {
+      "pre": "AVLP093",
+      "post": "CB1638",
+      "weight": 52,
+      "sign": -1
+    },
+    {
+      "pre": "AVLP452",
+      "post": "DNp103",
+      "weight": 52,
+      "sign": 1
+    },
+    {
+      "pre": "IN08A002",
+      "post": "IN03B035",
+      "weight": 52,
+      "sign": -1
+    },
+    {
+      "pre": "IN19B067",
+      "post": "IN03B089",
+      "weight": 52,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B048",
+      "post": "IN07B048",
+      "weight": 52,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B016",
+      "post": "IN07B055",
+      "weight": 52,
+      "sign": -1
+    },
+    {
+      "pre": "IN13B008",
+      "post": "IN07B055",
+      "weight": 52,
+      "sign": -1
+    },
+    {
+      "pre": "IN13A032",
+      "post": "IN20A.22A001",
+      "weight": 52,
+      "sign": -1
+    },
+    {
+      "pre": "LPLC1",
+      "post": "LC6",
+      "weight": 52,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC4",
+      "post": "LPLC1",
+      "weight": 52,
+      "sign": 1
+    },
+    {
+      "pre": "AN12B001",
+      "post": "DNp11",
+      "weight": 51,
+      "sign": -1
+    },
+    {
+      "pre": "DNp103",
+      "post": "DNp70",
+      "weight": 51,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B054",
+      "post": "GFC3",
+      "weight": 51,
+      "sign": 1
+    },
+    {
+      "pre": "IN21A002",
+      "post": "GFC4",
+      "weight": 51,
+      "sign": -1
+    },
+    {
+      "pre": "IN19B040",
+      "post": "IN03B089",
+      "weight": 51,
+      "sign": 1
+    },
+    {
+      "pre": "IN00A047",
+      "post": "IN07B054",
+      "weight": 51,
+      "sign": -1
+    },
+    {
+      "pre": "LC6",
+      "post": "PVLP122",
+      "weight": 51,
+      "sign": 1
+    },
+    {
+      "pre": "CB1638",
+      "post": "SAD064",
+      "weight": 51,
+      "sign": 1
+    },
+    {
+      "pre": "IN18B038",
+      "post": "TTMn",
+      "weight": 51,
+      "sign": 1
+    },
+    {
+      "pre": "IN06B066",
+      "post": "IN01A020",
+      "weight": 50,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B044",
+      "post": "IN07B054",
+      "weight": 50,
+      "sign": 1
+    },
+    {
+      "pre": "AN19B001",
+      "post": "IN07B066",
+      "weight": 50,
+      "sign": 1
+    },
+    {
+      "pre": "GFC4",
+      "post": "IN14A004",
+      "weight": 50,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B055",
+      "post": "IN18B031",
+      "weight": 50,
+      "sign": 1
+    },
+    {
+      "pre": "IN03B035",
+      "post": "IN18B031",
+      "weight": 50,
+      "sign": -1
+    },
+    {
+      "pre": "IN06B016",
+      "post": "IN20A.22A001",
+      "weight": 50,
+      "sign": -1
+    },
+    {
+      "pre": "IN07B066",
+      "post": "IN20A.22A001",
+      "weight": 50,
+      "sign": 1
+    },
+    {
+      "pre": "LPLC4",
+      "post": "LC4",
+      "weight": 50,
+      "sign": 1
+    },
+    {
+      "pre": "IN07B055",
+      "post": "PSI",
+      "weight": 50,
+      "sign": 1
+    }
+  ],
+  "paths": [
+    {
+      "types": ["LC4", "DNp01", "TTMn"],
+      "cost": 0.01127
+    },
+    {
+      "types": ["LPLC2", "DNp01", "TTMn"],
+      "cost": 0.01132
+    },
+    {
+      "types": ["LC4", "DNp01", "GFC2", "TTMn"],
+      "cost": 0.00918
+    },
+    {
+      "types": ["LC4", "DNp01", "GFC2", "DLMn c-f"],
+      "cost": 0.00926
+    },
+    {
+      "types": ["LC4", "DNp02", "AN19B001", "GFC2", "TTMn"],
+      "cost": 0.00648
+    },
+    {
+      "types": ["LC4", "DNp02", "AN19B001", "DLMn c-f"],
+      "cost": 0.00235
+    },
+    {
+      "types": ["LPLC2", "DNp103", "AN19B001", "GFC2", "TTMn"],
+      "cost": 0.00686
+    },
+    {
+      "types": ["LPLC2", "LPLC4", "DNp31", "DLMn c-f"],
+      "cost": 0.00179
+    },
+    {
+      "types": ["LPLC1", "DNp06", "GFC3", "PSI", "DLMn c-f"],
+      "cost": 0.01591
+    }
+  ],
+  "overrides": [
+    {
+      "pre": "DNp01",
+      "post": "TTMn",
+      "kind": "electrical",
+      "note": "GF->TTMn mixed electrical/chemical (Allen 2006; Tanouye&Wyman 1980); chemical connectome weight only 90, gap junction dominant: model as strong depolarizing coupling, 1:1 spike"
+    },
+    {
+      "pre": "DNp01",
+      "post": "PSI",
+      "kind": "electrical",
+      "note": "GF->PSI mixed electrical+cholinergic (Allen 2006); chemical weight only 16 (PSI->DNp01 95); override as strong excitatory"
+    },
+    {
+      "pre": "DNp01",
+      "post": "GFC2",
+      "kind": "electrical",
+      "note": "GFC1-4 are gap-junction-coupled to GF in literature (uncertain, literature recollection); chemical weights 97-144 already present, optionally boost"
+    }
+  ],
+  "sizeEstimate": {
+    "core": 627,
+    "extended": 1254,
+    "threshold": "extended = non-optic types with summed synapse weight >=500 (either direction) to {DNp01,DNp70,GFC1-4,PSI,TTMn,DLMn} + forced path members; edges kept at type-level weight>=50"
+  },
+  "openQuestions": [
+    "DNp01 NT conf 0.53 and TTMn/PSI/DLMn NT unclear in male-cns; signs set from literature (DLMn/TTMn Glu motor, PSI ACh).",
+    "Edge sign: 0 where consensusNt unclear (PSI, DLMn, STTMm, Tergotr. MN as presynaptic).",
+    "TTMn: 2 neurons only; \"Tergotr. MN\" (12) identity unresolved.",
+    "DLMn split a,b / c-f; DLMa-f naming vs literature (DLMa-e) needs check.",
+    "JO types have no somaSide; only JO-B1_a (17) included; other JO subtypes weakly connected to GF.",
+    "Gap junctions absent from connectome: overrides are literature-based, strengths to be tuned in sim.",
+    "MN9 is a proboscis MN, excluded as unrelated."
+  ]
+}
