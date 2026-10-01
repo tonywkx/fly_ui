@@ -45,7 +45,9 @@ try {
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
 
   await page.goto(`${base}?${query}`);
-  await page.waitForFunction(() => (window as { __snapReady?: boolean }).__snapReady === true, null, { timeout: 60_000 });
+  await page.waitForFunction(() => (window as { __snapReady?: boolean }).__snapReady === true, null, {
+    timeout: 60_000,
+  });
 
   mkdirSync('snaps', { recursive: true });
   const name =
