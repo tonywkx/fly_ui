@@ -24,7 +24,7 @@ Phase exit = its "Done when" is true and demoable.
 **Done when:** three scenario JSONs + readable summaries exist, paths agree with literature anchors.
 
 ## Phase 1 — Data pipeline (≈1 week)
-- [ ] 1.1 `packages/data`: zod manifest schema, chunk index, versioning. **[T]**
+- [x] 1.1 `packages/data`: zod manifest schema, chunk index, versioning. **[T]**
 - [ ] 1.2 SWC parser + skeleton model (tree, radii, soma). **[T]** with tiny fixture SWCs.
 - [ ] 1.3 Skeleton processing: simplify (RDP on tree segments), path distance from soma, Uint16 quantization in CNS bbox; encoder/decoder roundtrip. **[T]**
 - [ ] 1.4 Fetch skeletons for scenario lists (p-limit, disk cache in `data/cache/`, resumable).
