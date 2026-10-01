@@ -1,6 +1,6 @@
 /** Neuron skeleton in topological order: parent[i] < i, soma is node 0 and a root. */
 export interface Skeleton {
-  pos: Float32Array; // n*3, source units (nm in neuPrint)
+  pos: Float32Array; // n*3, source units (male-cns SWC: 8 nm voxels)
   radius: Float32Array;
   parent: Int32Array; // -1 = root
   type: Uint8Array; // SWC structure type

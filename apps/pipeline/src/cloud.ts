@@ -11,7 +11,7 @@ const { values } = parseArgs({
   options: {
     random: { type: 'string', default: '5000' },
     seed: { type: 'string', default: '1' },
-    spacing: { type: 'string', default: '2000' },
+    spacing: { type: 'string', default: '300' },
     tiers: { type: 'string', default: '200000,600000,1200000' },
   },
 });
