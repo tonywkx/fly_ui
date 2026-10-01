@@ -115,3 +115,32 @@ describe('datasets', () => {
     expect(fetch.mock.calls[0]?.[0]).toBe('https://np.test/api/dbmeta/datasets');
   });
 });
+
+describe('skeleton', () => {
+  const SWC = '1 1 0 0 0 10 -1\n2 0 1 0 0 2 1\n';
+
+  test('gets swc text for a body', async () => {
+    const { client, fetch } = setup([text(SWC, 200)]);
+    await expect(client.skeleton(20808)).resolves.toBe(SWC);
+    const [url, init] = fetch.mock.calls[0] ?? [];
+    expect(url).toBe('https://np.test/api/skeletons/skeleton/male-cns:v1.0/20808?format=swc');
+    expect(new Headers(init?.headers).get('authorization')).toBe(`Bearer ${TOKEN}`);
+  });
+
+  test('returns null when the body has no skeleton', async () => {
+    const { client, fetch } = setup([text('{"error":"Key \\"1_swc\\" not found\\n"}', 400)]);
+    await expect(client.skeleton(1)).resolves.toBeNull();
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test('retries 503, then succeeds', async () => {
+    const { client, fetch } = setup([text('busy', 503), text(SWC, 200)]);
+    await expect(client.skeleton(2)).resolves.toBe(SWC);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  test('other client errors still throw', async () => {
+    const { client } = setup([text('forbidden', 403)]);
+    await expect(client.skeleton(3)).rejects.toMatchObject({ status: 403 });
+  });
+});

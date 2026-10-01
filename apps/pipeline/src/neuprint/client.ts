@@ -16,6 +16,8 @@ export interface NeuprintClient {
   readonly dataset: string;
   query<T = Record<string, unknown>>(cypher: string): Promise<T[]>;
   datasets(): Promise<string[]>;
+  /** SWC text of a body's skeleton, or null if neuPrint has none. */
+  skeleton(bodyId: number): Promise<string | null>;
 }
 
 export class NeuprintError extends Error {
@@ -36,7 +38,7 @@ export function createClient(opts: ClientOptions): NeuprintClient {
   const base = server.replace(/\/+$/, '');
   const redact = (s: string) => (token ? s.replaceAll(token, '***') : s);
 
-  async function request(path: string, init: RequestInit = {}): Promise<unknown> {
+  async function request(path: string, init: RequestInit = {}): Promise<string> {
     const headers = new Headers(init.headers);
     headers.set('authorization', `Bearer ${token}`);
     headers.set('content-type', 'application/json');
@@ -46,7 +48,7 @@ export function createClient(opts: ClientOptions): NeuprintClient {
       try {
         const res = await fetch(`${base}${path}`, { ...init, headers });
         const body = await res.text();
-        if (res.ok) return JSON.parse(body);
+        if (res.ok) return body;
         failure = new NeuprintError(`neuPrint ${res.status}: ${redact(body).slice(0, 300)}`, res.status);
         const retryable = res.status === 429 || res.status >= 500 || /timeout/i.test(body);
         if (!retryable) throw failure;
@@ -59,18 +61,44 @@ export function createClient(opts: ClientOptions): NeuprintClient {
     }
   }
 
+  async function requestJson(path: string, init?: RequestInit): Promise<unknown> {
+    const body = await request(path, init);
+    try {
+      return JSON.parse(body);
+    } catch {
+      throw new NeuprintError('neuPrint: response is not JSON');
+    }
+  }
+
   return {
     dataset,
     query: <T>(cypher: string) =>
       limit(async () => {
         const parsed = tableSchema.safeParse(
-          await request('/api/custom/custom', { method: 'POST', body: JSON.stringify({ cypher, dataset }) }),
+          await requestJson('/api/custom/custom', {
+            method: 'POST',
+            body: JSON.stringify({ cypher, dataset }),
+          }),
         );
         if (!parsed.success) throw new NeuprintError('neuPrint: unexpected response shape');
         const { columns, data } = parsed.data;
         return data.map((row) => Object.fromEntries(columns.map((c, i) => [c, row[i]])) as T);
       }),
     datasets: () =>
-      limit(async () => Object.keys((await request('/api/dbmeta/datasets')) as Record<string, unknown>)),
+      limit(async () => Object.keys((await requestJson('/api/dbmeta/datasets')) as Record<string, unknown>)),
+    skeleton: (bodyId) =>
+      limit(async () => {
+        try {
+          return await request(`/api/skeletons/skeleton/${dataset}/${bodyId}?format=swc`);
+        } catch (e) {
+          if (
+            e instanceof NeuprintError &&
+            (e.status === 400 || e.status === 404) &&
+            /not found/i.test(e.message)
+          )
+            return null;
+          throw e;
+        }
+      }),
   };
 }
