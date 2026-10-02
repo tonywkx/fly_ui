@@ -5,6 +5,8 @@ import type { LiveInit, SimApi } from './sim.worker';
 /** Sim time kept buffered ahead of the display clock, and the size of one Worker request (ms). */
 const AHEAD_MS = 100;
 const CHUNK_MS = 20;
+/** Batches after which the measured speed is logged once. */
+const SPEED_LOG_AFTER = 20;
 
 /**
  * Main-thread side of the live sim: owns the Worker, keeps `feed` filled ahead of the display
@@ -13,8 +15,11 @@ const CHUNK_MS = 20;
  */
 export class LiveClient {
   readonly feed = new SpikeFeed();
-  /** Sim ms per wall-clock s of Worker time (0 until measured). */
+  /** Sim ms per wall-clock s of Worker round trips, averaged since start (0 until measured). */
   speed = 0;
+  private simMs = 0;
+  private wallMs = 0;
+  private batches = 0;
   private readonly worker: Worker;
   private readonly api: Remote<SimApi>;
   private busy = false;
@@ -49,7 +54,10 @@ export class LiveClient {
       .advance(CHUNK_MS)
       .then((b) => {
         if (gen !== this.gen) return;
-        this.speed = (CHUNK_MS * 1000) / Math.max(1, performance.now() - t0);
+        this.simMs += CHUNK_MS;
+        this.wallMs += performance.now() - t0;
+        this.speed = (this.simMs * 1000) / Math.max(1, this.wallMs);
+        if (++this.batches === SPEED_LOG_AFTER) console.info(`[sim] ${this.speed.toFixed(0)} sim ms/s`);
         this.feed.push(b.t, b.row, b.until);
       })
       .catch((e) => console.error('[sim]', e))
