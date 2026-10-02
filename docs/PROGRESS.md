@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-02 — 3.3 full-graph run → baked spike trains
+Done: `packages/data/src/spikes.ts` (`spikes` chunk, FORMAT_VERSION 3, `spikeTrainFrom`/`encodeSpikes`/`decodeSpikes`, web `decode.ts` case); `apps/pipeline/src/process/spikes.ts` (`runScenario`, `scenarioRows`, `typeRates`) + `scenarios.ts` (`SCENARIO_RUNS`); `bake.ts` runs each scenario on the full graph → `<id>-spikes.bin` first-frame.
+State: bake green, first-frame 11.32/15 MB, spikes chunks 0.02–0.06 MB; tests/typecheck/lint clean; escape snap unchanged. Scene does not play spikes yet (still fake BFS wave).
+Next: 3.4 Worker live mode via comlink + ring buffer to the scene's last-spike R32F texture (baked `spikes` can drive the same texture as a playback fallback).
+Gotchas: 300 ms runs (Hz): escape GF 415 (near max), TTMn 35, DLMn c-f 345; song pIP10 68 → dPR1 102 → hg1 MN 128; **sugar MN9/MN8 0** (GNG015 252, DNge055 153) → 3.6. Peak active set ≈95k/176k (subthreshold included), ≈3.5 s/run in Node. No overrides (GF→TTMn electrical) yet. `stats.spikes` == Σtotal only because run(duration) ends exactly on the last binned step.
+
 ## 2026-10-02 — 3.2 poisson stimulus, silencing, rng
 Done: `packages/sim/src/rng.ts` (`mulberry32(seed): Rng`, passed as 3rd arg of `createSim`, default seed 0); `lif.ts`: `stimulate(i, hz=150)` (0 removes), `silence(i, on=true)`; tests `rng.test.ts`, `stim.test.ts` (rate ≈112.8 Hz ±5%, same-step spike, stop, chain block/recover, silenced stim, seed determinism).
 State: 20/20 green, typecheck + lint clean. Sim still not wired to web; no full-graph run yet.
@@ -23,9 +29,3 @@ Done: `scene/intro.ts` (+test): `cubicBezier`/`bezierLut`, `EASE_OUT`/`EASE_IN_O
 State: snaps at intro=500/1400/2200/3000/3900/5400 all PASS (webgpu + webgl2), plain snaps unchanged (snap/debug skip the intro, no hint). Reduced motion skips the flight but shows the hint. Not felt live yet (needs a real-time look, ideally at 2–5× slow-mo); dust silhouette at 3000 is recognisable but VNC not distinct from the off-axis pose.
 Next: 2.8 quality presets (low/med/high: dust tiers, pixel ratio, bloom) + perf pass with `?stats=1`.
 Gotchas: particles moving on screen = ease-in-out; strong ease-out made dust converge in the first ~25% and the assembly unreadable. TSL `Node` type comes from `three/webgpu`, not `three/tsl`; pass uniforms across modules typed as `Node<'float'>` (the `uniform<number>` generic does not typecheck).
-
-## 2026-10-02 — 2.6 debug colour modes
-Done: `scene/segments.ts` slot 11 = region code (`meta.region`, -1 unknown/absent; +test). `layers/neurons.ts` `neuronsLayer(..., mode?: ColorMode)` + `COLOR_MODES`/`isColorMode`: `soma-dist` 5-stop ramp 0..500 µm (clamped) + dark tick every 50 µm; `id`/`region` golden-ratio hue per code (`codeColor`), -1 grey; `nt` = NT palette. `Stage.tsx`: colour modes isolate neurons and skip fake activity.
-State: all 4 modes PASS in snaps (webgpu + webgl2 identical), hues readable in lobula/VNC. 50 µm ticks unresolvable at full-CNS zoom (need zoom-in to check). No legend UI (only the `debug:` badge).
-Next: 2.7 intro assembly (particles → CNS silhouette while loading → camera dive → "click the shadow" hint), use `animate` skill.
-Gotchas: colour modes are OPAQUE depth-tested ribbons (DEBUG_LEVEL 0.8 < bloom thr) — the additive path washed dense neuropils to white, worst in `id`. `opacityNode` is set only in the wave (additive) branch.
