@@ -39,7 +39,7 @@ Phase exit = its "Done when" is true and demoable.
 - [x] 2.1 Web shell: Vite/React/MobX/Tailwind v4/shadcn, theme tokens from DESIGN.md/PRODUCT.md, `?debug=`/`?stats=` plumbing, `window.__snapReady` for snap. **[S]** impeccable
 - [x] 2.2 WebGPURenderer + WebGL2 fallback, camera controls, data loader (streamed, Worker decode).
 - [x] 2.3 Background cloud + neuropil shells render. **[V]**
-- [ ] 2.4 Hero neurons as instanced quads/ribbons (thick glowing lines; WebGPU lines are 1 px). **[V]**
+- [x] 2.4 Hero neurons as instanced quads/ribbons (thick glowing lines; WebGPU lines are 1 px). **[V]**
 - [ ] 2.5 Wave shader along neurites (distance-from-soma attribute) + bloom; fake activity = BFS over CSR with per-hop delay. **[V]**
 - [ ] 2.6 Debug modes: soma-distance, id, transmitter, region. **[V]**
 - [ ] 2.7 Intro assembly: particles fly into CNS silhouette while data loads → camera dive → "click the shadow" hint. **[V]** **[S]** animate
