@@ -7,6 +7,10 @@ import { exists, put } from './cache';
 /** Per neuron-pair synapse threshold for the CSR (DECISIONS.md, PLAN 1.7). */
 export const MIN_WEIGHT = 5;
 
+/** Cache batch sizes; batch files are indexed by position in ids.json, so these must not drift. */
+export const META_BATCH = 2000;
+export const EDGE_BATCH = 500;
+
 /** Neuron properties as fetched; `region` is already resolved from roiInfo. */
 export interface RawNeuron {
   bodyId: number;
@@ -122,4 +126,13 @@ export async function loadBatches<T>(dir: string, prefix: string, count: number)
       async (_, i) => JSON.parse(await readFile(join(dir, `${prefix}-${i}.json`), 'utf8')) as T,
     ),
   );
+}
+
+/** Cached graph fetch: all body ids, raw neurons, edge batches (see `pnpm graph`). */
+export async function loadGraphCache(dir: string, sizes = { meta: META_BATCH, edges: EDGE_BATCH }) {
+  const ids = JSON.parse(await readFile(join(dir, 'ids.json'), 'utf8')) as number[];
+  const count = (size: number) => Math.ceil(ids.length / size);
+  const neurons = (await loadBatches<RawNeuron[]>(dir, 'meta', count(sizes.meta))).flat();
+  const edges = await loadBatches<EdgeBatch>(dir, 'edges', count(sizes.edges));
+  return { ids, neurons, edges };
 }

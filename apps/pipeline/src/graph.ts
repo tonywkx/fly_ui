@@ -6,13 +6,13 @@ import { collapseByType, decodeMeta, encodeGraph, encodeMeta, encodeTypeGraph } 
 import { env } from './env';
 import {
   allBodyIds,
-  type EdgeBatch,
+  EDGE_BATCH,
   fetchBatches,
   fetchEdgeBatch,
   fetchNeuronBatch,
-  loadBatches,
+  loadGraphCache,
+  META_BATCH,
   MIN_WEIGHT,
-  type RawNeuron,
 } from './fetch/graph';
 import { primaryRois } from './fetch/rois';
 import { scoutBodyIds } from './fetch/skeletons';
@@ -22,8 +22,8 @@ import { buildGraph, type Graph, orderNeurons, subgraph, toRecord } from './proc
 // Connectivity: full pruned CNS graph (lazy) + induced scenario subgraphs (first frame), CSR + meta.
 const { values } = parseArgs({
   options: {
-    'meta-batch': { type: 'string', default: '2000' },
-    'edge-batch': { type: 'string', default: '500' },
+    'meta-batch': { type: 'string', default: String(META_BATCH) },
+    'edge-batch': { type: 'string', default: String(EDGE_BATCH) },
     concurrency: { type: 'string', default: '6' },
   },
 });
@@ -69,10 +69,9 @@ for (const [label, size, fetch] of [
   if (res.failed.length) process.exit(1);
 }
 
-const count = (size: number) => Math.ceil(ids.length / size);
-const neurons = (await loadBatches<RawNeuron[]>(cache, 'meta', count(metaSize))).flat();
+const { neurons, edges } = await loadGraphCache(cache, { meta: metaSize, edges: edgeSize });
 const meta = orderNeurons(neurons.map(toRecord));
-const full = buildGraph(meta, await loadBatches<EdgeBatch>(cache, 'edges', count(edgeSize)));
+const full = buildGraph(meta, edges);
 console.log(
   `built: ${meta.length} neurons, ${full.csr.cols.length} edges, dropped ${full.dropped} (${secs()}s)`,
 );
