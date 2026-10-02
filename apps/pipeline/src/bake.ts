@@ -14,10 +14,12 @@ import {
   encodeMeta,
   encodeNeuropils,
   encodeSkeletons,
+  encodeSpikes,
   encodeTypeGraph,
   type NamedMesh,
   pruneTypeGraph,
 } from '@fly/data';
+import { LIF_DEFAULTS, netFromCsr } from '@fly/sim';
 import { env } from './env';
 import { loadGraphCache } from './fetch/graph';
 import { SHELL_ROIS } from './fetch/rois';
@@ -26,7 +28,9 @@ import { type BakedChunk, BudgetError, buildManifest, checkBudget, FIRST_FRAME_B
 import { buildCloud } from './process/cloud';
 import { buildGraph, orderNeurons, subgraph, toRecord } from './process/graph';
 import { buildNeuropils } from './process/neuropil';
+import { SCENARIO_RUNS } from './process/scenarios';
 import { buildSkeletons } from './process/skeletons';
+import { runScenario, scenarioRows, typeRates } from './process/spikes';
 
 // Offline: assembles apps/web/public/data from data/cache + data/scout (run pull/cloud/neuropil/graph first).
 const { values } = parseArgs({
@@ -99,14 +103,29 @@ const meshBox = (ms: NamedMesh[]) =>
   );
 console.log(`neuropils: ${shells.meshes.length} shells, ${parts.meshes.length} regions (${secs()}s)`);
 
+// Full-graph sim per scenario (Shiu LIF, no overrides yet) → baked spike trains in scenario rows.
+const net = netFromCsr(
+  full.csr,
+  Int8Array.from(full.meta, (r) => r.sign),
+  LIF_DEFAULTS.wSyn,
+);
 const scenarios = [];
 for (const f of (await readdir(scoutDir)).filter((f) => f.endsWith('.json')).sort()) {
   const id = f.slice(0, -'.json'.length);
   const ids = scoutBodyIds([JSON.parse(await readFile(join(scoutDir, f), 'utf8')) as unknown]);
   const skel = await buildSkeletons({ dir: join(cache, 'skeletons'), ids, epsilon: Number(values.epsilon) });
   if (skel.missing.length) console.warn(`  ${id}: ${skel.missing.length} skeletons missing (run pnpm pull)`);
-  scenarios.push({ id, title: TITLES[id] ?? id, graph: subgraph(full, ids), skel });
+  const graph = subgraph(full, ids);
   console.log(`  ${id}: ${ids.length} bodies, nodes ${skel.nodes.before} → ${skel.nodes.after}`);
+  const run = SCENARIO_RUNS[id];
+  if (!run) throw new Error(`no SCENARIO_RUNS entry for ${id}`);
+  const { train, stats } = runScenario(net, full.meta, scenarioRows(full.meta, graph.meta), run);
+  const rates = [...typeRates(train, graph.meta, run.anchors)].map(([t, hz]) => `${t} ${hz.toFixed(1)}`);
+  console.log(
+    `    sim ${run.durationMs} ms: ${stats.spikes} spikes (${train.ids.length} in scenario), ` +
+      `peak active ${stats.peakActive}, ${(stats.wallMs / 1000).toFixed(1)}s; Hz: ${rates.join(', ')}`,
+  );
+  scenarios.push({ id, title: TITLES[id] ?? id, graph, skel, spikes: encodeSpikes(train) });
 }
 
 if (!scenarios.some((s) => s.id === values.default))
@@ -129,7 +148,7 @@ const chunks: BakedChunk[] = [
       data: encodeCloud(t, bbox),
     }),
   ),
-  ...scenarios.flatMap(({ id, graph, skel }): BakedChunk[] => [
+  ...scenarios.flatMap(({ id, graph, skel, spikes }): BakedChunk[] => [
     {
       id: `${id}-skeletons`,
       kind: 'skeletons',
@@ -139,6 +158,7 @@ const chunks: BakedChunk[] = [
     },
     { id: `${id}-graph`, kind: 'graph', tier: ff, scenario: id, data: encodeGraph(graph.csr) },
     { id: `${id}-meta`, kind: 'meta', tier: ff, scenario: id, data: encodeMeta(graph.meta) },
+    { id: `${id}-spikes`, kind: 'spikes', tier: ff, scenario: id, data: spikes },
   ]),
   { id: 'neuropil-regions', kind: 'neuropil', tier: 'lazy', data: encodeNeuropils(parts.meshes, bbox) },
   { id: 'graph-full', kind: 'graph', tier: 'lazy', data: encodeGraph(full.csr) },
