@@ -8,7 +8,8 @@
     "bake": "tsx src/bake.ts",
     "pull": "tsx src/fetch.ts",
     "cloud": "tsx src/cloud.ts",
-    "neuropil": "tsx src/neuropil.ts"
+    "neuropil": "tsx src/neuropil.ts",
+    "graph": "tsx src/graph.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",

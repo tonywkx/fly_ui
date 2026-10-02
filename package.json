@@ -13,6 +13,8 @@
     "scout": "pnpm --filter pipeline scout",
     "pull": "pnpm --filter pipeline pull",
     "cloud": "pnpm --filter pipeline cloud",
+    "neuropil": "pnpm --filter pipeline neuropil",
+    "graph": "pnpm --filter pipeline graph",
     "snap": "tsx scripts/snap.ts",
     "test": "vitest run",
     "test:watch": "vitest",
