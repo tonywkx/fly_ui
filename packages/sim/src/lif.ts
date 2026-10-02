@@ -105,6 +105,11 @@ export class Sim {
     }
   }
 
+  /** Empties the spike log (keeps its capacity); the caller reads it first. Dynamics are unaffected. */
+  clearSpikes(): void {
+    this.spikes.count = 0;
+  }
+
   run(ms: number): void {
     const steps = Math.round(ms / this.p.dt);
     for (let k = 0; k < steps; k++) this.step();

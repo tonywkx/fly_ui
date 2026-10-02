@@ -89,3 +89,29 @@ describe('determinism', () => {
     expect(runWith(12).t).not.toEqual(a.t);
   });
 });
+
+describe('clearSpikes', () => {
+  it('empties the log without changing the dynamics', () => {
+    const run = (clear: boolean) => {
+      const sim = createSim(chain(), {}, mulberry32(3));
+      sim.stimulate(0);
+      const log: [number, number][] = [];
+      const take = () => {
+        for (let k = 0; k < sim.spikes.count; k++)
+          log.push([sim.spikes.t[k] as number, sim.spikes.id[k] as number]);
+      };
+      for (let ms = 0; ms < 200; ms += 10) {
+        sim.run(10);
+        if (!clear) continue;
+        take();
+        sim.clearSpikes();
+        expect(sim.spikes.count).toBe(0);
+      }
+      if (!clear) take();
+      return log;
+    };
+    const a = run(false);
+    expect(a.length).toBeGreaterThan(20);
+    expect(run(true)).toEqual(a);
+  });
+});
