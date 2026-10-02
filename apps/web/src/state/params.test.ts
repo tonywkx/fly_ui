@@ -8,7 +8,7 @@ describe('parseParams', () => {
 
   it('reads every known param', () => {
     const { params, warnings } = parseParams(
-      '?snap=1&scenario=escape&t=40.5&debug=soma-dist&stats=1&ui=inspector&gl=webgl2',
+      '?snap=1&scenario=escape&t=40.5&debug=soma-dist&stats=1&ui=inspector&gl=webgl2&intro=1200',
     );
     expect(warnings).toEqual([]);
     expect(params).toEqual({
@@ -19,6 +19,7 @@ describe('parseParams', () => {
       snap: true,
       ui: 'inspector',
       gl: 'webgl2',
+      intro: 1200,
     });
   });
 
@@ -38,6 +39,12 @@ describe('parseParams', () => {
 
   it('warns on non-numeric t', () => {
     expect(parseParams('?t=abc').warnings).toHaveLength(1);
+  });
+
+  it('warns on a negative intro time', () => {
+    const { params, warnings } = parseParams('?intro=-1');
+    expect(params.intro).toBeUndefined();
+    expect(warnings).toHaveLength(1);
   });
 
   it('accepts only webgl2 for gl', () => {

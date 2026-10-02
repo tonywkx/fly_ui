@@ -15,6 +15,8 @@ export interface Params {
   snap: boolean;
   /** UI state preset for snaps (panels open etc.), interpreted by the UI. */
   ui?: string;
+  /** Freeze the intro clock at this many ms (snaps of the intro); data counts as ready. */
+  intro?: number;
   /** Force the WebGL2 backend (fallback check); WebGPU is used when available otherwise. */
   gl?: 'webgl2';
 }
@@ -33,12 +35,15 @@ export function parseParams(search: string): { params: Params; warnings: string[
     else warnings.push(`scenario: invalid id "${scenario}"`);
   }
 
-  const t = q.get('t');
-  if (t !== null) {
-    const n = Number(t);
-    if (t !== '' && Number.isFinite(n) && n >= 0) params.t = n;
-    else warnings.push(`t: expected ms ≥ 0, got "${t}"`);
-  }
+  const ms = (key: 't' | 'intro') => {
+    const v = q.get(key);
+    if (v === null) return;
+    const n = Number(v);
+    if (v !== '' && Number.isFinite(n) && n >= 0) params[key] = n;
+    else warnings.push(`${key}: expected ms ≥ 0, got "${v}"`);
+  };
+  ms('t');
+  ms('intro');
 
   const debug = q.get('debug');
   if (debug !== null) {
