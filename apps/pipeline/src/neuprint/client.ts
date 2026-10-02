@@ -18,6 +18,8 @@ export interface NeuprintClient {
   datasets(): Promise<string[]>;
   /** SWC text of a body's skeleton, or null if neuPrint has none. */
   skeleton(bodyId: number): Promise<string | null>;
+  /** OBJ text of an ROI mesh, or null if neuPrint has none. */
+  roiMesh(roi: string): Promise<string | null>;
 }
 
 export class NeuprintError extends Error {
@@ -70,6 +72,22 @@ export function createClient(opts: ClientOptions): NeuprintClient {
     }
   }
 
+  /** GET that maps neuPrint's 400/404 "not found" to null. */
+  const optional = (path: string) =>
+    limit(async () => {
+      try {
+        return await request(path);
+      } catch (e) {
+        if (
+          e instanceof NeuprintError &&
+          (e.status === 400 || e.status === 404) &&
+          /not found/i.test(e.message)
+        )
+          return null;
+        throw e;
+      }
+    });
+
   return {
     dataset,
     query: <T>(cypher: string) =>
@@ -86,19 +104,7 @@ export function createClient(opts: ClientOptions): NeuprintClient {
       }),
     datasets: () =>
       limit(async () => Object.keys((await requestJson('/api/dbmeta/datasets')) as Record<string, unknown>)),
-    skeleton: (bodyId) =>
-      limit(async () => {
-        try {
-          return await request(`/api/skeletons/skeleton/${dataset}/${bodyId}?format=swc`);
-        } catch (e) {
-          if (
-            e instanceof NeuprintError &&
-            (e.status === 400 || e.status === 404) &&
-            /not found/i.test(e.message)
-          )
-            return null;
-          throw e;
-        }
-      }),
+    skeleton: (bodyId) => optional(`/api/skeletons/skeleton/${dataset}/${bodyId}?format=swc`),
+    roiMesh: (roi) => optional(`/api/roimeshes/mesh/${dataset}/${encodeURIComponent(roi)}`),
   };
 }

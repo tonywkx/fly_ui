@@ -1,8 +1,9 @@
-import { access, mkdir, rename, writeFile } from 'node:fs/promises';
+import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { mulberry32, parseSwc } from '@fly/data';
 import { z } from 'zod';
 import type { NeuprintClient } from '../neuprint/client';
+import { exists, put } from './cache';
 
 const scoutSchema = z.object({ types: z.array(z.object({ bodyIds: z.array(z.number().int()) })) });
 
@@ -55,18 +56,6 @@ export interface FetchSkeletonsResult {
   fetched: number;
   missing: number[];
   failed: { bodyId: number; error: string }[];
-}
-
-const exists = (path: string) =>
-  access(path).then(
-    () => true,
-    () => false,
-  );
-
-/** Atomic write: a killed run never leaves a truncated cache file behind. */
-async function put(path: string, data: string) {
-  await writeFile(`${path}.tmp`, data);
-  await rename(`${path}.tmp`, path);
 }
 
 /** Resumable: cached and known-missing bodies are skipped; failures are reported, not cached. */

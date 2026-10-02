@@ -144,3 +144,18 @@ describe('skeleton', () => {
     await expect(client.skeleton(3)).rejects.toMatchObject({ status: 403 });
   });
 });
+
+describe('roiMesh', () => {
+  const OBJ = '# OBJ file\nv 0 0 0\nv 1 0 0\nv 0 1 0\nf 1 2 3\n';
+
+  test('gets obj text, roi name url-encoded', async () => {
+    const { client, fetch } = setup([text(OBJ, 200)]);
+    await expect(client.roiMesh("a'L(R)")).resolves.toBe(OBJ);
+    expect(fetch.mock.calls[0]?.[0]).toBe("https://np.test/api/roimeshes/mesh/male-cns:v1.0/a'L(R)");
+  });
+
+  test('returns null when the roi has no mesh', async () => {
+    const { client } = setup([text('{"error":"Key \\"CX\\" not found\\n"}', 400)]);
+    await expect(client.roiMesh('CX')).resolves.toBeNull();
+  });
+});
