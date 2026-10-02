@@ -32,6 +32,9 @@ importers:
       '@fly/data':
         specifier: workspace:*
         version: link:../../packages/data
+      meshoptimizer:
+        specifier: ^1.3.0
+        version: 1.3.0
       p-limit:
         specifier: ^7.3.3
         version: 7.3.3
@@ -926,6 +929,9 @@ packages:
   magic-string@1.4.2:
     resolution: {integrity: sha512-vG+rjFRj1PqdIBozIxAGMjPlOhaVe+GXpbttY/iSK7rGcJRMlwNJO7dcUwmUqkymsFLJiNGI06t4D7Fr7yRC9g==}
 
+  meshoptimizer@1.3.0:
+    resolution: {integrity: sha512-2oZqMAcEEiCtXWUjIGtZ71oPx1B0ZxYGTqIKsXB1wzWFhleNsCFxQuUJzgCV706bRcwPWtMGf1odmQvAcqKkIw==}
+
   mobx-react-lite@5.1.0:
     resolution: {integrity: sha512-++LQTCRr4FJCWuaEvYl5gCtGBwOpOwrnWjm9uhCUDI5nmkzLR8eT1jgMeYfJ8wc88YOYyC/ygjw2KpYPBYGsww==}
     peerDependencies:
@@ -1639,6 +1645,8 @@ snapshots:
   magic-string@1.4.2:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
+
+  meshoptimizer@1.3.0: {}
 
   mobx-react-lite@5.1.0(mobx@7.0.5)(react@19.3.0):
     dependencies:

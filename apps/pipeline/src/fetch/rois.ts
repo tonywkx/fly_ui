@@ -10,7 +10,7 @@ export const SHELL_ROIS = ['CentralBrain', 'Optic(L)', 'Optic(R)', 'CV', 'VNC'];
 /** Dataset's primary ROIs (neuropils + nerves), minus the `*-unspecified` remainders. */
 export async function primaryRois(client: Pick<NeuprintClient, 'query'>): Promise<string[]> {
   const [row] = await client.query<{ rois: string[] }>('MATCH (m:Meta) RETURN m.primaryRois AS rois');
-  return (row?.rois ?? []).filter((r) => !r.endsWith('-unspecified'));
+  return (row?.rois ?? []).filter((r) => !r.includes('-unspecified'));
 }
 
 /** Cache file name; ROI names carry parens and quotes. */

@@ -18,9 +18,10 @@ const clientWith = (impl: (roi: string) => Promise<string | null>) => ({ roiMesh
 
 describe('primaryRois', () => {
   test('primary rois from :Meta without the *-unspecified leftovers', async () => {
-    const client = {
-      query: vi.fn(async () => [{ rois: ['AB(L)', 'CentralBrain-unspecified', 'GNG', 'VNC-unspecified'] }]),
-    };
+    const rows = [
+      { rois: ['AB(L)', 'CentralBrain-unspecified', 'GNG', 'Optic-unspecified(L)', 'VNC-unspecified'] },
+    ];
+    const client = { query: async <T>() => rows as T[] };
     await expect(primaryRois(client)).resolves.toEqual(['AB(L)', 'GNG']);
   });
 });
