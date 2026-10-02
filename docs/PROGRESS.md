@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-02 — 1.6 neuropil meshes
+Done: `packages/data/src/obj.ts` (`parseObj`), `neuropil.ts` (`encodeNeuropils`/`decodeNeuropils`) + tests; `client.roiMesh`, `apps/pipeline/src/fetch/rois.ts` (`SHELL_ROIS`, `primaryRois`, resumable `fetchRoiMeshes`, shared `fetch/cache.ts`); `process/neuropil.ts` (`weld`, `decimate` via meshoptimizer, `buildNeuropils`) + CLI `pnpm neuropil` → `data/build/neuropil-{shells,regions}.bin`.
+State: 144 ROI OBJs cached in `data/cache/rois/`; shells 5 meshes / 69k tris / 0.59 MB (first-frame), regions 139 meshes / 270k tris / 2.33 MB (lazy); build ~9 s cached. Not yet in a manifest (bake 1.8 reuses `buildNeuropils`).
+Next: 1.7 connectivity CSR with signed weights + neuron metadata table (scenario subgraphs + full pruned CNS graph), codec in packages/data (TDD).
+Gotchas: ROI mesh API `GET /api/roimeshes/mesh/{dataset}/{roi}` returns OBJ in 8 nm voxels (same as SWC); only primary ROIs + `CentralBrain`/`Optic(L|R)`/`CV`/`VNC` have meshes (not `CNS`, `CX`, `MB(L)`…). packages/data has ES2023 lib only — `src/text.d.ts` declares TextEncoder/TextDecoder. node_modules reads are denied; check third-party APIs via typecheck.
+
 ## 2026-10-01 — 1.5 background cloud
 Done: `packages/data/src/cloud.ts` (`mulberry32`, `sampleCable`, `lodTiers`, `bboxOf`, `encodeCloud`/`decodeCloud`) + tests; `pickRandom`/`randomBodyIds` + `pnpm pull --random=N [--seed]`; `apps/pipeline/src/process/cloud.ts` `buildCloud` + CLI `pnpm cloud` → `data/build/cloud-lod{0,1,2}.bin` (gitignored).
 State: 5000 random CNS skeletons cached (cache 8496 bodies, ~636 MB); cloud = 2.16M pts → 200k/600k/1.2M tiers (1.14/3.43/6.87 MB), built in ~12 s. Not yet in a manifest (bake 1.8 reuses `buildCloud`).
@@ -23,9 +29,3 @@ Done: `packages/data/src/swc.ts` (`parseSwc` → `Skeleton {pos, radius, parent,
 State: skeletons in topological order (parent[i] < i), soma = node 0, soma component rerooted; extra fragments kept as roots. No skeleton encoder yet.
 Next: 1.3 RDP on unbranched segments (use `childrenOf`), path distance from soma, Uint16 quantization in CNS bbox + skeletons chunk encoder/decoder roundtrip.
 Gotchas: tsconfig has noUncheckedIndexedAccess — `arr[i]++` on typed arrays fails typecheck; use the private `csr()` helper in swc.ts or explicit `as number`. Biome flags comma operators.
-
-## 2026-10-01 — 1.1 data manifest + chunk container
-Done: `packages/data/src/manifest.ts` (zod Manifest, ChunkEntry, Scenario, `parseManifest` + FormatVersionError), `chunks.ts` (`chunksFor`, `firstFrameBytes`), `container.ts` (`encodeChunk`/`decodeChunk`, FLYD layout); 16 tests. `biome.json` excludes `data/`.
-State: format v1 defined; no real chunk producers yet (kinds: skeletons/cloud/neuropil/graph/typegraph/meta). Layout recorded in DECISIONS.md.
-Next: 1.2 SWC parser + skeleton model (tree, radii, soma) in packages/data, TDD with tiny fixture SWCs.
-Gotchas: never run `pnpm fix` expecting it to touch only your files — it reformatted frozen scout JSONs (now excluded). Container sections are ≤4-byte dtypes only; decoder copies once if input byteOffset is unaligned. test-runner agent hit its 8-turn limit on test+typecheck+lint; ask for one command per call or run filtered output directly.
