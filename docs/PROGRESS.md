@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-02 — 2.6 debug colour modes
+Done: `scene/segments.ts` slot 11 = region code (`meta.region`, -1 unknown/absent; +test). `layers/neurons.ts` `neuronsLayer(..., mode?: ColorMode)` + `COLOR_MODES`/`isColorMode`: `soma-dist` 5-stop ramp 0..500 µm (clamped) + dark tick every 50 µm; `id`/`region` golden-ratio hue per code (`codeColor`), -1 grey; `nt` = NT palette. `Stage.tsx`: colour modes isolate neurons and skip fake activity.
+State: all 4 modes PASS in snaps (webgpu + webgl2 identical), hues readable in lobula/VNC. 50 µm ticks unresolvable at full-CNS zoom (need zoom-in to check). No legend UI (only the `debug:` badge).
+Next: 2.7 intro assembly (particles → CNS silhouette while loading → camera dive → "click the shadow" hint), use `animate` skill.
+Gotchas: colour modes are OPAQUE depth-tested ribbons (DEBUG_LEVEL 0.8 < bloom thr) — the additive path washed dense neuropils to white, worst in `id`. `opacityNode` is set only in the wave (additive) branch.
+
 ## 2026-10-02 — 2.5 wave shader + bloom
 Done: `scene/activity.ts` (+test): `bfsOnsets` (hop delay per synapse, Infinity = unreached), `seedRows` by type, `jitter` (deterministic 0..ms per row), `cycleMs`, `writeSpikes` (lastSpike per row, NEVER = -1e9, returns changed). `layers/neurons.ts` now returns `NeuronsLayer {mesh, simTime, lastSpike, commit}`: R32F `DataTexture` 256×ceil(n/256) read in vertex via `textureLoad(row)`; front = age·20 µm/ms vs soma dist, exp tail 30 µm / lead 4 µm, PULSE 3 (HDR), afterglow 0.4/40 ms, REST 0.2. `engine.ts`: `RenderPipeline` = scene pass + `bloom(0.5, 0.4, thr 1.0)`, `AgXToneMapping`. `Stage.tsx` driver: escape seeds LPLC2+LC4, HOP 6 ms, jitter 12 ms, 40 sim-ms/s, loop = last onset + 60 ms; `?t=` freezes.
 State: wave reads well in `?debug=neurons` (optic lobes → central brain/VNC by t≈30), webgpu + webgl2 match, no whiteout. In the full scene shells + dust outshine downstream neurons. Seeds only for escape (sugar/song: no activity). fps with bloom not measured.
@@ -23,9 +29,3 @@ Done: `data/{decode,plan,store,decode.worker}.ts` (+tests): manifest fetch → `
 State: snaps OK on webgpu and webgl2: `scene/smoke.ts` (cloud lod0 as 1-px Points + bbox Box3Helper) is a TEMP placeholder — replace in 2.3. View = upright anterior/posterior: brain on top, VNC below seen end-on (body axis ≈ camera z). Framing is loose (bounding-sphere fit, cloud ≈ 40% of width).
 Next: 2.3 background cloud + neuropil shells (TSL materials), drop smoke.ts; tighten camera framing.
 Gotchas: MobX 7 has no `observable.ref` — use `observableRef` (exported from 'mobx'); anything posted to a Worker must not be a MobX proxy (manifest is `observableRef`). Worker fetch URLs must be absolute (relative resolves against the worker script). `world` group = bbox centre→0, ×unitNm/1000 (µm), rotated 180° about x (y,z negated). Snap fires 2 frames after content, before the first 500 ms Stats window → fps "—" in snaps. Bash: never `cat > f 2>/dev/null ||` without heredoc (hangs on stdin).
-
-## 2026-10-02 — 2.1 web shell
-Done: shadcn base (`@/` alias, `components.json`, `lib/utils.ts` cn, shadcn vars mapped onto tokens in `ui/theme.css`, `components/ui/button.tsx` primary/ghost); `ui/palette.ts` NT_COLORS (Record<Nt>, hex + linear rgb) mirrored as `--color-nt-*` + test; `state/params.ts` parseParams + test, `state/app.ts` AppStore (MobX, readiness flags); `App.tsx` `#stage` + HUD, `ui/Stats.tsx`.
-State: `pnpm snap` works with `?scenario/debug/stats`; `__snapReady` set by `when(app.ready)` in `main.tsx` (only `fonts` flag now). HUD = wordmark "fly_ui" bottom-left (open question: user was offered removing it — empty scene until intro 2.7, big title only inside the intro; not answered yet), CC BY link bottom-right, debug/stats top-right.
-Next: 2.2 renderer: mount WebGPURenderer into `#stage`, `app.waitFor('data'|'frame')` before snapReady, Worker decode of manifest chunks; hook Stats to the renderer loop.
-Gotchas: web tsconfig has `types: [vite/client, node]` (vite.config uses node:url). Stats shows "—" in snaps (first sample after 500 ms). `@fly/data` is now a web dependency.
