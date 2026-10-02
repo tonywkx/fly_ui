@@ -52,7 +52,7 @@ Phase exit = its "Done when" is true and demoable.
 - [x] 3.3 Full-graph run in Node: bake scenarios → spike trains (compact binary via packages/data). **[T]** format
 - [x] 3.4 Worker live mode via comlink, ring buffer to scene (SharedArrayBuffer if COOP/COEP possible on Pages, else transfer).
 - [x] 3.5 Tweakpane param panel (thresholds, weights, gain), dev-only.
-- [ ] 3.6 Biology checks as tests: shadow → Giant Fiber fires; sugar → MN9; song → pIP10 / wing MNs; silencing GF kills TTMn. Activity neither dies instantly nor explodes. **[T]**
+- [x] 3.6 Biology checks as tests: shadow → Giant Fiber fires; sugar → MN9; song → pIP10 / wing MNs; silencing GF kills TTMn. Activity neither dies instantly nor explodes. **[T]**
 - [ ] 3.7 Exploratory: with GF silenced, does the model find the slower non-GF takeoff route (other descending neurons)? Document result, no hard assert.
 **Done when:** scenarios plausible, bio tests green.
 **Risk:** parameter tuning (dies out vs. seizure-like explosion) is the least predictable part of the project — budget +1 week here. Validate against published Shiu et al. results, not by running Brian2.

@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-02 — 3.6 biology checks as tests
+Done: `packages/sim/src/overrides.ts` (`applyOverrides`, `NET_OVERRIDES`: GF→TTMn/PSI 40 mV) used by pipeline `buildNet` (`process/spikes.ts`, also `RunConfig.silence`) and `sim.worker.ts`; sugar stim BM_Taste → LB3a–d (added to `data/scout/sugar.json`, skeletons pulled); `process/scenarios.bio.ts` + `vitest.bio.config.ts` → `pnpm test:bio` (6 tests, ~20 s).
+State: all green (257 unit + 6 bio), rebaked. Hz @300 ms: escape GF 415, TTMn 230 (GF silenced → ≈35, first spike 8.5 → 21 ms), PSI 120; sugar MN9 227, MN8 62, DNge062 203; song pIP10 68, hg1 128, hg3 197. Bio tests run on the whole graph as one "scenario" (all rows), not the scout subset.
+Next: 3.7 exploratory — GF silenced, TTMn still ≈35 Hz with ≈21 ms latency: trace which DNs (DNp02/DNp11 at 350/275 Hz?) carry it; document, no assert.
+Gotchas: DNp01 NT conf 0.53 → sign 0, so GF drives nothing chemically; overrides only touch existing edges. TTMn has heavy inhibitory input (IN13A022 987 syn) — 10 mV overrides gave only 90 Hz. Snap sugar t=40: SEZ blob saturated white (bloom/gain, like song) — visual tuning still open. Scout JSON files are minified one-liners; keep them that way.
+
 ## 2026-10-02 — 3.5 dev tweakpane sim panel
 Done: `Live.retune(params, net?)` (`apps/web/src/sim/live.ts`, tests); worker `tune(Tuning)` (`Tuning = Partial<LifParams> & {gain}`, net rebuilt via `netFromCsr` only when wSyn·gain changes) + `LiveClient.tune`; `apps/web/src/dev/tuning.ts` (Tweakpane, imperative, lazy-imported under `import.meta.env.DEV`), mounted in Stage `startActivity` when live and (!snap or `ui=tune`).
 State: 253 tests, typecheck, lint green; `pnpm snap --scenario=escape --t=40 --sim=live --ui=tune` shows panel top-right. Released slider → scenario restarts at t = 0 (same seed); "copy JSON" = diff from defaults. Prod-bundle exclusion of tweakpane not inspected (dist reads denied).
@@ -23,9 +29,3 @@ Done: `packages/sim/src/rng.ts` (`mulberry32(seed): Rng`, passed as 3rd arg of `
 State: 20/20 green, typecheck + lint clean. Sim still not wired to web; no full-graph run yet.
 Next: 3.3 Node full-graph run: load real Csr + sign (via `netFromCsr`), bake scenario spike trains to a compact binary format in `packages/data` (schema + encoder + decoder + test together).
 Gotchas: Shiu Poisson targets **v**, not g (verified in philshiu/Drosophila_brain_model `model.py`); kick 68.75 mV always spikes the same step. Refractory loses kicks → ~112.8 Hz, not 150. Silencing = clamp at rest (differs from Shiu's zeroed weights, same downstream) — see DECISIONS. Spikes already queued before `silence()` still get delivered. rng is drawn once per stimulated neuron per step regardless of state.
-
-## 2026-10-02 — 3.1 sim LIF + delay queue
-Done: `packages/sim/src/lif.ts` (`Sim`/`createSim(net, params?)`: `step`, `run(ms)`, `inject(i, mV)`, `v`/`g` f64, `lastSpike` f32 (−Infinity = never), growable `spikes {count,t,id}`, `activeCount`); `net.ts` (`Net {n, offsets, cols, w mV signed}`, `netFromCsr(csr, sign, wSyn)` structural, no `@fly/data` import; `netFromEdges` for toy nets); `params.ts` (`LIF_DEFAULTS` + `dt: 0.1`). Tests: rest, analytic PSP (peak 0.1575·w @ 9.24 ms), threshold (40 no / 50 mV spike), 3-chain (hop = delay + rise), inhibition cancel, refractory ISI, active-set drain, determinism.
-State: 11/11 green, typecheck + lint clean. No stimulus/RNG/silencing yet; not wired to web.
-Next: 3.2 Poisson stimulus (rate 150 Hz, kick wSyn·poissonScale = 68.75 mV), silencing mask, seeded RNG passed in, determinism test with seed.
-Gotchas: f32 v near −52 mV stalls the exponential decay at ~4e-4 mV (ulp 3.8e-6 > per-step decrement) → v/g are Float64. Single kick needs ≥44.4 mV to reach threshold (≈162 synapses × 0.275). Step order: deliver due spikes → integrate active → threshold; spike time = end of step, arrives exactly `delay` later. `vitest --root /` scans the whole disk — put scratch tests inside the package.
