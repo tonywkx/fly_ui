@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-02 — 3.5 dev tweakpane sim panel
+Done: `Live.retune(params, net?)` (`apps/web/src/sim/live.ts`, tests); worker `tune(Tuning)` (`Tuning = Partial<LifParams> & {gain}`, net rebuilt via `netFromCsr` only when wSyn·gain changes) + `LiveClient.tune`; `apps/web/src/dev/tuning.ts` (Tweakpane, imperative, lazy-imported under `import.meta.env.DEV`), mounted in Stage `startActivity` when live and (!snap or `ui=tune`).
+State: 253 tests, typecheck, lint green; `pnpm snap --scenario=escape --t=40 --sim=live --ui=tune` shows panel top-right. Released slider → scenario restarts at t = 0 (same seed); "copy JSON" = diff from defaults. Prod-bundle exclusion of tweakpane not inspected (dist reads denied).
+Next: 3.6 biology checks as tests (GF fires on shadow, MN9 on sugar — currently 0 Hz, pIP10/wing MNs on song, GF silencing kills TTMn); use the panel to find params first.
+Gotchas: Tweakpane v4 types need `@tweakpane/core` devDep. A readonly monitor binding emits `change` on every poll → listen on folders, not the root pane (otherwise endless restarts). `gain` scales synapses only; `wSyn` also scales the Poisson kick.
+
 ## 2026-10-02 — 3.4 worker live mode + real spikes in scene
 Done: `packages/sim` `clearSpikes()`; `apps/web/src/sim/` — `feed.ts` (`SpikeFeed` ring buffer, `bakedEvents`, `nextSimTime`, `NEVER`), `live.ts` (`Live`, `rowMap`), `sim.worker.ts` (comlink: init/advance/stimulate/silence/reset), `client.ts` (`LiveClient` pump); `scene/playback.ts` (`bakedSource`, `play`); Stage plays baked by default, `?sim=live` swaps to Worker; fake BFS (`scene/activity.ts`) deleted; `?sim=baked|live` param, ready flag `'sim'`, `data.url(chunk)`.
 State: 251 tests, typecheck, lint green. Snaps escape t=40 baked ≈ live (same engine/seed); live loads 176k/6.3M in ~0.2 s locally, runs ≈54 sim ms/s in headless Chromium (needs 40 → 1.35× headroom; clock slows, never desyncs). No UI yet for stimulate/silence (phase 4).
@@ -23,9 +29,3 @@ Done: `packages/sim/src/lif.ts` (`Sim`/`createSim(net, params?)`: `step`, `run(m
 State: 11/11 green, typecheck + lint clean. No stimulus/RNG/silencing yet; not wired to web.
 Next: 3.2 Poisson stimulus (rate 150 Hz, kick wSyn·poissonScale = 68.75 mV), silencing mask, seeded RNG passed in, determinism test with seed.
 Gotchas: f32 v near −52 mV stalls the exponential decay at ~4e-4 mV (ulp 3.8e-6 > per-step decrement) → v/g are Float64. Single kick needs ≥44.4 mV to reach threshold (≈162 synapses × 0.275). Step order: deliver due spikes → integrate active → threshold; spike time = end of step, arrives exactly `delay` later. `vitest --root /` scans the whole disk — put scratch tests inside the package.
-
-## 2026-10-02 — 2.8 quality presets + perf
-Done: `scene/quality.ts` (+test): `QUALITY` low/med/high = pr 1/1.5/1.75, bloom off/on/on, dust lod0 only; `defaultQuality` (touch or ≤4 cores → low, webgl2 → med, else high); `FpsGuard` (<45 fps × 3 windows → step down). `?quality=` param; `app.quality`/`qualityPinned` (URL or snap pins; snaps default high). `Engine.applyQuality` (pixel ratio, bloom by swapping `pipeline.outputNode`), MSAA off. `CloudLayer.setTiers` + `afterIntro` reaction loads `cloud-lod{i}` up to the preset (`dust` ready flag). Stats shows `quality · backend`. `scripts/perf.ts` (`pnpm perf --quality=x [--gl=webgl2 --dpr=2 --secs=6]`): rAF fps, p50/p95, cpu render ms, GPU adapter.
-State: M4, 1600×1000 @2x, vsync: low/med/high 60/60/60 (webgpu); webgl2 med 57, high 51. Snaps PASS (low no bloom; default = high byte-identical). Live check by user (Safari, `?stats=1`, incl. deep zoom): steady 60 fps at high. FpsGuard downgrade not exercised (M4 never drops).
-Next: Phase 3 — 3.1 `packages/sim` LIF neuron + event queue with delays, toy nets (TDD).
-Gotchas: cost is primitive-bound, not fill: +300k dust sprites halve fps at any pixel ratio/sprite size; MSAA ×1.6 on top (TBDR + many small additive quads). Uncapped perf (`--disable-gpu-vsync`) gives multi-second stalls — keep vsync. tsx injects `__name` into functions passed to `page.evaluate` → pass a string. Root vitest has no `@/` alias: modules under test import relatively.
