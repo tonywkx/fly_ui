@@ -98,3 +98,12 @@ body,
   font-feature-settings: "ss01" on;
   -webkit-font-smoothing: antialiased;
 }
+
+::selection {
+  background: rgb(128 82 255 / 0.55);
+  color: var(--color-bone);
+}
+
+:focus-visible {
+  outline-color: var(--color-iris);
+}
