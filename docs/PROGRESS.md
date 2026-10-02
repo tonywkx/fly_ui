@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-02 — 2.2 renderer + loader
+Done: `data/{decode,plan,store,decode.worker}.ts` (+tests): manifest fetch → `firstFrameChunks` → comlink Worker pool (2–4) fetches+decodes, typed arrays transferred; `DataStore` (`data.get(id, kind)`, `ready`, bytes progress). `scene/engine.ts` (WebGPURenderer, `?gl=webgl2` forces WebGL2 backend, OrbitControls, ResizeObserver, `onFrame` hooks, `setFrame(manifest)`), `scene/Stage.tsx`, `scene/frameStats.ts` → `ui/Stats.tsx` (fps, render-CPU ms, backend label).
+State: snaps OK on webgpu and webgl2: `scene/smoke.ts` (cloud lod0 as 1-px Points + bbox Box3Helper) is a TEMP placeholder — replace in 2.3. View = upright anterior/posterior: brain on top, VNC below seen end-on (body axis ≈ camera z). Framing is loose (bounding-sphere fit, cloud ≈ 40% of width).
+Next: 2.3 background cloud + neuropil shells (TSL materials), drop smoke.ts; tighten camera framing.
+Gotchas: MobX 7 has no `observable.ref` — use `observableRef` (exported from 'mobx'); anything posted to a Worker must not be a MobX proxy (manifest is `observableRef`). Worker fetch URLs must be absolute (relative resolves against the worker script). `world` group = bbox centre→0, ×unitNm/1000 (µm), rotated 180° about x (y,z negated). Snap fires 2 frames after content, before the first 500 ms Stats window → fps "—" in snaps. Bash: never `cat > f 2>/dev/null ||` without heredoc (hangs on stdin).
+
 ## 2026-10-02 — 2.1 web shell
 Done: shadcn base (`@/` alias, `components.json`, `lib/utils.ts` cn, shadcn vars mapped onto tokens in `ui/theme.css`, `components/ui/button.tsx` primary/ghost); `ui/palette.ts` NT_COLORS (Record<Nt>, hex + linear rgb) mirrored as `--color-nt-*` + test; `state/params.ts` parseParams + test, `state/app.ts` AppStore (MobX, readiness flags); `App.tsx` `#stage` + HUD, `ui/Stats.tsx`.
 State: `pnpm snap` works with `?scenario/debug/stats`; `__snapReady` set by `when(app.ready)` in `main.tsx` (only `fonts` flag now). HUD = wordmark "fly_ui" bottom-left (open question: user was offered removing it — empty scene until intro 2.7, big title only inside the intro; not answered yet), CC BY link bottom-right, debug/stats top-right.
@@ -23,9 +29,3 @@ Done: `packages/data/src/graph.ts` (`csrFromEdges`, `encodeGraph`/`decodeGraph`,
 State: full graph 176422 neurons / 6.29M edges (w≥5): graph 36.7 MB raw / 12.55 MB br, meta 0.50 MB br; scenario subgraphs escape/sugar/song ≤0.06 MB br each → `data/build/{graph,meta}-{full,escape,sugar,song}.bin`. Cache `data/cache/graph/` (ids.json + 89 meta + 353 edge batches); fetch ~2 min, rebuild from cache ~15 s. Not yet in a manifest (bake 1.8).
 Next: 1.7b type-level graph: collapse full CSR by meta.type (summed weights, signed via sign[pre]), codec `typegraph` in packages/data (TDD), add to `pnpm graph`.
 Gotchas: DNp01 (GF) sign = 0 (ACh conf 0.53) → needs scenario override in Phase 3. 2086 neurons have no primary-ROI region. Batch cache files are indexed by position in `ids.json`; delete batches if ids.json is regenerated. Full-graph edge count via a single Cypher times out; sample with `bodyId % 97`.
-
-## 2026-10-02 — 1.6 neuropil meshes
-Done: `packages/data/src/obj.ts` (`parseObj`), `neuropil.ts` (`encodeNeuropils`/`decodeNeuropils`) + tests; `client.roiMesh`, `apps/pipeline/src/fetch/rois.ts` (`SHELL_ROIS`, `primaryRois`, resumable `fetchRoiMeshes`, shared `fetch/cache.ts`); `process/neuropil.ts` (`weld`, `decimate` via meshoptimizer, `buildNeuropils`) + CLI `pnpm neuropil` → `data/build/neuropil-{shells,regions}.bin`.
-State: 144 ROI OBJs cached in `data/cache/rois/`; shells 5 meshes / 69k tris / 0.59 MB (first-frame), regions 139 meshes / 270k tris / 2.33 MB (lazy); build ~9 s cached. Not yet in a manifest (bake 1.8 reuses `buildNeuropils`).
-Next: 1.7 connectivity CSR with signed weights + neuron metadata table (scenario subgraphs + full pruned CNS graph), codec in packages/data (TDD).
-Gotchas: ROI mesh API `GET /api/roimeshes/mesh/{dataset}/{roi}` returns OBJ in 8 nm voxels (same as SWC); only primary ROIs + `CentralBrain`/`Optic(L|R)`/`CV`/`VNC` have meshes (not `CNS`, `CX`, `MB(L)`…). packages/data has ES2023 lib only — `src/text.d.ts` declares TextEncoder/TextDecoder. node_modules reads are denied; check third-party APIs via typecheck.
