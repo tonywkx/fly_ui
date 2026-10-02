@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-02 — 2.4 hero neuron ribbons
+Done: `scene/segments.ts` `buildSegments` (+test): one segment per non-root node, Float32 stride 12 `a.xyz,distA | b.xyz,distB | row,nt,radius,0` (row = meta/graph row via bodyId, -1 absent; nt → `unclear` if none). `scene/layers/neurons.ts`: `InstancedBufferGeometry` + `InstancedInterleavedBuffer`, TSL `vertexNode` screen-space ribbon (width = clamp(2r·1.5, 0.6, 5) µm, ≥1.5 px with fade below), NT colour via `uniformArray`, glow profile + slight white core, depth dim, additive, renderOrder 1. Wired in `Stage.populate` from `${data.scenario}-skeletons/-meta`; `?debug=neurons`.
+State: escape (≈774k segments, 1 draw) renders on webgpu + webgl2, no shader errors. GAIN 0.22: VNC end-on shows structure, lobulae (LPLC2-ish dendrites seen face-on) still near saturation — retune with bloom/tonemap in 2.5. Somata not drawn. fps not measured (snaps show "—") — check `?stats=1` live.
+Next: 2.5 wave along neurites: per-row activity texture/buffer sampled by `segC.x` (row), front by `dist` (segA.w/segB.w) + bloom; fake activity = BFS over escape CSR with per-hop delay.
+Gotchas: TSL typings: matrix nodes have no `.element()` and `uniformArray(...).element()` is `Node<string>` → cast `as unknown as Node<'vec3'>`; feed projection via `uniform(1).onRenderUpdate(({camera}) => camera.projectionMatrix.elements[5])`; build `vec4` from scalars (`c.x.add(o.x)`) — vec2+vec2 infers wrong. Skeleton `pos`/`radius` are in source units (8 nm), not nm as the `SkeletonSet` comment says. `snap --gl=webgl2` works (extra `--k=v` → query).
+
 ## 2026-10-02 — 2.3 background cloud + neuropil shells
 Done: `scene/layers/shells.ts` (one merged geometry, client normals, `MeshBasicNodeMaterial` additive fresnel rim + faint fill, DoubleSide, no depth write); `scene/layers/cloud.ts` `CloudLayer` (one instanced `Sprite` batch per LOD tier, soft disc, depth dim, shared gain uniform = base·N0/Ntotal so adding tiers keeps brightness); `scene/frame.ts` `frameDistance` (+test) — aspect-aware fit, margin 1.0. `smoke.ts` removed; `?debug=cloud|shells` isolate a layer.
 State: snaps OK (webgpu + webgl2), CNS ≈73% of frame height. lod0 first frame, lod1 lazy-added after `frame` ready; lod2 not loaded (→ 2.8 presets). Known: optic-lobe shells show hard vertical "slabs" at far left/right (mesh geometry, not shader — check pipeline simplification/ROI source if it bothers); VNC end-on rings look busy; webgl2 dust looks crisper/sparser than webgpu; depth dim barely visible.
@@ -23,9 +29,3 @@ Done: `packages/data`: manifest v2 (`unitNm`), `pruneTypeGraph`, `bboxUnion` + t
 State: `pnpm bake` (~70 s, no token) → `apps/web/public/data/` 17 chunks + `manifest.json`; first-frame 11.20 MB raw / 7.19 MB br (escape skeletons 8.88 MB of it), lazy 80.8 MB raw / 39.3 MB br. All chunks decode via the manifest bbox. Phase 1 done.
 Next: 2.1 web shell (Vite/React/MobX/Tailwind v4/shadcn, theme tokens, `?debug=`/`?stats=`, `window.__snapReady`).
 Gotchas: skeleton chunk order is scout bodyId order, meta/graph order is (type, bodyId) — join by bodyId on the client. Skeleton bytes ≈ 11.5 B/node (pos 6 + radius 2 + parent 4); implicit parent (i−1) would cut ~30% if budget gets tight. Radius is u16 whole source units (8 nm steps). Default scenario = `--default` (escape), first in `manifest.scenarios`.
-
-## 2026-10-02 — 1.7b cell-type graph
-Done: `packages/data/src/typegraph.ts` (`collapseByType`, `encodeTypeGraph`/`decodeTypeGraph`; node k = `meta.strings.types[k]`, weight u32 + signed i32 Σ sign[pre]·w, count per type, untyped skipped, self-loops kept) + tests; `pnpm graph` also writes `data/build/typegraph-full.bin`.
-State: 11751 types / 934k edges, unpruned: 10.89 MB raw / 2.43 MB br. Not yet in a manifest.
-Next: 1.8 `pnpm bake` orchestrator + manifest + size report (first-frame ≤15 MB); decide typegraph tier/prune there.
-Gotchas: type-edge prune tradeoff (edges / br / synapse mass): w≥10 633k/1.65 MB/98% · w≥20 443k/1.24 MB/95% · w≥50 241k/0.76 MB/88% · w≥100 132k/0.48 MB/79%. Prune after `collapseByType` (filter rows), codec is threshold-agnostic.
