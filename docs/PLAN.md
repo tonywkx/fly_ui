@@ -43,7 +43,7 @@ Phase exit = its "Done when" is true and demoable.
 - [x] 2.5 Wave shader along neurites (distance-from-soma attribute) + bloom; fake activity = BFS over CSR with per-hop delay. **[V]**
 - [x] 2.6 Debug modes: soma-distance, id, transmitter, region. **[V]**
 - [x] 2.7 Intro assembly: particles fly into CNS silhouette while data loads → camera dive → "click the shadow" hint. **[V]** **[S]** animate
-- [ ] 2.8 Quality presets (low/med/high), perf pass.
+- [x] 2.8 Quality presets (low/med/high), perf pass.
 **Done when:** stable 60 fps at high, wave looks right in snaps.
 
 ## Phase 3 — Simulation engine (1–2 weeks)
@@ -82,6 +82,7 @@ Phase exit = its "Done when" is true and demoable.
 - [ ] 6.4 README (with CC-BY attribution), 30–60 s video, article.
 
 ## Backlog / spin-offs (not scheduled)
+- Cheap dense dust: lod1/lod2 (+900k sprites) halve fps on M4 whatever the pixel ratio (primitive-bound instanced quads). Try one triangle per sprite, native 1 px points, or a baked density volume; then raise `QUALITY.high.dustTiers` (`apps/web/src/scene/quality.ts`).
 - neuPrint MCP server (find_neurons, get_partners, shortest_path, neuroglancer_link) + eval set — reuse `apps/pipeline/src/neuprint` client; strong AI-portfolio piece. Check GitHub for an existing one first.
 - Neuron-as-art: skeleton projection → SVG poster/tattoo/print styles (CC-BY allows commercial use with attribution; hook: male-only neurons).
 - Scrollytelling "How a male fly sings": P1 → pIP10 → VNC rhythm generators, 3D scenes + Web Audio song. Reuses scene + song synth from Phase 5.
