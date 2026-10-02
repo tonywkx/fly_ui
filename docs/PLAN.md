@@ -30,7 +30,7 @@ Phase exit = its "Done when" is true and demoable.
 - [x] 1.4 Fetch skeletons for scenario lists (p-limit, disk cache in `data/cache/`, resumable).
 - [x] 1.5 Background cloud: sample points from all/most skeletons (or synapse centroids) → quantized point buffer, LOD tiers.
 - [x] 1.6 Neuropil meshes: fetch, decimate, encode (brain + VNC).
-- [ ] 1.7 Connectivity CSR with signed weights (transmitter predictions), prune weak edges (threshold in DECISIONS.md), neuron metadata table (type, class, NT, region, male-specific flag). Two tiers: scenario subgraphs (first frame) and full pruned CNS graph (~10–20 MB compressed, lazy — loaded only when the sandbox opens). **[T]**
+- [x] 1.7 Connectivity CSR with signed weights (transmitter predictions), prune weak edges (threshold in DECISIONS.md), neuron metadata table (type, class, NT, region, male-specific flag). Two tiers: scenario subgraphs (first frame) and full pruned CNS graph (~10–20 MB compressed, lazy — loaded only when the sandbox opens). **[T]**
 - [ ] 1.7b Cell-type-level graph (neurons collapsed by type, summed signed weights) — small, powers the path tracer, ⌘K and inspector. **[T]**
 - [ ] 1.8 `pnpm bake` orchestrator + size report (fails if first-frame bundle > 15 MB).
 **Done when:** `pnpm bake` produces `apps/web/public/data/` within budget; all decoders tested.
