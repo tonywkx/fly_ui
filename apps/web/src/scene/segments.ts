@@ -1,8 +1,9 @@
-import { type NeuronTable, NONE8, NTS, type SkeletonSet } from '@fly/data';
+import { type NeuronTable, NONE8, NONE16, NTS, type SkeletonSet } from '@fly/data';
 
 /**
- * Floats per segment: `a.xyz, distA | b.xyz, distB | row, nt, radius, 0`. a = node, b = its parent
- * (source units); row = meta/graph row (-1 if absent); nt = index into NTS; radius of node a.
+ * Floats per segment: `a.xyz, distA | b.xyz, distB | row, nt, radius, region`. a = node, b = its
+ * parent (source units); row = meta/graph row (-1 if absent); nt = index into NTS; radius of node a;
+ * region = index into `meta.strings.regions` (-1 if unknown).
  */
 export const SEG_STRIDE = 12;
 
@@ -22,6 +23,8 @@ export function buildSegments(sk: SkeletonSet, meta: NeuronTable): Float32Array 
     const row = rowOf.get(sk.bodyIds[k] as number) ?? -1;
     const code = row < 0 ? NONE8 : (meta.nt[row] as number);
     const nt = code === NONE8 ? UNCLEAR : code;
+    const reg = row < 0 ? NONE16 : (meta.region[row] as number);
+    const region = reg === NONE16 ? -1 : reg;
     const base = sk.offsets[k] as number;
     for (let i = base; i < (sk.offsets[k + 1] as number); i++) {
       const p = sk.parent[i] as number;
@@ -34,6 +37,7 @@ export function buildSegments(sk: SkeletonSet, meta: NeuronTable): Float32Array 
       out[o + 8] = row;
       out[o + 9] = nt;
       out[o + 10] = sk.radius[i] as number;
+      out[o + 11] = region;
       o += SEG_STRIDE;
     }
   }

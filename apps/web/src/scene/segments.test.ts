@@ -2,7 +2,7 @@ import { decodeMeta, encodeMeta, type NeuronRecord, NTS, type SkeletonSet } from
 import { describe, expect, it } from 'vitest';
 import { buildSegments, SEG_STRIDE } from './segments';
 
-const record = (bodyId: number, nt: NeuronRecord['nt']): NeuronRecord => ({
+const record = (bodyId: number, nt: NeuronRecord['nt'], region: string | null = null): NeuronRecord => ({
   bodyId,
   type: null,
   class: null,
@@ -10,7 +10,7 @@ const record = (bodyId: number, nt: NeuronRecord['nt']): NeuronRecord => ({
   nt,
   ntConf: null,
   sign: 0,
-  region: null,
+  region,
   somaSide: null,
   maleSpecific: false,
 });
@@ -26,7 +26,7 @@ const sk: SkeletonSet = {
 };
 
 // meta rows in a different order than the skeletons
-const meta = decodeMeta(encodeMeta([record(5, 'gaba'), record(7, 'acetylcholine')]));
+const meta = decodeMeta(encodeMeta([record(5, 'gaba', null), record(7, 'acetylcholine', 'LO(R)')]));
 
 const field = (seg: Float32Array, s: number, k: number) => seg[s * SEG_STRIDE + k] as number;
 
@@ -54,5 +54,12 @@ describe('buildSegments', () => {
     const lone = buildSegments(sk, decodeMeta(encodeMeta([record(5, null)])));
     expect([8, 9].map((k) => field(lone, 0, k))).toEqual([-1, NTS.indexOf('unclear')]);
     expect(field(lone, 3, 9)).toBe(NTS.indexOf('unclear'));
+  });
+
+  it('carries the region code, -1 when unknown or absent from meta', () => {
+    expect(field(seg, 0, 11)).toBe(meta.strings.regions.indexOf('LO(R)'));
+    expect(field(seg, 3, 11)).toBe(-1);
+    const lone = buildSegments(sk, decodeMeta(encodeMeta([record(5, null, 'LO(R)')])));
+    expect(field(lone, 0, 11)).toBe(-1);
   });
 });
