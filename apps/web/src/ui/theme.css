@@ -13,6 +13,18 @@
   --color-verdant: #15846e;
   --color-panel: rgb(0 0 0 / 0.62);
 
+  /* Transmitters + male-specific; mirrored in src/ui/palette.ts (palette.test.ts keeps them in sync). */
+  --color-nt-acetylcholine: #ffb829;
+  --color-nt-gaba: #8052ff;
+  --color-nt-glutamate: #22c3a1;
+  --color-nt-histamine: #4f8cff;
+  --color-nt-dopamine: #ff5ce1;
+  --color-nt-serotonin: #ff7aa8;
+  --color-nt-octopamine: #d36bff;
+  --color-nt-tyramine: #b98cff;
+  --color-nt-unclear: #6e6e6e;
+  --color-male: #ff2fb3;
+
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, monospace;
 
