@@ -32,6 +32,9 @@ importers:
       '@fly/data':
         specifier: workspace:*
         version: link:../../packages/data
+      '@fly/sim':
+        specifier: workspace:*
+        version: link:../../packages/sim
       meshoptimizer:
         specifier: ^1.3.0
         version: 1.3.0
