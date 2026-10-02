@@ -13,6 +13,7 @@ import {
 } from 'three/webgpu';
 import { frameDistance } from './frame';
 import { sampleFrame } from './frameStats';
+import { type Pose, posePosition } from './intro';
 
 /** Breathing room around the CNS front face in the initial framing. */
 const FRAME_MARGIN = 1.0;
@@ -35,6 +36,8 @@ export class Engine {
   readonly camera = new PerspectiveCamera(35, 1, 1, 1e4);
   readonly renderer: WebGPURenderer;
   disposed = false;
+  /** Working framing set by `setFrame` (the intro dives to it). */
+  restPose: Pose = { radius: 1, azimuth: 0, elevation: 0 };
   private readonly controls: OrbitControls;
   private readonly pipeline: RenderPipeline;
   private readonly resize = new ResizeObserver(() => this.fit());
@@ -94,12 +97,25 @@ export class Engine {
     const dist = frameDistance(half.toArray(), this.camera.fov, this.camera.aspect, FRAME_MARGIN);
     this.camera.near = dist / 100;
     this.camera.far = dist * 10;
-    this.camera.position.set(0, 0, dist);
+    this.restPose = { radius: dist, azimuth: 0, elevation: 0 };
+    this.setPose(this.restPose);
     this.camera.updateProjectionMatrix();
     this.controls.target.set(0, 0, 0);
     this.controls.minDistance = radius * 0.05;
     this.controls.maxDistance = dist * 3;
     this.controls.update();
+  }
+
+  /** Camera on its orbit around the target (the origin). */
+  setPose(p: Pose) {
+    this.camera.position.fromArray(posePosition(p));
+    this.camera.lookAt(this.controls.target);
+  }
+
+  /** User starts orbiting / zooming; returns an unsubscribe. */
+  onUserInput(fn: () => void): () => void {
+    this.controls.addEventListener('start', fn);
+    return () => this.controls.removeEventListener('start', fn);
   }
 
   /** Called every frame before render; returns an unsubscribe. */

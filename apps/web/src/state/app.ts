@@ -1,5 +1,6 @@
 import { makeAutoObservable, observable } from 'mobx';
 import type { Backend } from '@/scene/engine';
+import type { IntroPhase } from '@/scene/intro';
 import { type Params, parseParams } from './params';
 
 /** Things that must finish before a snap is taken. */
@@ -11,6 +12,10 @@ export class AppStore {
   reducedMotion = false;
   /** Renderer backend once initialized. */
   backend: Backend | null = null;
+  /** Set by the scene at phase boundaries only (never per frame). */
+  introPhase: IntroPhase = 'assemble';
+  hint = false;
+  hintDismissed = false;
   /** Outstanding readiness flags; `ready` once empty. */
   readonly pending = observable.set<ReadyFlag>();
 
@@ -34,6 +39,19 @@ export class AppStore {
 
   setReducedMotion(v: boolean) {
     this.reducedMotion = v;
+  }
+
+  setIntro(phase: IntroPhase, hint: boolean) {
+    this.introPhase = phase;
+    this.hint = hint;
+  }
+
+  dismissHint() {
+    this.hintDismissed = true;
+  }
+
+  get hintVisible() {
+    return this.hint && !this.hintDismissed;
   }
 
   setBackend(b: Backend) {

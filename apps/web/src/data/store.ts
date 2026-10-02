@@ -53,8 +53,10 @@ export class DataStore {
         this.scenario = plan.scenario;
         this.totalBytes = plan.chunks.reduce((s, c) => s + c.bytes, 0);
       });
-      // Largest first so the pool stays balanced.
-      const order = [...plan.chunks].sort((a, b) => b.bytes - a.bytes);
+      // Dust + shells first (the intro assembles them while the rest streams in), then largest
+      // first so the pool stays balanced.
+      const early = (c: ChunkEntry) => (c.kind === 'cloud' || c.kind === 'neuropil' ? 0 : 1);
+      const order = [...plan.chunks].sort((a, b) => early(a) - early(b) || b.bytes - a.bytes);
       await Promise.all(order.map((c) => this.loadChunk(c)));
       runInAction(() => {
         this.ready = true;
