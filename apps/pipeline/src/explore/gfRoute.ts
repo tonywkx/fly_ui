@@ -10,8 +10,11 @@ import { buildNet } from '../process/spikes';
 const GF = 'DNp01';
 const TARGET = 'TTMn';
 const cache = fileURLToPath(new URL('../../../../data/cache/graph', import.meta.url));
-const esc = SCENARIO_RUNS.escape;
-if (!esc) throw new Error('no escape run');
+const esc = (() => {
+  const r = SCENARIO_RUNS.escape;
+  if (!r) throw new Error('no escape run');
+  return r;
+})();
 
 const g = await loadGraphCache(cache);
 const full = buildGraph(orderNeurons(g.neurons.map(toRecord)), g.edges);
@@ -33,16 +36,16 @@ const isDN = (type: string) => {
 };
 
 /** Escape run over the whole graph (same order as runScenario with all rows): silence first, then stimulate. */
-function run(silence: string[], seed = esc!.seed): Spikes {
-  const sim = createSim(net, esc!.params, mulberry32(seed));
+function run(silence: string[], seed = esc.seed): Spikes {
+  const sim = createSim(net, esc.params, mulberry32(seed));
   const silent = new Set(silence);
-  const stim = new Set(esc!.stimTypes);
+  const stim = new Set(esc.stimTypes);
   meta.forEach((r, i) => {
     if (r.type === null) return;
     if (silent.has(r.type)) sim.silence(i);
-    if (stim.has(r.type)) sim.stimulate(i, esc!.hz);
+    if (stim.has(r.type)) sim.stimulate(i, esc.hz);
   });
-  for (let ms = 0; ms < esc!.durationMs; ms++) sim.run(1);
+  for (let ms = 0; ms < esc.durationMs; ms++) sim.run(1);
   return sim.spikes;
 }
 
@@ -133,7 +136,9 @@ trace(TARGET, 3, '');
 // 5. Ablation: GF + X, X = traced descending types, relays within 2 hops, top DNs by rate.
 const stim = new Set(esc.stimTypes);
 const tracedDNs = [...seen.keys()].filter((t) => isDN(t) && t !== GF);
-const relays = [...seen].filter(([t, hop]) => hop <= 2 && !isDN(t) && !stim.has(t) && t !== TARGET).map(([t]) => t);
+const relays = [...seen]
+  .filter(([t, hop]) => hop <= 2 && !isDN(t) && !stim.has(t) && t !== TARGET)
+  .map(([t]) => t);
 const topDNs = dnRates
   .slice(0, 6)
   .map((d) => d.t)
