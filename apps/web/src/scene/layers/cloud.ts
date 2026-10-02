@@ -33,7 +33,7 @@ import {
   Sprite,
   SpriteNodeMaterial,
 } from 'three/webgpu';
-import { bezierLut, EASE_OUT, INTRO } from '../intro';
+import { bezierLut, EASE_IN_OUT, INTRO } from '../intro';
 
 const DUST_COLOR = 0xb4bccc;
 /** Sprite diameter in µm (world units after `Engine.setFrame`). */
@@ -111,7 +111,7 @@ export class CloudLayer {
 
 /** Per sprite: scatter point on a shell → own position, staggered, eased, unwinding a spiral about y. */
 function assemble(target: Node<'vec3'>, a: Assembly) {
-  const lutTex = new DataTexture(bezierLut(EASE_OUT, LUT_N), LUT_N, 1, RedFormat, FloatType);
+  const lutTex = new DataTexture(bezierLut(EASE_IN_OUT, LUT_N), LUT_N, 1, RedFormat, FloatType);
   lutTex.needsUpdate = true;
   const clock = uniform(0).onFrameUpdate(() => a.clock.value);
   const h = (salt: number) => hash(instanceIndex.add(salt));
@@ -125,7 +125,7 @@ function assemble(target: Node<'vec3'>, a: Assembly) {
   const start = center.add(vec3(rxy.mul(cos(phi)), z, rxy.mul(sin(phi))).mul(dist));
 
   const k = clamp(clock.sub(h(4).mul(INTRO.delayMs)).div(INTRO.flightMs), 0, 1);
-  // ease-out via the LUT, linear between samples
+  // on-screen movement → ease-in-out, via the LUT, linear between samples
   const x = k.mul(LUT_N - 1);
   const i0 = int(floor(x));
   const i1 = int(

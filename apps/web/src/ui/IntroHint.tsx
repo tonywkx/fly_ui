@@ -24,7 +24,8 @@ export const IntroHint = observer(function IntroHint() {
     <p
       aria-hidden={!shown}
       className={cn(
-        'pointer-events-none absolute inset-x-0 bottom-[22%] text-center text-body font-extralight text-mist',
+        // bottom band, clear of the CNS; bone for contrast over the brightest glow
+        'pointer-events-none absolute inset-x-0 bottom-4 text-center text-body font-light text-bone md:bottom-8',
         'transition-[opacity,translate] duration-200 ease-out motion-reduce:translate-y-0',
         shown ? 'translate-y-0 opacity-100' : 'translate-y-1 opacity-0',
       )}

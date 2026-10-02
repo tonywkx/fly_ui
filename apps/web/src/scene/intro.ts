@@ -51,9 +51,9 @@ export function bezierLut(ease: (t: number) => number, n: number): Float32Array 
 
 export const INTRO = {
   /** Per-particle start delay spread and flight time; assembly ends when the last one lands. */
-  delayMs: 900,
-  flightMs: 1500,
-  assembleMs: 2400,
+  delayMs: 1400,
+  flightMs: 1600,
+  assembleMs: 3000,
   diveMs: 1800,
   /** Shells + neurons fade in over the start of the dive. */
   revealMs: 900,

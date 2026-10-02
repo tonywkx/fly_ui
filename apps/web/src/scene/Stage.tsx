@@ -15,8 +15,8 @@ import { buildSegments } from './segments';
 /** First-frame dust chunk the intro assembles. */
 const DUST = 'cloud-lod0';
 /** Intro camera before the dive: × framing distance, off-axis, drifting slowly round. */
-const FAR_RADIUS = 2.2;
-const FAR_AZIMUTH = (-30 * Math.PI) / 180;
+const FAR_RADIUS = 1.6;
+const FAR_AZIMUTH = (-20 * Math.PI) / 180;
 const FAR_ELEVATION = (12 * Math.PI) / 180;
 const DRIFT_PER_S = (3 * Math.PI) / 180;
 /** Frames rendered with content before the scene counts as drawn (snap readiness). */
