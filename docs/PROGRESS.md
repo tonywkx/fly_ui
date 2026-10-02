@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-02 — 2.3 background cloud + neuropil shells
+Done: `scene/layers/shells.ts` (one merged geometry, client normals, `MeshBasicNodeMaterial` additive fresnel rim + faint fill, DoubleSide, no depth write); `scene/layers/cloud.ts` `CloudLayer` (one instanced `Sprite` batch per LOD tier, soft disc, depth dim, shared gain uniform = base·N0/Ntotal so adding tiers keeps brightness); `scene/frame.ts` `frameDistance` (+test) — aspect-aware fit, margin 1.0. `smoke.ts` removed; `?debug=cloud|shells` isolate a layer.
+State: snaps OK (webgpu + webgl2), CNS ≈73% of frame height. lod0 first frame, lod1 lazy-added after `frame` ready; lod2 not loaded (→ 2.8 presets). Known: optic-lobe shells show hard vertical "slabs" at far left/right (mesh geometry, not shader — check pipeline simplification/ROI source if it bothers); VNC end-on rings look busy; webgl2 dust looks crisper/sparser than webgpu; depth dim barely visible.
+Next: 2.4 hero neurons as instanced quads/ribbons from escape skeletons (join meta by bodyId), drawn over the background layers.
+Gotchas: `SpriteNodeMaterial.scaleNode` is multiplied by the object's world-matrix scale → pass size in source units (µm / (unitNm/1000)). WGSL `smoothstep` needs low < high — use `oneMinus(smoothstep(a,b,x))` for falloff. `/handoff` cannot be invoked by the model (user runs it). node_modules reads are denied — check three APIs by snapping, not source.
+
 ## 2026-10-02 — 2.2 renderer + loader
 Done: `data/{decode,plan,store,decode.worker}.ts` (+tests): manifest fetch → `firstFrameChunks` → comlink Worker pool (2–4) fetches+decodes, typed arrays transferred; `DataStore` (`data.get(id, kind)`, `ready`, bytes progress). `scene/engine.ts` (WebGPURenderer, `?gl=webgl2` forces WebGL2 backend, OrbitControls, ResizeObserver, `onFrame` hooks, `setFrame(manifest)`), `scene/Stage.tsx`, `scene/frameStats.ts` → `ui/Stats.tsx` (fps, render-CPU ms, backend label).
 State: snaps OK on webgpu and webgl2: `scene/smoke.ts` (cloud lod0 as 1-px Points + bbox Box3Helper) is a TEMP placeholder — replace in 2.3. View = upright anterior/posterior: brain on top, VNC below seen end-on (body axis ≈ camera z). Framing is loose (bounding-sphere fit, cloud ≈ 40% of width).
@@ -23,9 +29,3 @@ Done: `packages/data/src/typegraph.ts` (`collapseByType`, `encodeTypeGraph`/`dec
 State: 11751 types / 934k edges, unpruned: 10.89 MB raw / 2.43 MB br. Not yet in a manifest.
 Next: 1.8 `pnpm bake` orchestrator + manifest + size report (first-frame ≤15 MB); decide typegraph tier/prune there.
 Gotchas: type-edge prune tradeoff (edges / br / synapse mass): w≥10 633k/1.65 MB/98% · w≥20 443k/1.24 MB/95% · w≥50 241k/0.76 MB/88% · w≥100 132k/0.48 MB/79%. Prune after `collapseByType` (filter rows), codec is threshold-agnostic.
-
-## 2026-10-02 — 1.7 connectivity CSR + neuron meta
-Done: `packages/data/src/graph.ts` (`csrFromEdges`, `encodeGraph`/`decodeGraph`, delta-coded cols), `meta.ts` (`encodeMeta`/`decodeMeta`/`neuronAt`, NTS/SOMA_SIDES enums) + tests; `apps/pipeline/src/fetch/graph.ts` (`allBodyIds`, `regionOf`, `fetchNeuronBatch`, `fetchEdgeBatch`, resumable `fetchBatches`/`loadBatches`), `process/graph.ts` (`ntSign`, `toRecord`, `orderNeurons`, `buildGraph`, `subgraph`) + tests; CLI `pnpm graph`.
-State: full graph 176422 neurons / 6.29M edges (w≥5): graph 36.7 MB raw / 12.55 MB br, meta 0.50 MB br; scenario subgraphs escape/sugar/song ≤0.06 MB br each → `data/build/{graph,meta}-{full,escape,sugar,song}.bin`. Cache `data/cache/graph/` (ids.json + 89 meta + 353 edge batches); fetch ~2 min, rebuild from cache ~15 s. Not yet in a manifest (bake 1.8).
-Next: 1.7b type-level graph: collapse full CSR by meta.type (summed weights, signed via sign[pre]), codec `typegraph` in packages/data (TDD), add to `pnpm graph`.
-Gotchas: DNp01 (GF) sign = 0 (ACh conf 0.53) → needs scenario override in Phase 3. 2086 neurons have no primary-ROI region. Batch cache files are indexed by position in `ids.json`; delete batches if ids.json is regenerated. Full-graph edge count via a single Cypher times out; sample with `bodyId % 97`.
