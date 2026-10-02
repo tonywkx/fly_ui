@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-02 — 3.7 GF-silenced residual TTMn route
+Done: `apps/pipeline/src/process/drive.ts` (`inputDrive` = per-pre Σ spikes·w onto targets, `firstSpike`; tested); `apps/pipeline/src/explore/gfRoute.ts` (`pnpm --filter pipeline explore:gf`, ~1 min, prints markdown); findings in `data/scout/escape.md` §GF silenced.
+State: Phase 3 done. Without GF, TTMn 30–62 Hz, 1st spike 16–19 ms (intact ≈225 Hz, 8 ms). Route is distributed: DNp02+DNp06+DNp103 → AN19B001 → IN07B055/GFC2 → TTMn, plus weak direct DNp06/DNp02. No single knockout kills it; DN group → 5 Hz, relays → 7 Hz, all → 0.
+Next: Phase 4.1 GPU picking (id buffer), hover highlight whole neuron + tooltip.
+Gotchas: several single ablations *raise* TTMn (GFC2 → 105 Hz, DNp04 → 67) — they also feed TTMn's inhibitory INs (IN13A022, IN13B008). GF silencing changes no other DN rate (sign 0 → only NET_OVERRIDES outputs). GFC2 is chemically driven here, in vivo GF-coupled → residual route likely overstated.
+
 ## 2026-10-02 — 3.6 biology checks as tests
 Done: `packages/sim/src/overrides.ts` (`applyOverrides`, `NET_OVERRIDES`: GF→TTMn/PSI 40 mV) used by pipeline `buildNet` (`process/spikes.ts`, also `RunConfig.silence`) and `sim.worker.ts`; sugar stim BM_Taste → LB3a–d (added to `data/scout/sugar.json`, skeletons pulled); `process/scenarios.bio.ts` + `vitest.bio.config.ts` → `pnpm test:bio` (6 tests, ~20 s).
 State: all green (257 unit + 6 bio), rebaked. Hz @300 ms: escape GF 415, TTMn 230 (GF silenced → ≈35, first spike 8.5 → 21 ms), PSI 120; sugar MN9 227, MN8 62, DNge062 203; song pIP10 68, hg1 128, hg3 197. Bio tests run on the whole graph as one "scenario" (all rows), not the scout subset.
@@ -23,9 +29,3 @@ Done: `packages/data/src/spikes.ts` (`spikes` chunk, FORMAT_VERSION 3, `spikeTra
 State: bake green, first-frame 11.32/15 MB, spikes chunks 0.02–0.06 MB; tests/typecheck/lint clean; escape snap unchanged. Scene does not play spikes yet (still fake BFS wave).
 Next: 3.4 Worker live mode via comlink + ring buffer to the scene's last-spike R32F texture (baked `spikes` can drive the same texture as a playback fallback).
 Gotchas: 300 ms runs (Hz): escape GF 415 (near max), TTMn 35, DLMn c-f 345; song pIP10 68 → dPR1 102 → hg1 MN 128; **sugar MN9/MN8 0** (GNG015 252, DNge055 153) → 3.6. Peak active set ≈95k/176k (subthreshold included), ≈3.5 s/run in Node. No overrides (GF→TTMn electrical) yet. `stats.spikes` == Σtotal only because run(duration) ends exactly on the last binned step.
-
-## 2026-10-02 — 3.2 poisson stimulus, silencing, rng
-Done: `packages/sim/src/rng.ts` (`mulberry32(seed): Rng`, passed as 3rd arg of `createSim`, default seed 0); `lif.ts`: `stimulate(i, hz=150)` (0 removes), `silence(i, on=true)`; tests `rng.test.ts`, `stim.test.ts` (rate ≈112.8 Hz ±5%, same-step spike, stop, chain block/recover, silenced stim, seed determinism).
-State: 20/20 green, typecheck + lint clean. Sim still not wired to web; no full-graph run yet.
-Next: 3.3 Node full-graph run: load real Csr + sign (via `netFromCsr`), bake scenario spike trains to a compact binary format in `packages/data` (schema + encoder + decoder + test together).
-Gotchas: Shiu Poisson targets **v**, not g (verified in philshiu/Drosophila_brain_model `model.py`); kick 68.75 mV always spikes the same step. Refractory loses kicks → ~112.8 Hz, not 150. Silencing = clamp at rest (differs from Shiu's zeroed weights, same downstream) — see DECISIONS. Spikes already queued before `silence()` still get delivered. rng is drawn once per stimulated neuron per step regardless of state.
