@@ -45,3 +45,12 @@ Sign 0 where NT unclear.
 - "Tergotr. MN" (12) vs TTMn (2): identity unresolved. DLMn naming is grouped (a,b / c-f).
 - JO only JO-B1_a included, no somaSide. MN9 excluded (proboscis MN).
 - Type names: LC4/LPLC2 use flywireType-style names; no mancType for them.
+
+## GF silenced — residual TTMn route (PLAN 3.7, exploratory)
+`pnpm --filter pipeline explore:gf` (whole graph, escape run: LC4+LPLC2 Poisson 150 Hz, 300 ms; ~1 min).
+- TTMn intact 192–232 Hz, 1st spike 8.0–8.4 ms; DNp01 silenced 30–62 Hz, 1st spike 16–19 ms (seeds 1–5). The model keeps a ~2× slower, ~6× weaker TTMn drive without GF — qualitatively the short/long-mode split (von Reyn 2014), not a quantitative match.
+- Silencing GF changes no other DN rate: DNp01 sign = 0, so its only outputs are NET_OVERRIDES (TTMn, PSI). Whatever is left is GF-independent by construction.
+- Residual excitatory drive into TTMn: GFC2 (+2649 mV/run), IN07B055 (+1854), DNp06 (+1316, direct), DNp02 (+751, direct), IN07B044, IN07B058; against IN13A022 (−3432), IN13B008 (−2060), IN21A026, IN13A032.
+- Back-trace: LC4/LPLC2 → PVLP151 / PVLP122 → DNp06; DNp02 + DNp06 + DNp103 → AN19B001 (357 Hz) → IN07B055 / GFC2 → TTMn. All looming DNs here (DNp02/04/06/11/103) fire at the same rate with or without GF.
+- Ablation (GF + X): no single type kills it. DNp02/DNp06 alone: 32/30 Hz (latency +1–3 ms). Several single knockouts *raise* TTMn (GFC2 → 105 Hz, DNp04 → 67, IN07B055 → 63, DNg40 → 60) — they also feed TTMn's inhibitory INs. Together: DNp02+DNp06+DNp103+DNp04 → 5 Hz, 1st spike 31 ms; relays GFC2+IN07B055+AN19B001+PVLP151+PVLP122 → 6.7 Hz; all → 0.
+- Verdict: yes, the model finds a non-GF route, distributed over the looming DNs (DNp02/DNp06/DNp103, cf. Namiki 2018, Ache 2019) via AN19B001 → IN07B055/GFC2, plus weak direct DNp06/DNp02 synapses. Caveat: in vivo GFC2 is electrically coupled to GF; here it is driven chemically only, so this route may be stronger than the real one.
