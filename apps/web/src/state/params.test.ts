@@ -1,0 +1,45 @@
+import { describe, expect, it } from 'vitest';
+import { parseParams } from './params';
+
+describe('parseParams', () => {
+  it('defaults to nothing set', () => {
+    expect(parseParams('')).toEqual({ params: { stats: false, snap: false }, warnings: [] });
+  });
+
+  it('reads every known param', () => {
+    const { params, warnings } = parseParams(
+      '?snap=1&scenario=escape&t=40.5&debug=soma-dist&stats=1&ui=inspector',
+    );
+    expect(warnings).toEqual([]);
+    expect(params).toEqual({
+      scenario: 'escape',
+      t: 40.5,
+      debug: 'soma-dist',
+      stats: true,
+      snap: true,
+      ui: 'inspector',
+    });
+  });
+
+  it('treats bare / truthy flags as on, 0/false as off', () => {
+    expect(parseParams('?stats').params.stats).toBe(true);
+    expect(parseParams('?stats=true').params.stats).toBe(true);
+    expect(parseParams('?stats=0').params.stats).toBe(false);
+    expect(parseParams('?stats=false').params.stats).toBe(false);
+  });
+
+  it('drops invalid values with a warning', () => {
+    const { params, warnings } = parseParams('?debug=bogus&t=-3&scenario=../x');
+    expect(params).toEqual({ stats: false, snap: false });
+    expect(warnings).toHaveLength(3);
+    expect(warnings.join()).toMatch(/debug.*bogus/);
+  });
+
+  it('warns on non-numeric t', () => {
+    expect(parseParams('?t=abc').warnings).toHaveLength(1);
+  });
+
+  it('ignores unknown keys silently', () => {
+    expect(parseParams('?foo=1').warnings).toEqual([]);
+  });
+});
