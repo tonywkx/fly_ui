@@ -17,8 +17,7 @@ export interface RowMap {
 
 /** Joins full and scenario neuron tables on bodyId (same rule as the pipeline's `scenarioRows`). */
 export function rowMap(fullBodyIds: Float64Array, scenarioBodyIds: Float64Array): RowMap {
-  const local = new Map<number, number>();
-  scenarioBodyIds.forEach((id, i) => local.set(id, i));
+  const local = new Map(Array.from(scenarioBodyIds, (id, i) => [id, i] as const));
   const rowOf = new Int32Array(fullBodyIds.length);
   const fullOf = new Int32Array(scenarioBodyIds.length).fill(-1);
   fullBodyIds.forEach((id, i) => {
