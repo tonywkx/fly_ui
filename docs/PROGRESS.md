@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-02 — 3.2 poisson stimulus, silencing, rng
+Done: `packages/sim/src/rng.ts` (`mulberry32(seed): Rng`, passed as 3rd arg of `createSim`, default seed 0); `lif.ts`: `stimulate(i, hz=150)` (0 removes), `silence(i, on=true)`; tests `rng.test.ts`, `stim.test.ts` (rate ≈112.8 Hz ±5%, same-step spike, stop, chain block/recover, silenced stim, seed determinism).
+State: 20/20 green, typecheck + lint clean. Sim still not wired to web; no full-graph run yet.
+Next: 3.3 Node full-graph run: load real Csr + sign (via `netFromCsr`), bake scenario spike trains to a compact binary format in `packages/data` (schema + encoder + decoder + test together).
+Gotchas: Shiu Poisson targets **v**, not g (verified in philshiu/Drosophila_brain_model `model.py`); kick 68.75 mV always spikes the same step. Refractory loses kicks → ~112.8 Hz, not 150. Silencing = clamp at rest (differs from Shiu's zeroed weights, same downstream) — see DECISIONS. Spikes already queued before `silence()` still get delivered. rng is drawn once per stimulated neuron per step regardless of state.
+
 ## 2026-10-02 — 3.1 sim LIF + delay queue
 Done: `packages/sim/src/lif.ts` (`Sim`/`createSim(net, params?)`: `step`, `run(ms)`, `inject(i, mV)`, `v`/`g` f64, `lastSpike` f32 (−Infinity = never), growable `spikes {count,t,id}`, `activeCount`); `net.ts` (`Net {n, offsets, cols, w mV signed}`, `netFromCsr(csr, sign, wSyn)` structural, no `@fly/data` import; `netFromEdges` for toy nets); `params.ts` (`LIF_DEFAULTS` + `dt: 0.1`). Tests: rest, analytic PSP (peak 0.1575·w @ 9.24 ms), threshold (40 no / 50 mV spike), 3-chain (hop = delay + rise), inhibition cancel, refractory ISI, active-set drain, determinism.
 State: 11/11 green, typecheck + lint clean. No stimulus/RNG/silencing yet; not wired to web.
@@ -23,9 +29,3 @@ Done: `scene/segments.ts` slot 11 = region code (`meta.region`, -1 unknown/absen
 State: all 4 modes PASS in snaps (webgpu + webgl2 identical), hues readable in lobula/VNC. 50 µm ticks unresolvable at full-CNS zoom (need zoom-in to check). No legend UI (only the `debug:` badge).
 Next: 2.7 intro assembly (particles → CNS silhouette while loading → camera dive → "click the shadow" hint), use `animate` skill.
 Gotchas: colour modes are OPAQUE depth-tested ribbons (DEBUG_LEVEL 0.8 < bloom thr) — the additive path washed dense neuropils to white, worst in `id`. `opacityNode` is set only in the wave (additive) branch.
-
-## 2026-10-02 — 2.5 wave shader + bloom
-Done: `scene/activity.ts` (+test): `bfsOnsets` (hop delay per synapse, Infinity = unreached), `seedRows` by type, `jitter` (deterministic 0..ms per row), `cycleMs`, `writeSpikes` (lastSpike per row, NEVER = -1e9, returns changed). `layers/neurons.ts` now returns `NeuronsLayer {mesh, simTime, lastSpike, commit}`: R32F `DataTexture` 256×ceil(n/256) read in vertex via `textureLoad(row)`; front = age·20 µm/ms vs soma dist, exp tail 30 µm / lead 4 µm, PULSE 3 (HDR), afterglow 0.4/40 ms, REST 0.2. `engine.ts`: `RenderPipeline` = scene pass + `bloom(0.5, 0.4, thr 1.0)`, `AgXToneMapping`. `Stage.tsx` driver: escape seeds LPLC2+LC4, HOP 6 ms, jitter 12 ms, 40 sim-ms/s, loop = last onset + 60 ms; `?t=` freezes.
-State: wave reads well in `?debug=neurons` (optic lobes → central brain/VNC by t≈30), webgpu + webgl2 match, no whiteout. In the full scene shells + dust outshine downstream neurons. Seeds only for escape (sugar/song: no activity). fps with bloom not measured.
-Next: 2.6 debug colour modes (soma-dist, id, nt, region). Consider dimming shells/cloud while activity runs (separate tweak).
-Gotchas: first try (bloom thr 0.6, PULSE 6, no tonemap) blew lobulae/VNC to white — additive stacks of hundreds of LPLC2/LC4 sit far above 1, keep bloom thr ≥1 and a tone map. `three/webgpu` 0.186 has `RenderPipeline` (use it, `PostProcessing` is the old name). Inspect scripts: put `*.tmp.ts` in `apps/pipeline`, run `corepack pnpm --filter pipeline exec tsx x.tmp.ts`, paths relative to apps/pipeline; `decodeSkeletons` needs `manifest.bbox`.
