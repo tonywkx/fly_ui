@@ -2,7 +2,7 @@
 
 ## 2026-10-02 — 2.8 quality presets + perf
 Done: `scene/quality.ts` (+test): `QUALITY` low/med/high = pr 1/1.5/1.75, bloom off/on/on, dust lod0 only; `defaultQuality` (touch or ≤4 cores → low, webgl2 → med, else high); `FpsGuard` (<45 fps × 3 windows → step down). `?quality=` param; `app.quality`/`qualityPinned` (URL or snap pins; snaps default high). `Engine.applyQuality` (pixel ratio, bloom by swapping `pipeline.outputNode`), MSAA off. `CloudLayer.setTiers` + `afterIntro` reaction loads `cloud-lod{i}` up to the preset (`dust` ready flag). Stats shows `quality · backend`. `scripts/perf.ts` (`pnpm perf --quality=x [--gl=webgl2 --dpr=2 --secs=6]`): rAF fps, p50/p95, cpu render ms, GPU adapter.
-State: M4, 1600×1000 @2x, vsync: low/med/high 60/60/60 (webgpu); webgl2 med 57, high 51. Snaps PASS (low no bloom; default = high byte-identical). FpsGuard and live switching not exercised in a real window.
+State: M4, 1600×1000 @2x, vsync: low/med/high 60/60/60 (webgpu); webgl2 med 57, high 51. Snaps PASS (low no bloom; default = high byte-identical). Live check by user (Safari, `?stats=1`, incl. deep zoom): steady 60 fps at high. FpsGuard downgrade not exercised (M4 never drops).
 Next: Phase 3 — 3.1 `packages/sim` LIF neuron + event queue with delays, toy nets (TDD).
 Gotchas: cost is primitive-bound, not fill: +300k dust sprites halve fps at any pixel ratio/sprite size; MSAA ×1.6 on top (TBDR + many small additive quads). Uncapped perf (`--disable-gpu-vsync`) gives multi-second stalls — keep vsync. tsx injects `__name` into functions passed to `page.evaluate` → pass a string. Root vitest has no `@/` alias: modules under test import relatively.
 
