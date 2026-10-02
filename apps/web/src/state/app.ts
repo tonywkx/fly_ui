@@ -1,13 +1,16 @@
 import { makeAutoObservable, observable } from 'mobx';
+import type { Backend } from '@/scene/engine';
 import { type Params, parseParams } from './params';
 
-/** Things that must finish before a snap is taken. 2.2 adds `data` / `frame`. */
+/** Things that must finish before a snap is taken. */
 export type ReadyFlag = 'fonts' | 'data' | 'frame';
 
 export class AppStore {
   readonly params: Params;
   readonly warnings: readonly string[];
   reducedMotion = false;
+  /** Renderer backend once initialized. */
+  backend: Backend | null = null;
   /** Outstanding readiness flags; `ready` once empty. */
   readonly pending = observable.set<ReadyFlag>();
 
@@ -31,6 +34,10 @@ export class AppStore {
 
   setReducedMotion(v: boolean) {
     this.reducedMotion = v;
+  }
+
+  setBackend(b: Backend) {
+    this.backend = b;
   }
 }
 

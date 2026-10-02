@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import { Button } from '@/components/ui/button';
+import { Stage } from '@/scene/Stage';
 import { app } from '@/state/app';
 import { Stats } from '@/ui/Stats';
 
@@ -15,8 +16,7 @@ export const App = observer(function App() {
 
   return (
     <div className="relative h-full overflow-hidden">
-      {/* Scene mount point (2.2): the renderer owns this node, React never touches its children. */}
-      <div id="stage" className="absolute inset-0" />
+      <Stage />
 
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-4 md:p-8">
         <div className="flex flex-col items-end gap-1 font-mono text-caption tabular-nums">

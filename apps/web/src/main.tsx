@@ -2,6 +2,7 @@ import { when } from 'mobx';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
+import { data } from './data/store';
 import { app } from './state/app';
 import './ui/theme.css';
 
@@ -22,6 +23,17 @@ app.waitFor('fonts');
 Promise.all(['400 16px "Inter Variable"', '400 12px "Geist Mono"'].map((f) => document.fonts.load(f)))
   .catch((e) => console.warn('[fonts]', e))
   .finally(() => app.markReady('fonts'));
+
+app.waitFor('data');
+app.waitFor('frame');
+data
+  .loadFirstFrame(app.params.scenario)
+  .catch((e) => {
+    console.error('[data]', e);
+    app.markReady('frame'); // nothing will draw; let snap capture the broken state
+  })
+  .finally(() => app.markReady('data'));
+
 when(
   () => app.ready,
   () => {

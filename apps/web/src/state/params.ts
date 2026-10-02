@@ -15,6 +15,8 @@ export interface Params {
   snap: boolean;
   /** UI state preset for snaps (panels open etc.), interpreted by the UI. */
   ui?: string;
+  /** Force the WebGL2 backend (fallback check); WebGPU is used when available otherwise. */
+  gl?: 'webgl2';
 }
 
 const flag = (v: string | null) => v !== null && v !== '0' && v !== 'false';
@@ -46,6 +48,12 @@ export function parseParams(search: string): { params: Params; warnings: string[
 
   const ui = q.get('ui');
   if (ui) params.ui = ui;
+
+  const gl = q.get('gl');
+  if (gl !== null) {
+    if (gl === 'webgl2') params.gl = gl;
+    else warnings.push(`gl: expected "webgl2", got "${gl}"`);
+  }
 
   return { params, warnings };
 }
