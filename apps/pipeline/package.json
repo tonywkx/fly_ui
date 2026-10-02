@@ -9,7 +9,8 @@
     "pull": "tsx src/fetch.ts",
     "cloud": "tsx src/cloud.ts",
     "neuropil": "tsx src/neuropil.ts",
-    "graph": "tsx src/graph.ts"
+    "graph": "tsx src/graph.ts",
+    "explore:gf": "tsx src/explore/gfRoute.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",
