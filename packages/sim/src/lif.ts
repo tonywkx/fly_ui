@@ -1,5 +1,6 @@
 import type { Net } from './net';
 import { LIF_DEFAULTS } from './params';
+import { mulberry32, type Rng } from './rng';
 
 export type LifParams = { -readonly [K in keyof typeof LIF_DEFAULTS]: number };
 
@@ -17,6 +18,8 @@ const QUIET = 1e-4;
  * Shiu et al. 2024 LIF: dv/dt = (v0 − v + g)/τm, dg/dt = −g/τs, presynaptic spike → g[post] += w
  * after a uniform delay. Fixed step dt with the exact exponential solution of the linear pair;
  * only neurons off rest (the active set) are integrated. Refractory: v held at reset, g still decays.
+ * Stimulus = Shiu's PoissonInput: per step, Bernoulli(rate·dt) kick of wSyn·poissonScale straight into v.
+ * Silenced neurons are clamped at rest: no input, no spikes (downstream ≡ Shiu's zeroed outgoing weights).
  */
 export class Sim {
   readonly net: Net;
@@ -32,6 +35,10 @@ export class Sim {
   private readonly active: Uint32Array;
   private readonly isActive: Uint8Array;
   private nActive = 0;
+  private readonly rng: Rng;
+  private readonly stimP: Float64Array; // Poisson kick probability per step
+  private stimIds: number[] = [];
+  private readonly silenced: Uint8Array;
   // delay FIFO (uniform delay → due steps are monotone): ring of (due step, pre id)
   private qDue = new Int32Array(1024);
   private qId = new Uint32Array(1024);
@@ -44,7 +51,7 @@ export class Sim {
   private readonly delaySteps: number;
   private readonly refSteps: number;
 
-  constructor(net: Net, params: Partial<LifParams> = {}) {
+  constructor(net: Net, params: Partial<LifParams> = {}, rng: Rng = mulberry32(0)) {
     this.net = net;
     this.p = { ...LIF_DEFAULTS, ...params };
     const { n } = net;
@@ -55,6 +62,9 @@ export class Sim {
     this.refEnd = new Int32Array(n);
     this.active = new Uint32Array(n);
     this.isActive = new Uint8Array(n);
+    this.rng = rng;
+    this.stimP = new Float64Array(n);
+    this.silenced = new Uint8Array(n);
     this.decayM = Math.exp(-dt / tm);
     this.decayS = Math.exp(-dt / ts);
     this.kappa = (ts / (ts - tm)) * (this.decayS - this.decayM);
@@ -73,8 +83,26 @@ export class Sim {
 
   /** Instant g kick (mV) to neuron i, applied before the next step. */
   inject(i: number, mV: number): void {
+    if (this.silenced[i]) return;
     this.g[i] = (this.g[i] as number) + mV;
     this.activate(i);
+  }
+
+  /** Poisson drive on neuron i at `hz` (0 removes it). */
+  stimulate(i: number, hz: number = this.p.poissonRate): void {
+    const had = (this.stimP[i] as number) > 0;
+    this.stimP[i] = (hz * this.p.dt) / 1000;
+    if (hz > 0 && !had) this.stimIds.push(i);
+    else if (hz <= 0 && had) this.stimIds = this.stimIds.filter((j) => j !== i);
+  }
+
+  /** Clamps neuron i at rest (no input, no spikes) or releases it. */
+  silence(i: number, on = true): void {
+    this.silenced[i] = on ? 1 : 0;
+    if (on) {
+      this.v[i] = this.p.vRest;
+      this.g[i] = 0;
+    }
   }
 
   run(ms: number): void {
@@ -84,6 +112,7 @@ export class Sim {
 
   step(): void {
     this.deliver();
+    this.poisson();
     const { v, g, active, isActive, refEnd, decayM, decayS, kappa } = this;
     const { vRest, vReset, vThreshold } = this.p;
     const next = this.stepIdx + 1;
@@ -116,8 +145,19 @@ export class Sim {
     this.stepIdx = next;
   }
 
+  private poisson(): void {
+    const { stimIds, stimP, silenced, v, rng } = this;
+    const kick = this.p.wSyn * this.p.poissonScale;
+    for (let k = 0; k < stimIds.length; k++) {
+      const i = stimIds[k] as number;
+      if (rng() >= (stimP[i] as number) || silenced[i]) continue; // draw first: rng use is state-independent
+      v[i] = (v[i] as number) + kick;
+      this.activate(i);
+    }
+  }
+
   private activate(i: number): void {
-    if (this.isActive[i]) return;
+    if (this.isActive[i] || this.silenced[i]) return;
     this.isActive[i] = 1;
     this.active[this.nActive++] = i;
   }
@@ -170,6 +210,7 @@ export class Sim {
       this.qLen--;
       for (let e = offsets[pre] as number; e < (offsets[pre + 1] as number); e++) {
         const post = cols[e] as number;
+        if (this.silenced[post]) continue;
         g[post] = (g[post] as number) + (w[e] as number);
         this.activate(post);
       }
@@ -177,6 +218,6 @@ export class Sim {
   }
 }
 
-export function createSim(net: Net, params?: Partial<LifParams>): Sim {
-  return new Sim(net, params);
+export function createSim(net: Net, params?: Partial<LifParams>, rng?: Rng): Sim {
+  return new Sim(net, params, rng);
 }
