@@ -1,5 +1,5 @@
 import { type Csr, decodeGraph, decodeMeta } from '@fly/data';
-import { LIF_DEFAULTS, type LifParams, netFromCsr } from '@fly/sim';
+import { applyOverrides, LIF_DEFAULTS, type LifParams, NET_OVERRIDES, type Net, netFromCsr } from '@fly/sim';
 import { expose, transfer } from 'comlink';
 import { type Batch, Live, rowMap } from './live';
 
@@ -19,8 +19,12 @@ export type Tuning = Partial<LifParams> & { gain?: number };
 
 let live: Live | undefined;
 let stim: number[] = [];
-let graph: { csr: Csr; sign: Int8Array } | undefined;
+let graph: { csr: Csr; sign: Int8Array; types: (string | null)[] } | undefined;
 let synW: number = LIF_DEFAULTS.wSyn; // wSyn · gain the current net was built with
+
+/** Same net as the bake (`buildNet`): Shiu weights · gain + literature overrides. */
+const buildNet = (g: NonNullable<typeof graph>, w: number): Net =>
+  applyOverrides(netFromCsr(g.csr, g.sign, w), g.types, NET_OVERRIDES);
 
 const need = () => {
   if (!live) throw new Error('sim worker: init first');
@@ -40,9 +44,9 @@ const api = {
       bytes(o.graphUrl).then(decodeGraph),
       bytes(o.metaUrl).then(decodeMeta),
     ]);
-    graph = { csr, sign: meta.sign };
+    graph = { csr, sign: meta.sign, types: Array.from(meta.type, (t) => meta.strings.types[t] ?? null) };
     synW = LIF_DEFAULTS.wSyn;
-    const net = netFromCsr(csr, meta.sign, synW);
+    const net = buildNet(graph, synW);
     live = new Live(net, rowMap(meta.bodyIds, o.scenarioBodyIds), { seed: o.seed });
     stim = o.stim;
     for (const r of stim) live.stimulate(r);
@@ -67,7 +71,7 @@ const api = {
   tune({ gain = 1, ...params }: Tuning) {
     const l = need();
     const w = (params.wSyn ?? LIF_DEFAULTS.wSyn) * gain;
-    const net = graph && w !== synW ? netFromCsr(graph.csr, graph.sign, w) : undefined;
+    const net = graph && w !== synW ? buildNet(graph, w) : undefined;
     if (net) synW = w;
     l.retune(params, net);
     for (const r of stim) l.stimulate(r);

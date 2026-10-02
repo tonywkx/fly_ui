@@ -1,5 +1,15 @@
 import { type NeuronRecord, type SpikeTrain, spikeTrainFrom } from '@fly/data';
-import { createSim, type LifParams, mulberry32, type Net } from '@fly/sim';
+import {
+  applyOverrides,
+  type CsrLike,
+  createSim,
+  LIF_DEFAULTS,
+  type LifParams,
+  mulberry32,
+  NET_OVERRIDES,
+  type Net,
+  netFromCsr,
+} from '@fly/sim';
 
 export interface RunConfig {
   /** Every scenario neuron of these types gets Poisson input for the whole run. */
@@ -9,12 +19,28 @@ export interface RunConfig {
   seed: number;
   binMs: number;
   params?: Partial<LifParams>;
+  /** Every neuron of these types (whole graph) is clamped silent. */
+  silence?: string[];
 }
 
 export interface RunStats {
   wallMs: number;
   spikes: number;
   peakActive: number;
+}
+
+/** Full-graph sim net: Shiu weights + literature overrides (same as the live worker). */
+export function buildNet(full: { csr: CsrLike; meta: NeuronRecord[] }): Net {
+  const net = netFromCsr(
+    full.csr,
+    Int8Array.from(full.meta, (r) => r.sign),
+    LIF_DEFAULTS.wSyn,
+  );
+  return applyOverrides(
+    net,
+    full.meta.map((r) => r.type),
+    NET_OVERRIDES,
+  );
 }
 
 /** Full row → scenario row by bodyId, −1 outside the scenario. */
@@ -33,8 +59,10 @@ export function runScenario(
   const t0 = performance.now();
   const sim = createSim(net, cfg.params, mulberry32(cfg.seed));
   const types = new Set(cfg.stimTypes);
+  const silent = new Set(cfg.silence);
   const stim: number[] = [];
   full.forEach((r, i) => {
+    if (r.type !== null && silent.has(r.type)) sim.silence(i);
     if ((rows[i] as number) < 0 || r.type === null || !types.has(r.type)) return;
     sim.stimulate(i, cfg.hz);
     stim.push(rows[i] as number);

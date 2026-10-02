@@ -9,11 +9,13 @@ export interface SimOverride {
 
 /**
  * Literature overrides shared by bake and the live worker (see data/scout/escape.json `overrides`).
- * GF (DNp01) → TTMn / PSI are mostly electrical: modelled as suprathreshold (> vThreshold − vRest = 7 mV), 1:1 spike.
+ * GF (DNp01) → TTMn / PSI are mostly electrical; chemically GF is sign 0 (NT conf 0.53), so without this it drives nothing.
+ * 40 mV (≫ vThreshold − vRest = 7) survives TTMn's strong inhibitory input: escape TTMn ≈ 230 Hz, first spike ≈ 8.5 ms
+ * vs ≈ 35 Hz / 21 ms with GF silenced (scenarios.bio.ts).
  */
 export const NET_OVERRIDES: readonly SimOverride[] = [
-  { pre: 'DNp01', post: 'TTMn', mV: 10 },
-  { pre: 'DNp01', post: 'PSI', mV: 10 },
+  { pre: 'DNp01', post: 'TTMn', mV: 40 },
+  { pre: 'DNp01', post: 'PSI', mV: 40 },
 ];
 
 /** Copy of `net` with overridden weights; only edges already in the connectome are touched (keeps sidedness). */

@@ -54,6 +54,11 @@ describe('runScenario', () => {
     expect(Array.from(c.sub)).not.toEqual(Array.from(a.sub));
   });
 
+  test('silenced types (also outside the scenario) block the chain', () => {
+    const { train } = runScenario(net, full, rows, { ...cfg, silence: ['X'] });
+    expect(new Set(train.ids)).toEqual(new Set([0, 1]));
+  });
+
   test('throws when no scenario neuron has a stimulus type', () => {
     expect(() => runScenario(net, full, rows, { ...cfg, stimTypes: ['X'] })).toThrow(/no neurons/);
   });

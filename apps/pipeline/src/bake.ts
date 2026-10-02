@@ -19,7 +19,6 @@ import {
   type NamedMesh,
   pruneTypeGraph,
 } from '@fly/data';
-import { LIF_DEFAULTS, netFromCsr } from '@fly/sim';
 import { env } from './env';
 import { loadGraphCache } from './fetch/graph';
 import { SHELL_ROIS } from './fetch/rois';
@@ -30,7 +29,7 @@ import { buildGraph, orderNeurons, subgraph, toRecord } from './process/graph';
 import { buildNeuropils } from './process/neuropil';
 import { SCENARIO_RUNS } from './process/scenarios';
 import { buildSkeletons } from './process/skeletons';
-import { runScenario, scenarioRows, typeRates } from './process/spikes';
+import { buildNet, runScenario, scenarioRows, typeRates } from './process/spikes';
 
 // Offline: assembles apps/web/public/data from data/cache + data/scout (run pull/cloud/neuropil/graph first).
 const { values } = parseArgs({
@@ -103,12 +102,8 @@ const meshBox = (ms: NamedMesh[]) =>
   );
 console.log(`neuropils: ${shells.meshes.length} shells, ${parts.meshes.length} regions (${secs()}s)`);
 
-// Full-graph sim per scenario (Shiu LIF, no overrides yet) → baked spike trains in scenario rows.
-const net = netFromCsr(
-  full.csr,
-  Int8Array.from(full.meta, (r) => r.sign),
-  LIF_DEFAULTS.wSyn,
-);
+// Full-graph sim per scenario (Shiu LIF + literature overrides) → baked spike trains in scenario rows.
+const net = buildNet(full);
 const scenarios = [];
 for (const f of (await readdir(scoutDir)).filter((f) => f.endsWith('.json')).sort()) {
   const id = f.slice(0, -'.json'.length);
