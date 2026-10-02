@@ -38,9 +38,9 @@ export class Live {
   private sim: Sim;
 
   constructor(
-    private readonly net: Net,
+    private net: Net,
     private readonly rows: RowMap,
-    private readonly opts: LiveOptions,
+    private opts: LiveOptions,
   ) {
     this.sim = this.create();
   }
@@ -82,6 +82,13 @@ export class Live {
   /** Back to rest at t = 0, same seed; stimulus and silencing are cleared. */
   reset(): void {
     this.sim = this.create();
+  }
+
+  /** New params (and net, e.g. rescaled weights), then `reset()`. */
+  retune(params: Partial<LifParams>, net?: Net): void {
+    this.opts = { ...this.opts, params };
+    if (net) this.net = net;
+    this.reset();
   }
 
   private full(row: number): number {

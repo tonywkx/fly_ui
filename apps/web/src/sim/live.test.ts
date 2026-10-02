@@ -52,4 +52,24 @@ describe('Live', () => {
     expect([...b.t]).toEqual([...a.t]);
     expect(b.until).toBeCloseTo(50);
   });
+
+  it('retune restarts at t = 0 with the new params', () => {
+    const live = setup();
+    live.inject(0, 60);
+    expect(live.advance(20).row.length).toBe(2);
+    live.retune({ vThreshold: 100 });
+    live.inject(0, 60);
+    const b = live.advance(20);
+    expect(b.until).toBeCloseTo(20);
+    expect(b.total).toBe(0);
+  });
+
+  it('retune swaps the net', () => {
+    const live = setup();
+    live.retune({}, netFromEdges(4, [[1, 2, 60]]));
+    live.inject(0, 60);
+    const b = live.advance(20);
+    expect([...b.row]).toEqual([0]); // full 2 is not a scenario row, 2 → 3 is gone
+    expect(b.total).toBe(2);
+  });
 });
