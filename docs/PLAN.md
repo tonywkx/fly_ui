@@ -48,7 +48,7 @@ Phase exit = its "Done when" is true and demoable.
 
 ## Phase 3 — Simulation engine (1–2 weeks)
 - [x] 3.1 `packages/sim` LIF neuron + event queue with delays; toy nets: 3-chain, inhibition, threshold. **[T]**
-- [ ] 3.2 Poisson stimulus, silencing, seeded RNG, determinism test. **[T]**
+- [x] 3.2 Poisson stimulus, silencing, seeded RNG, determinism test. **[T]**
 - [ ] 3.3 Full-graph run in Node: bake scenarios → spike trains (compact binary via packages/data). **[T]** format
 - [ ] 3.4 Worker live mode via comlink, ring buffer to scene (SharedArrayBuffer if COOP/COEP possible on Pages, else transfer).
 - [ ] 3.5 Tweakpane param panel (thresholds, weights, gain), dev-only.
