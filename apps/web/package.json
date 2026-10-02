@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@fly/data": "workspace:*",
+    "@fly/sim": "workspace:*",
     "@fontsource-variable/inter": "^5.3.0",
     "@fontsource/geist-mono": "^5.3.0",
     "class-variance-authority": "^0.7.1",
