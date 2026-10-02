@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /** Bump on any change to the manifest schema or a binary layout (see CLAUDE.md). */
-export const FORMAT_VERSION = 1;
+export const FORMAT_VERSION = 2;
 
 export const CHUNK_KINDS = ['skeletons', 'cloud', 'neuropil', 'graph', 'typegraph', 'meta'] as const;
 export type ChunkKind = (typeof CHUNK_KINDS)[number];
@@ -36,7 +36,9 @@ export const Manifest = z
     dataset: z.string().min(1),
     attribution: z.string().min(1),
     builtAt: z.iso.datetime(),
-    /** CNS bounding box in nm; Uint16 coordinates are quantized inside it. */
+    /** Nanometres per coordinate unit (male-cns source units are 8 nm voxels). */
+    unitNm: z.number().positive(),
+    /** CNS bounding box in source units; Uint16 coordinates of every chunk are quantized inside it. */
     bbox: z.object({ min: Vec3, max: Vec3 }),
     chunks: z.array(ChunkEntry),
     scenarios: z.array(Scenario),

@@ -7,6 +7,7 @@ const fixture = () => ({
   dataset: 'male-cns:v1.0',
   attribution: 'Janelia FlyEM MaleCNS v1.0, CC-BY 4.0',
   builtAt: '2026-10-01T12:00:00Z',
+  unitNm: 8,
   bbox: { min: [0, 0, 0], max: [100_000, 200_000, 300_000] },
   chunks: [
     {
@@ -64,6 +65,12 @@ describe('parseManifest', () => {
     const m = fixture();
     const bad = { ...m, chunks: [...m.chunks, { ...m.chunks[0], id: 'x', kind: 'video' }] };
     expect(() => parseManifest(bad)).toThrow();
+  });
+
+  test('rejects missing or non-positive unitNm', () => {
+    const { unitNm: _, ...missing } = fixture();
+    expect(() => parseManifest(missing)).toThrow();
+    expect(() => parseManifest({ ...fixture(), unitNm: 0 })).toThrow();
   });
 
   test('rejects degenerate bbox', () => {
