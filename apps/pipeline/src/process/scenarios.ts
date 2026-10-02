@@ -1,6 +1,6 @@
 import type { RunConfig } from './spikes';
 
-/** Baked-run config per scenario: stimulus types (Shiu-style Poisson) + anchor types to report. Tuned in 3.6. */
+/** Baked-run config per scenario: stimulus types (Shiu-style Poisson) + anchor types to report. Checked by bio.test.ts (pnpm test:bio). */
 export interface ScenarioRun extends RunConfig {
   anchors: string[];
 }
@@ -15,8 +15,9 @@ export const SCENARIO_RUNS: Record<string, ScenarioRun> = {
   },
   sugar: {
     ...base,
-    stimTypes: ['BM_Taste'],
-    anchors: ['BM_Taste', 'GNG015', 'GNG095', 'DNge055', 'MN9', 'MN8'],
+    // BM_Taste is mechanosensory (MN9 silent); LB3a–d = strongest gustatory route to MN9 (data/scout/sugar.md)
+    stimTypes: ['LB3a', 'LB3b', 'LB3c', 'LB3d'],
+    anchors: ['LB3d', 'DNge062', 'GNG120', 'GNG015', 'GNG095', 'DNge055', 'MN9', 'MN8'],
   },
   song: {
     ...base,

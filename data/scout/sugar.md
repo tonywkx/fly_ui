@@ -18,7 +18,8 @@ Pharyngeal MN11D/V, MN12D are driven mostly by GNG334/GNG019/GNG001 (outside cor
 ## Anchors
 | type | n | NT (conf) | note |
 |---|---|---|---|
-| BM_Taste | 40 | ACh .94 | best available sugar GRN proxy (no Gr5a/Gr64f type) |
+| BM_Taste | 40 | ACh .94 | mechanosensory (class); stimulating it leaves MN9 silent in the sim |
+| LB3a-d | 17,11,23,26 | ACh .77-.92 | **sim stimulus** (added 2026-10-02, task 3.6): gustatory cb_sensory, strongest functional route to MN9 (≈230 Hz); sugar identity unverified |
 | claw_tpGRN / dorsal_tpGRN | 50 / 10 | ACh | taste-peg GRNs, extended |
 | MN9 | 2 | unclear .49 | rostrum protractor (PER), sign 0 |
 | MN6, MN8, MN11D/V, MN12D | 2,2,3,2,4 | ACh .55-.68 | proboscis / pharynx MNs |
