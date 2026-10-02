@@ -7,6 +7,7 @@ import {
   DoubleSide,
   Mesh,
   MeshBasicNodeMaterial,
+  type Node,
 } from 'three/webgpu';
 
 const SHELL_COLOR = 0x8f9bb3;
@@ -16,8 +17,8 @@ const RIM_GAIN = 0.32;
 /** Faint fill so face-on regions are not a hole. */
 const FILL = 0.012;
 
-/** Neuropil shells as glass: additive fresnel rim, no fill, no depth writes. */
-export function shellsLayer(set: NeuropilSet): Mesh {
+/** Neuropil shells as glass: additive fresnel rim, no fill, no depth writes. `reveal` fades them in. */
+export function shellsLayer(set: NeuropilSet, reveal: Node<'float'> | number = 1): Mesh {
   const geo = new BufferGeometry();
   geo.setAttribute('position', new BufferAttribute(set.pos, 3));
   geo.setIndex(new BufferAttribute(set.index, 1));
@@ -30,7 +31,9 @@ export function shellsLayer(set: NeuropilSet): Mesh {
     side: DoubleSide,
   });
   const rim = pow(oneMinus(abs(dot(normalView, positionViewDirection))), RIM_POWER);
-  mat.colorNode = color(SHELL_COLOR).mul(rim.mul(RIM_GAIN).add(float(FILL)));
+  mat.colorNode = color(SHELL_COLOR)
+    .mul(rim.mul(RIM_GAIN).add(float(FILL)))
+    .mul(reveal);
 
   const mesh = new Mesh(geo, mat);
   mesh.name = 'shells';

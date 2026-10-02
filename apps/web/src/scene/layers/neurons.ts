@@ -111,6 +111,8 @@ export function neuronsLayer(
   rows: number,
   worldScale: number,
   mode?: ColorMode,
+  /** Fades the glowing ribbons in (intro); colour modes are always fully shown. */
+  reveal: Node<'float'> | number = 1,
 ): NeuronsLayer {
   const geo = new InstancedBufferGeometry();
   // x: 0 at the node, 1 at its parent; y: −1..1 across
@@ -194,7 +196,7 @@ export function neuronsLayer(
     const after = select(past.greaterThanEqual(0), exp(age.negate().div(AFTERGLOW_MS)), float(0));
     const level = float(REST).add(pulse.mul(PULSE)).add(after.mul(AFTERGLOW));
     mat.colorNode = mix(tint, vec3(1), core.add(pulse.mul(0.5)).min(1)).mul(level);
-    mat.opacityNode = glow.mul(fade).mul(depthDim).mul(float(GAIN));
+    mat.opacityNode = glow.mul(fade).mul(depthDim).mul(float(GAIN)).mul(reveal);
   }
 
   const mesh = new Mesh(geo, mat);
