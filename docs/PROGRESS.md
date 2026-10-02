@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-02 — 1.7 connectivity CSR + neuron meta
+Done: `packages/data/src/graph.ts` (`csrFromEdges`, `encodeGraph`/`decodeGraph`, delta-coded cols), `meta.ts` (`encodeMeta`/`decodeMeta`/`neuronAt`, NTS/SOMA_SIDES enums) + tests; `apps/pipeline/src/fetch/graph.ts` (`allBodyIds`, `regionOf`, `fetchNeuronBatch`, `fetchEdgeBatch`, resumable `fetchBatches`/`loadBatches`), `process/graph.ts` (`ntSign`, `toRecord`, `orderNeurons`, `buildGraph`, `subgraph`) + tests; CLI `pnpm graph`.
+State: full graph 176422 neurons / 6.29M edges (w≥5): graph 36.7 MB raw / 12.55 MB br, meta 0.50 MB br; scenario subgraphs escape/sugar/song ≤0.06 MB br each → `data/build/{graph,meta}-{full,escape,sugar,song}.bin`. Cache `data/cache/graph/` (ids.json + 89 meta + 353 edge batches); fetch ~2 min, rebuild from cache ~15 s. Not yet in a manifest (bake 1.8).
+Next: 1.7b type-level graph: collapse full CSR by meta.type (summed weights, signed via sign[pre]), codec `typegraph` in packages/data (TDD), add to `pnpm graph`.
+Gotchas: DNp01 (GF) sign = 0 (ACh conf 0.53) → needs scenario override in Phase 3. 2086 neurons have no primary-ROI region. Batch cache files are indexed by position in `ids.json`; delete batches if ids.json is regenerated. Full-graph edge count via a single Cypher times out; sample with `bodyId % 97`.
+
 ## 2026-10-02 — 1.6 neuropil meshes
 Done: `packages/data/src/obj.ts` (`parseObj`), `neuropil.ts` (`encodeNeuropils`/`decodeNeuropils`) + tests; `client.roiMesh`, `apps/pipeline/src/fetch/rois.ts` (`SHELL_ROIS`, `primaryRois`, resumable `fetchRoiMeshes`, shared `fetch/cache.ts`); `process/neuropil.ts` (`weld`, `decimate` via meshoptimizer, `buildNeuropils`) + CLI `pnpm neuropil` → `data/build/neuropil-{shells,regions}.bin`.
 State: 144 ROI OBJs cached in `data/cache/rois/`; shells 5 meshes / 69k tris / 0.59 MB (first-frame), regions 139 meshes / 270k tris / 2.33 MB (lazy); build ~9 s cached. Not yet in a manifest (bake 1.8 reuses `buildNeuropils`).
@@ -23,9 +29,3 @@ Done: `packages/data/src/skeleton.ts` (`simplify` RDP on unbranched runs, `pathD
 State: SWC → simplify → multi-neuron `skeletons` chunk → decode works in tests; no real data run yet, epsilon not tuned.
 Next: 1.4 fetch skeletons for scenario bodyIds (`data/scout/*.json`) with p-limit, disk cache `data/cache/`, resumable.
 Gotchas: `dist` is recomputed from quantized positions on decode (≈0.1 nm off). parent stays i32 (4 B/node); if the first-frame budget is tight, switch to a u16 delta. Biome `useIterableCallbackReturn` rejects `forEach(x => expect(...))`, so use block bodies.
-
-## 2026-10-01 — 1.2 SWC parser + skeleton model
-Done: `packages/data/src/swc.ts` (`parseSwc` → `Skeleton {pos, radius, parent, type, soma}`, `childrenOf` CSR, `SwcError`), `swc.test.ts` (15 inline-fixture tests).
-State: skeletons in topological order (parent[i] < i), soma = node 0, soma component rerooted; extra fragments kept as roots. No skeleton encoder yet.
-Next: 1.3 RDP on unbranched segments (use `childrenOf`), path distance from soma, Uint16 quantization in CNS bbox + skeletons chunk encoder/decoder roundtrip.
-Gotchas: tsconfig has noUncheckedIndexedAccess — `arr[i]++` on typed arrays fails typecheck; use the private `csr()` helper in swc.ts or explicit `as number`. Biome flags comma operators.
