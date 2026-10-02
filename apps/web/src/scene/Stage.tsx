@@ -5,7 +5,7 @@ import { app } from '@/state/app';
 import { bfsOnsets, cycleMs, jitter, seedRows, writeSpikes } from './activity';
 import { Engine } from './engine';
 import { CloudLayer } from './layers/cloud';
-import { neuronsLayer } from './layers/neurons';
+import { isColorMode, neuronsLayer } from './layers/neurons';
 import { shellsLayer } from './layers/shells';
 import { buildSegments } from './segments';
 
@@ -74,19 +74,22 @@ function populate(engine: Engine) {
   cloud.add(lod0);
   const shellMesh = shellsLayer(shells);
   const { debug } = app.params;
-  cloud.group.visible = debug !== 'shells' && debug !== 'neurons';
-  shellMesh.visible = debug !== 'cloud' && debug !== 'neurons';
+  const colorMode = isColorMode(debug) ? debug : undefined;
+  // which layers a debug mode leaves visible (colour modes show neurons only)
+  const only = colorMode ? 'neurons' : debug;
+  cloud.group.visible = !only || only === 'cloud';
+  shellMesh.visible = !only || only === 'shells';
   engine.world.add(cloud.group, shellMesh);
 
   const skeletons = data.get(`${data.scenario}-skeletons`, 'skeletons');
   const meta = data.get(`${data.scenario}-meta`, 'meta');
   const graph = data.get(`${data.scenario}-graph`, 'graph');
   if (skeletons && meta) {
-    const neurons = neuronsLayer(buildSegments(skeletons, meta), meta.n, m.unitNm / 1000);
-    neurons.mesh.visible = debug !== 'cloud' && debug !== 'shells';
+    const neurons = neuronsLayer(buildSegments(skeletons, meta), meta.n, m.unitNm / 1000, colorMode);
+    neurons.mesh.visible = !only || only === 'neurons';
     engine.world.add(neurons.mesh);
     const seeds = seedRows(meta, (data.scenario && SEED_TYPES[data.scenario]) || []);
-    if (graph && seeds.length) {
+    if (graph && seeds.length && !colorMode) {
       const onsets = jitter(bfsOnsets(graph, seeds, HOP_MS), JITTER_MS);
       const period = cycleMs(onsets, TAIL_MS);
       const fixed = app.params.t;
