@@ -2,7 +2,7 @@ import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { brotliCompressSync, gzipSync, constants as zlib } from 'node:zlib';
-import { encodeGraph, encodeMeta } from '@fly/data';
+import { collapseByType, decodeMeta, encodeGraph, encodeMeta, encodeTypeGraph } from '@fly/data';
 import { env } from './env';
 import {
   allBodyIds,
@@ -93,10 +93,14 @@ const write = async (name: string, g: Graph) => {
     `  ${name}: ${g.meta.length} neurons (− ${signs[0]} / 0 ${signs[1]} / + ${signs[2]}), ${g.csr.cols.length} edges`,
   );
   console.log(`    graph ${report(graph)}; meta ${report(metaBytes)}`);
+  return metaBytes;
 };
 
 await mkdir(out, { recursive: true });
-await write('full', full);
+const types = collapseByType(full.csr, decodeMeta(await write('full', full)));
+const typeBytes = encodeTypeGraph(types);
+await writeFile(join(out, 'typegraph-full.bin'), typeBytes);
+console.log(`  typegraph: ${types.names.length} types, ${types.cols.length} edges; ${report(typeBytes)}`);
 for (const f of (await readdir(scoutDir)).filter((f) => f.endsWith('.json')).sort()) {
   const scout = JSON.parse(await readFile(join(scoutDir, f), 'utf8')) as unknown;
   await write(f.slice(0, -'.json'.length), subgraph(full, scoutBodyIds([scout])));
