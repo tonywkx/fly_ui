@@ -4,7 +4,9 @@ import { data } from '@/data/store';
 import { app } from '@/state/app';
 import { Engine } from './engine';
 import { CloudLayer } from './layers/cloud';
+import { neuronsLayer } from './layers/neurons';
 import { shellsLayer } from './layers/shells';
+import { buildSegments } from './segments';
 
 /** Frames rendered with content before the scene counts as drawn (snap readiness). */
 const SETTLE_FRAMES = 2;
@@ -63,9 +65,17 @@ function populate(engine: Engine) {
   cloud.add(lod0);
   const shellMesh = shellsLayer(shells);
   const { debug } = app.params;
-  cloud.group.visible = debug !== 'shells';
-  shellMesh.visible = debug !== 'cloud';
+  cloud.group.visible = debug !== 'shells' && debug !== 'neurons';
+  shellMesh.visible = debug !== 'cloud' && debug !== 'neurons';
   engine.world.add(cloud.group, shellMesh);
+
+  const skeletons = data.get(`${data.scenario}-skeletons`, 'skeletons');
+  const meta = data.get(`${data.scenario}-meta`, 'meta');
+  if (skeletons && meta) {
+    const neurons = neuronsLayer(buildSegments(skeletons, meta), m.unitNm / 1000);
+    neurons.visible = debug !== 'cloud' && debug !== 'shells';
+    engine.world.add(neurons);
+  }
 
   let frames = 0;
   const off = engine.onFrame(() => {
