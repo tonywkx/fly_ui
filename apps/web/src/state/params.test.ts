@@ -8,7 +8,7 @@ describe('parseParams', () => {
 
   it('reads every known param', () => {
     const { params, warnings } = parseParams(
-      '?snap=1&scenario=escape&t=40.5&debug=soma-dist&stats=1&ui=inspector&gl=webgl2&intro=1200',
+      '?snap=1&scenario=escape&t=40.5&debug=soma-dist&stats=1&ui=inspector&gl=webgl2&intro=1200&quality=low',
     );
     expect(warnings).toEqual([]);
     expect(params).toEqual({
@@ -20,6 +20,7 @@ describe('parseParams', () => {
       ui: 'inspector',
       gl: 'webgl2',
       intro: 1200,
+      quality: 'low',
     });
   });
 
@@ -51,6 +52,12 @@ describe('parseParams', () => {
     const { params, warnings } = parseParams('?gl=webgpu');
     expect(params.gl).toBeUndefined();
     expect(warnings).toEqual(['gl: expected "webgl2", got "webgpu"']);
+  });
+
+  it('accepts only preset ids for quality', () => {
+    const { params, warnings } = parseParams('?quality=ultra');
+    expect(params.quality).toBeUndefined();
+    expect(warnings).toEqual(['quality: unknown preset "ultra" (low | med | high)']);
   });
 
   it('ignores unknown keys silently', () => {

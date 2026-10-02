@@ -1,3 +1,5 @@
+import { isQuality, QUALITIES, type Quality } from '@/scene/quality';
+
 /** Colour modes (2.6) + layer isolation: `cloud` / `shells` show only that background layer. */
 export const DEBUG_MODES = ['soma-dist', 'id', 'nt', 'region', 'cloud', 'shells', 'neurons'] as const;
 export type DebugMode = (typeof DEBUG_MODES)[number];
@@ -19,6 +21,8 @@ export interface Params {
   intro?: number;
   /** Force the WebGL2 backend (fallback check); WebGPU is used when available otherwise. */
   gl?: 'webgl2';
+  /** Render preset; picked from the device (and stepped down on slow frames) when absent. */
+  quality?: Quality;
 }
 
 const flag = (v: string | null) => v !== null && v !== '0' && v !== 'false';
@@ -58,6 +62,12 @@ export function parseParams(search: string): { params: Params; warnings: string[
   if (gl !== null) {
     if (gl === 'webgl2') params.gl = gl;
     else warnings.push(`gl: expected "webgl2", got "${gl}"`);
+  }
+
+  const quality = q.get('quality');
+  if (quality !== null) {
+    if (isQuality(quality)) params.quality = quality;
+    else warnings.push(`quality: unknown preset "${quality}" (${QUALITIES.join(' | ')})`);
   }
 
   return { params, warnings };

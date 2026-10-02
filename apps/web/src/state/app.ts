@@ -1,10 +1,11 @@
 import { makeAutoObservable, observable } from 'mobx';
 import type { Backend } from '@/scene/engine';
 import type { IntroPhase } from '@/scene/intro';
+import { type Device, defaultQuality, type Quality } from '@/scene/quality';
 import { type Params, parseParams } from './params';
 
 /** Things that must finish before a snap is taken. */
-export type ReadyFlag = 'fonts' | 'data' | 'frame';
+export type ReadyFlag = 'fonts' | 'data' | 'frame' | 'dust';
 
 export class AppStore {
   readonly params: Params;
@@ -16,11 +17,19 @@ export class AppStore {
   introPhase: IntroPhase = 'assemble';
   hint = false;
   hintDismissed = false;
+  /** Render preset: from the URL, else from the device; `FpsGuard` may step it down. */
+  quality: Quality;
+  /** Fixed by `?quality=` or a snap (always high unless asked): no device default, no auto step-down. */
+  readonly qualityPinned: boolean;
   /** Outstanding readiness flags; `ready` once empty. */
   readonly pending = observable.set<ReadyFlag>();
 
   constructor(search: string) {
     ({ params: this.params, warnings: this.warnings } = parseParams(search));
+    this.qualityPinned = !!this.params.quality || this.params.snap;
+    // before init the backend is a guess: WebGPU if exposed and not forced off
+    const guess = this.params.gl || !('gpu' in navigator) ? 'webgl2' : 'webgpu';
+    this.quality = this.params.quality ?? (this.params.snap ? 'high' : defaultQuality(device(guess)));
     makeAutoObservable(this, { params: false, warnings: false, pending: false });
   }
 
@@ -56,7 +65,20 @@ export class AppStore {
 
   setBackend(b: Backend) {
     this.backend = b;
+    if (!this.qualityPinned) this.quality = defaultQuality(device(b));
   }
+
+  setQuality(q: Quality) {
+    this.quality = q;
+  }
+}
+
+function device(backend: Backend): Device {
+  return {
+    backend,
+    coarsePointer: window.matchMedia?.('(pointer: coarse)').matches ?? false,
+    cores: navigator.hardwareConcurrency || 4,
+  };
 }
 
 export const app = new AppStore(window.location.search);

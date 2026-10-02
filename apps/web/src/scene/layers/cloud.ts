@@ -67,7 +67,7 @@ export class CloudLayer {
   readonly group = new Group();
   private readonly gain = uniform(POINT_GAIN);
   private first = 0;
-  private total = 0;
+  private tiers = Number.POSITIVE_INFINITY;
 
   /**
    * `worldScale` = µm per source unit; the sprite material scales by the object's world matrix.
@@ -102,10 +102,24 @@ export class CloudLayer {
     sprite.count = n;
     sprite.frustumCulled = false;
     this.group.add(sprite);
-
     this.first ||= n;
-    this.total += n;
-    this.gain.value = (POINT_GAIN * this.first) / this.total;
+    this.setTiers(this.tiers);
+  }
+
+  /** Tiers added so far. */
+  get loaded() {
+    return this.group.children.length;
+  }
+
+  /** Show only the first `n` tiers (quality presets); later `add`s respect the cap. */
+  setTiers(n: number) {
+    this.tiers = n;
+    let shown = 0;
+    this.group.children.forEach((c, i) => {
+      c.visible = i < n;
+      if (c.visible) shown += (c as Sprite).count;
+    });
+    if (shown) this.gain.value = (POINT_GAIN * this.first) / shown;
   }
 }
 

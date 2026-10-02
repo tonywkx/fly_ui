@@ -5,6 +5,7 @@ import { pass } from 'three/tsl';
 import {
   AgXToneMapping,
   Group,
+  type Node,
   PerspectiveCamera,
   RenderPipeline,
   Scene,
@@ -14,6 +15,7 @@ import {
 import { frameDistance } from './frame';
 import { sampleFrame } from './frameStats';
 import { type Pose, posePosition } from './intro';
+import type { Preset } from './quality';
 
 /** Breathing room around the CNS front face in the initial framing. */
 const FRAME_MARGIN = 1.0;
@@ -26,6 +28,8 @@ export interface EngineOptions {
   /** Use the WebGL2 backend even when WebGPU is available (`?gl=webgl2`). */
   forceWebGL: boolean;
   reducedMotion: boolean;
+  /** Multisampling; fixed for the renderer's lifetime. */
+  msaa: boolean;
 }
 
 /** Renderer, camera and frame loop. Owns its canvas inside `host`; React never touches it. */
@@ -40,6 +44,9 @@ export class Engine {
   restPose: Pose = { radius: 1, azimuth: 0, elevation: 0 };
   private readonly controls: OrbitControls;
   private readonly pipeline: RenderPipeline;
+  private readonly plain: Node;
+  private readonly bloomed: Node;
+  private maxPixelRatio = 2;
   private readonly resize = new ResizeObserver(() => this.fit());
   private readonly hooks = new Set<(now: number) => void>();
   private initialized?: Promise<unknown>;
@@ -48,8 +55,8 @@ export class Engine {
     private readonly host: HTMLElement,
     opts: EngineOptions,
   ) {
-    this.renderer = new WebGPURenderer({ antialias: true, forceWebGL: opts.forceWebGL });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer = new WebGPURenderer({ antialias: opts.msaa, forceWebGL: opts.forceWebGL });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.maxPixelRatio));
     this.renderer.setClearColor(0x000000, 1);
     // additive neuropils stack far above 1; roll off instead of clipping to white
     this.renderer.toneMapping = AgXToneMapping;
@@ -60,10 +67,23 @@ export class Engine {
     this.scene.add(this.world);
     const scenePass = pass(this.scene, this.camera);
     const color = scenePass.getTextureNode('output');
-    this.pipeline = new RenderPipeline(
-      this.renderer,
-      color.add(bloom(color, BLOOM.strength, BLOOM.radius, BLOOM.threshold)),
-    );
+    this.plain = color;
+    this.bloomed = color.add(bloom(color, BLOOM.strength, BLOOM.radius, BLOOM.threshold));
+    this.pipeline = new RenderPipeline(this.renderer, this.bloomed);
+  }
+
+  /** Pixel-ratio cap and bloom of a quality preset (MSAA is fixed at construction). */
+  applyQuality(p: Preset) {
+    const out = p.bloom ? this.bloomed : this.plain;
+    if (this.pipeline.outputNode !== out) {
+      this.pipeline.outputNode = out;
+      this.pipeline.needsUpdate = true;
+    }
+    if (p.pixelRatio !== this.maxPixelRatio) {
+      this.maxPixelRatio = p.pixelRatio;
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, p.pixelRatio));
+      this.fit();
+    }
   }
 
   async init(): Promise<Backend> {

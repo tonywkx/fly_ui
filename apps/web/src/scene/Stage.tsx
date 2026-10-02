@@ -1,4 +1,4 @@
-import { when } from 'mobx';
+import { reaction, when } from 'mobx';
 import { useEffect, useRef } from 'react';
 import { uniform } from 'three/tsl';
 import { type Node, Vector3 } from 'three/webgpu';
@@ -6,10 +6,12 @@ import { data } from '@/data/store';
 import { app } from '@/state/app';
 import { bfsOnsets, cycleMs, jitter, seedRows, writeSpikes } from './activity';
 import { Engine } from './engine';
+import { onFrameSample } from './frameStats';
 import { INTRO, type IntroPhase, introTimeline, lerpPose, type Pose } from './intro';
 import { CloudLayer } from './layers/cloud';
 import { isColorMode, neuronsLayer } from './layers/neurons';
 import { shellsLayer } from './layers/shells';
+import { FpsGuard, QUALITY } from './quality';
 import { buildSegments } from './segments';
 
 /** First-frame dust chunk the intro assembles. */
@@ -40,7 +42,9 @@ export function Stage() {
     const engine = new Engine(el, {
       forceWebGL: app.params.gl === 'webgl2',
       reducedMotion: app.reducedMotion,
+      msaa: QUALITY[app.quality].msaa,
     });
+    engine.applyQuality(QUALITY[app.quality]);
     const stops: (() => void)[] = [];
 
     engine
@@ -48,12 +52,19 @@ export function Stage() {
       .then((backend) => {
         if (engine.disposed) return;
         app.setBackend(backend);
+        stops.push(
+          reaction(
+            () => app.quality,
+            (q) => engine.applyQuality(QUALITY[q]),
+            { fireImmediately: true },
+          ),
+        );
         // dust first (the intro assembles it while the rest streams in), everything else on ready
         stops.push(
           when(
             () => !!data.manifest && data.loaded.has(DUST),
             () => {
-              const intro = stageDust(engine);
+              const intro = stageDust(engine, stops);
               stops.push(
                 when(
                   () => data.ready,
@@ -87,7 +98,7 @@ interface Intro {
 }
 
 /** Frames the CNS, adds the dust and starts the intro clock on the next frame. */
-function stageDust(engine: Engine): Intro {
+function stageDust(engine: Engine, stops: (() => void)[]): Intro {
   const m = data.manifest;
   const lod0 = data.get(DUST, 'cloud');
   if (!m || !lod0) throw new Error('manifest or cloud lod0 missing');
@@ -145,7 +156,7 @@ function stageDust(engine: Engine): Intro {
     if (phase === 'done' && (hint || !showHint)) {
       off();
       offInput();
-      afterIntro(engine, cloud);
+      stops.push(...afterIntro(engine, cloud));
     }
   });
 
@@ -159,17 +170,60 @@ function stageDust(engine: Engine): Intro {
   };
 }
 
-/** Refine the dust once the intro is over; lod2 is left to quality presets (2.8). */
-function afterIntro(engine: Engine, cloud: CloudLayer) {
-  const lod1 = data.manifest?.chunks.find((c) => c.id === 'cloud-lod1');
-  if (!lod1) return;
-  data
-    .loadChunk(lod1)
-    .then(() => {
-      const pos = data.get(lod1.id, 'cloud');
-      if (pos && !engine.disposed) cloud.add(pos);
-    })
-    .catch((e) => console.warn('[scene] cloud lod1', e));
+/**
+ * After the intro: dust tiers follow the quality preset (refining loads `cloud-lod{i}` in order), and
+ * slow frames step an unpinned preset down. Snaps wait for the tiers (`dust` ready flag).
+ */
+function afterIntro(engine: Engine, cloud: CloudLayer): (() => void)[] {
+  const tiers = (data.manifest?.chunks ?? [])
+    .filter((c) => c.kind === 'cloud' && c.lod !== undefined)
+    .sort((a, b) => (a.lod ?? 0) - (b.lod ?? 0));
+  let busy = false;
+  const refine = async () => {
+    if (busy) return;
+    busy = true;
+    try {
+      // the first tier is already in; re-read the preset after every await
+      for (let want = QUALITY[app.quality].dustTiers; cloud.loaded < Math.min(want, tiers.length); ) {
+        const c = tiers[cloud.loaded];
+        if (!c) break;
+        await data.loadChunk(c);
+        const pos = data.get(c.id, 'cloud');
+        if (!pos || engine.disposed) return;
+        cloud.add(pos);
+        want = QUALITY[app.quality].dustTiers;
+      }
+    } catch (e) {
+      console.warn('[scene] cloud tiers', e);
+    } finally {
+      busy = false;
+      app.markReady('dust');
+    }
+  };
+
+  app.waitFor('dust');
+  const stops: (() => void)[] = [
+    reaction(
+      () => QUALITY[app.quality].dustTiers,
+      (n) => {
+        cloud.setTiers(n);
+        void refine();
+      },
+      { fireImmediately: true },
+    ),
+  ];
+  if (!app.qualityPinned && !app.params.debug) {
+    const guard = new FpsGuard();
+    stops.push(
+      onFrameSample(({ fps }) => {
+        const q = guard.sample(fps, app.quality);
+        if (!q) return;
+        console.info(`[scene] ${fps.toFixed(0)} fps → quality ${q}`);
+        app.setQuality(q);
+      }),
+    );
+  }
+  return stops;
 }
 
 function populate(engine: Engine, intro: Intro) {

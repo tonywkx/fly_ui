@@ -21,7 +21,9 @@ export const Stats = observer(function Stats() {
     <p className="flex gap-2">
       <Readout label="fps" value={fps} />
       <Readout label="ms" value={ms} />
-      <span className="text-ash">{app.backend ?? '—'}</span>
+      <span className="text-ash">
+        {app.quality} · {app.backend ?? '—'}
+      </span>
     </p>
   );
 });
