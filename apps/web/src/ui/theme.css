@@ -35,6 +35,9 @@
   --text-heading-lg: 78px;
   --text-display: 113px;
 
+  /* Motion (animate skill): strong ease-out for entrances/exits. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
   --radius-panel: 24px;
   --spacing: 6px;
 }
