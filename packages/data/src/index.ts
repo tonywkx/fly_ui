@@ -8,3 +8,4 @@ export * from './neuropil';
 export * from './obj';
 export * from './skeleton';
 export * from './swc';
+export * from './typegraph';
