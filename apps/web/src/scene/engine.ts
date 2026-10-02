@@ -1,7 +1,11 @@
 import type { Manifest } from '@fly/data';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Group, MathUtils, PerspectiveCamera, Scene, Vector3, WebGPURenderer } from 'three/webgpu';
+import { Group, PerspectiveCamera, Scene, Vector3, WebGPURenderer } from 'three/webgpu';
+import { frameDistance } from './frame';
 import { sampleFrame } from './frameStats';
+
+/** Breathing room around the CNS front face in the initial framing. */
+const FRAME_MARGIN = 1.0;
 
 export type Backend = 'webgpu' | 'webgl2';
 
@@ -64,8 +68,9 @@ export class Engine {
     this.world.scale.set(s, -s, -s);
     this.world.position.copy(min).add(max).multiplyScalar(0.5).multiply(this.world.scale).negate();
 
-    const radius = max.sub(min).multiplyScalar(s).length() / 2;
-    const dist = radius / Math.sin(MathUtils.degToRad(this.camera.fov / 2));
+    const half = max.sub(min).multiplyScalar(s / 2);
+    const radius = half.length();
+    const dist = frameDistance(half.toArray(), this.camera.fov, this.camera.aspect, FRAME_MARGIN);
     this.camera.near = dist / 100;
     this.camera.far = dist * 10;
     this.camera.position.set(0, 0, dist);
