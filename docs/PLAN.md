@@ -42,7 +42,7 @@ Phase exit = its "Done when" is true and demoable.
 - [x] 2.4 Hero neurons as instanced quads/ribbons (thick glowing lines; WebGPU lines are 1 px). **[V]**
 - [x] 2.5 Wave shader along neurites (distance-from-soma attribute) + bloom; fake activity = BFS over CSR with per-hop delay. **[V]**
 - [x] 2.6 Debug modes: soma-distance, id, transmitter, region. **[V]**
-- [ ] 2.7 Intro assembly: particles fly into CNS silhouette while data loads → camera dive → "click the shadow" hint. **[V]** **[S]** animate
+- [x] 2.7 Intro assembly: particles fly into CNS silhouette while data loads → camera dive → "click the shadow" hint. **[V]** **[S]** animate
 - [ ] 2.8 Quality presets (low/med/high), perf pass.
 **Done when:** stable 60 fps at high, wave looks right in snaps.
 
