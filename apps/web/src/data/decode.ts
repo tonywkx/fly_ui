@@ -7,10 +7,12 @@ import {
   decodeMeta,
   decodeNeuropils,
   decodeSkeletons,
+  decodeSpikes,
   decodeTypeGraph,
   type NeuronTable,
   type NeuropilSet,
   type SkeletonSet,
+  type SpikeTrain,
   type TypeGraph,
 } from '@fly/data';
 
@@ -20,7 +22,8 @@ export type Decoded =
   | { kind: 'skeletons'; data: SkeletonSet }
   | { kind: 'graph'; data: Csr }
   | { kind: 'typegraph'; data: TypeGraph }
-  | { kind: 'meta'; data: NeuronTable };
+  | { kind: 'meta'; data: NeuronTable }
+  | { kind: 'spikes'; data: SpikeTrain };
 
 /** Pure: decodes a chunk whose kind the manifest declares (decoders throw on a mismatch). */
 export function decodeByKind(kind: ChunkKind, bytes: ArrayBuffer | Uint8Array, bbox: BBox): Decoded {
@@ -37,6 +40,8 @@ export function decodeByKind(kind: ChunkKind, bytes: ArrayBuffer | Uint8Array, b
       return { kind, data: decodeTypeGraph(bytes) };
     case 'meta':
       return { kind, data: decodeMeta(bytes) };
+    case 'spikes':
+      return { kind, data: decodeSpikes(bytes) };
   }
 }
 

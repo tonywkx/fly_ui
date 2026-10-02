@@ -1,9 +1,17 @@
 import { z } from 'zod';
 
 /** Bump on any change to the manifest schema or a binary layout (see CLAUDE.md). */
-export const FORMAT_VERSION = 2;
+export const FORMAT_VERSION = 3;
 
-export const CHUNK_KINDS = ['skeletons', 'cloud', 'neuropil', 'graph', 'typegraph', 'meta'] as const;
+export const CHUNK_KINDS = [
+  'skeletons',
+  'cloud',
+  'neuropil',
+  'graph',
+  'typegraph',
+  'meta',
+  'spikes',
+] as const;
 export type ChunkKind = (typeof CHUNK_KINDS)[number];
 
 export const ChunkTier = z.enum(['first-frame', 'lazy']);

@@ -7,5 +7,6 @@ export * from './meta';
 export * from './neuropil';
 export * from './obj';
 export * from './skeleton';
+export * from './spikes';
 export * from './swc';
 export * from './typegraph';
