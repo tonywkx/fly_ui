@@ -65,3 +65,8 @@ export function writeSpikes(onsets: Float32Array, t: number, out: Float32Array):
   }
   return changed;
 }
+
+/** Spreads onsets by a deterministic 0..`ms` offset per row (seeds do not all fire on the same ms). */
+export function jitter(onsets: Float32Array, ms: number): Float32Array {
+  return onsets.map((t, i) => t + ((Math.imul(i + 1, 0x9e3779b1) >>> 0) / 2 ** 32) * ms);
+}

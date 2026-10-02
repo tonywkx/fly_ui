@@ -1,6 +1,6 @@
 import { type Csr, csrFromEdges, decodeMeta, encodeMeta, type NeuronRecord } from '@fly/data';
 import { describe, expect, it } from 'vitest';
-import { bfsOnsets, cycleMs, NEVER, seedRows, writeSpikes } from './activity';
+import { bfsOnsets, cycleMs, jitter, NEVER, seedRows, writeSpikes } from './activity';
 
 const csr = (n: number, edges: [number, number, number?][]): Csr =>
   csrFromEdges(
@@ -98,5 +98,19 @@ describe('writeSpikes', () => {
     // rewinding (loop restart) clears the later spikes again
     expect(writeSpikes(on, 1, out)).toBe(true);
     expect([...out]).toEqual([0, NEVER, NEVER, NEVER]);
+  });
+});
+
+describe('jitter', () => {
+  it('delays each row by a stable amount in [0, ms)', () => {
+    const on = Float32Array.from([0, 0, 5, Infinity]);
+    const a = jitter(on, 10);
+    expect(a).toEqual(jitter(on, 10));
+    for (let i = 0; i < 3; i++) {
+      expect(a[i]).toBeGreaterThanOrEqual(on[i] as number);
+      expect(a[i]).toBeLessThan((on[i] as number) + 10);
+    }
+    expect(a[0]).not.toBe(a[1]);
+    expect(a[3]).toBe(Infinity);
   });
 });

@@ -5,8 +5,10 @@ import {
   cameraPosition,
   cameraProjectionMatrix,
   clamp,
+  exp,
   float,
   int,
+  ivec2,
   length,
   max,
   min,
@@ -18,6 +20,7 @@ import {
   screenSize,
   select,
   smoothstep,
+  textureLoad,
   uniform,
   uniformArray,
   varying,
@@ -29,14 +32,18 @@ import {
   AdditiveBlending,
   BufferAttribute,
   Color,
+  DataTexture,
+  FloatType,
   InstancedBufferGeometry,
   InstancedInterleavedBuffer,
   InterleavedBufferAttribute,
   Mesh,
   MeshBasicNodeMaterial,
   type Node,
+  RedFormat,
 } from 'three/webgpu';
 import { NT_COLORS } from '@/ui/palette';
+import { NEVER } from '../activity';
 import { SEG_STRIDE } from '../segments';
 
 /** Ribbon width = node diameter × gain, clamped (µm): stylised, giant fibres must not swamp the view. */
@@ -53,11 +60,35 @@ const CORE = 0.12;
 const DEPTH_RANGE = 350;
 const FAR_DIM = 0.35;
 
+/** Resting brightness relative to the wave (silent neurons stay visible as context). */
+const REST = 0.2;
+/** Conduction speed of the fake spike front along a neurite (µm per sim ms). */
+const WAVE_UM_PER_MS = 20;
+/** Bright tail behind the front / soft lead in front of it (µm). */
+const TAIL_UM = 30;
+const LEAD_UM = 4;
+/** Peak brightness at the front (×, HDR — feeds bloom). */
+const PULSE = 3;
+/** The whole neuron keeps a fading glow after it fired. */
+const AFTERGLOW = 0.4;
+const AFTERGLOW_MS = 40;
+/** Width of the per-row spike texture. */
+const TEX_W = 256;
+
+export interface NeuronsLayer {
+  mesh: Mesh;
+  /** Sim time shown, ms. */
+  simTime: { value: number };
+  /** Last spike time per graph row (sim ms, NEVER if silent); call `commit` after writing. */
+  lastSpike: Float32Array;
+  commit(): void;
+}
+
 /**
  * Hero neurons: every skeleton segment is one instanced screen-facing quad (WebGPU lines are 1 px).
  * Additive glow over the background layers; colour by transmitter.
  */
-export function neuronsLayer(seg: Float32Array, worldScale: number): Mesh {
+export function neuronsLayer(seg: Float32Array, rows: number, worldScale: number): NeuronsLayer {
   const geo = new InstancedBufferGeometry();
   // x: 0 at the node, 1 at its parent; y: −1..1 across
   geo.setAttribute(
@@ -92,6 +123,21 @@ export function neuronsLayer(seg: Float32Array, worldScale: number): Mesh {
   const drawPx = max(px, MIN_PX);
   const offset = normal.mul(positionGeometry.y).mul(drawPx).div(screenSize).mul(c.w);
 
+  // activity: last spike of this segment's neuron (rows without meta never fire)
+  const texH = Math.max(1, Math.ceil(rows / TEX_W));
+  const lastSpike = new Float32Array(TEX_W * texH).fill(NEVER);
+  const spikeTex = new DataTexture(lastSpike, TEX_W, texH, RedFormat, FloatType);
+  spikeTex.needsUpdate = true;
+  const simTime = uniform(0);
+  const row = int(segC.x);
+  const spike = select(
+    row.greaterThanEqual(0),
+    textureLoad(spikeTex, ivec2(row.mod(TEX_W), row.div(TEX_W))).x,
+    float(NEVER),
+  );
+  const age = varying(simTime.sub(spike));
+  const distUm = varying(mix(segA.w, segB.w, positionGeometry.x).mul(worldScale));
+
   const mat = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: AdditiveBlending });
   mat.vertexNode = vec4(c.x.add(offset.x), c.y.add(offset.y), c.z, c.w);
 
@@ -108,12 +154,24 @@ export function neuronsLayer(seg: Float32Array, worldScale: number): Mesh {
   const across = abs(varying(positionGeometry.y));
   const glow = oneMinus(across).pow(1.5);
   const core = oneMinus(smoothstep(0, 0.35, across)).mul(CORE);
-  mat.colorNode = mix(tint, vec3(1), core);
+  // distance the front has run past this point (µm); < 0 = not reached yet
+  const past = age.mul(WAVE_UM_PER_MS).sub(distUm);
+  const pulse = select(past.greaterThanEqual(0), exp(past.negate().div(TAIL_UM)), exp(past.div(LEAD_UM)));
+  const after = select(past.greaterThanEqual(0), exp(age.negate().div(AFTERGLOW_MS)), float(0));
+  const level = float(REST).add(pulse.mul(PULSE)).add(after.mul(AFTERGLOW));
+  mat.colorNode = mix(tint, vec3(1), core.add(pulse.mul(0.5)).min(1)).mul(level);
   mat.opacityNode = glow.mul(fade).mul(depthDim).mul(float(GAIN));
 
   const mesh = new Mesh(geo, mat);
   mesh.name = 'neurons';
   mesh.frustumCulled = false;
   mesh.renderOrder = 1;
-  return mesh;
+  return {
+    mesh,
+    simTime,
+    lastSpike,
+    commit: () => {
+      spikeTex.needsUpdate = true;
+    },
+  };
 }

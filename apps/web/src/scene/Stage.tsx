@@ -2,6 +2,7 @@ import { when } from 'mobx';
 import { useEffect, useRef } from 'react';
 import { data } from '@/data/store';
 import { app } from '@/state/app';
+import { bfsOnsets, cycleMs, jitter, seedRows, writeSpikes } from './activity';
 import { Engine } from './engine';
 import { CloudLayer } from './layers/cloud';
 import { neuronsLayer } from './layers/neurons';
@@ -10,6 +11,14 @@ import { buildSegments } from './segments';
 
 /** Frames rendered with content before the scene counts as drawn (snap readiness). */
 const SETTLE_FRAMES = 2;
+/** Fake activity: sensory types the wave starts from, per scenario (others: no activity yet). */
+const SEED_TYPES: Record<string, readonly string[]> = { escape: ['LPLC2', 'LC4'] };
+/** Sim ms per synaptic hop, playback speed (sim ms per real s), pause after the last onset (sim ms). */
+const HOP_MS = 6;
+const SIM_MS_PER_S = 40;
+const TAIL_MS = 60;
+/** Spread of onsets per neuron (a looming stimulus recruits LPLC2/LC4 over several ms). */
+const JITTER_MS = 12;
 
 /** Mount point for the renderer. The engine owns the canvas; React only creates and disposes it. */
 export function Stage() {
@@ -71,10 +80,22 @@ function populate(engine: Engine) {
 
   const skeletons = data.get(`${data.scenario}-skeletons`, 'skeletons');
   const meta = data.get(`${data.scenario}-meta`, 'meta');
+  const graph = data.get(`${data.scenario}-graph`, 'graph');
   if (skeletons && meta) {
-    const neurons = neuronsLayer(buildSegments(skeletons, meta), m.unitNm / 1000);
-    neurons.visible = debug !== 'cloud' && debug !== 'shells';
-    engine.world.add(neurons);
+    const neurons = neuronsLayer(buildSegments(skeletons, meta), meta.n, m.unitNm / 1000);
+    neurons.mesh.visible = debug !== 'cloud' && debug !== 'shells';
+    engine.world.add(neurons.mesh);
+    const seeds = seedRows(meta, (data.scenario && SEED_TYPES[data.scenario]) || []);
+    if (graph && seeds.length) {
+      const onsets = jitter(bfsOnsets(graph, seeds, HOP_MS), JITTER_MS);
+      const period = cycleMs(onsets, TAIL_MS);
+      const fixed = app.params.t;
+      engine.onFrame((now) => {
+        const t = fixed ?? ((now / 1000) * SIM_MS_PER_S) % period;
+        neurons.simTime.value = t;
+        if (writeSpikes(onsets, t, neurons.lastSpike)) neurons.commit();
+      });
+    }
   }
 
   let frames = 0;
