@@ -69,9 +69,14 @@ export class DataStore {
     }
   }
 
+  /** Absolute URL of a chunk (for Workers that fetch it themselves). */
+  url(c: ChunkEntry): string {
+    return new URL(c.file, this.baseUrl).href;
+  }
+
   async loadChunk(c: ChunkEntry): Promise<void> {
     if (this.payloads.has(c.id) || !this.manifest) return;
-    const decoded = await this.worker().load(new URL(c.file, this.baseUrl).href, c.kind, this.manifest.bbox);
+    const decoded = await this.worker().load(this.url(c), c.kind, this.manifest.bbox);
     this.payloads.set(c.id, decoded);
     runInAction(() => {
       this.loadedBytes += c.bytes;

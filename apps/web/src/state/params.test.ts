@@ -60,6 +60,13 @@ describe('parseParams', () => {
     expect(warnings).toEqual(['quality: unknown preset "ultra" (low | med | high)']);
   });
 
+  it('accepts baked | live for sim', () => {
+    expect(parseParams('?sim=live').params.sim).toBe('live');
+    const { params, warnings } = parseParams('?sim=fast');
+    expect(params.sim).toBeUndefined();
+    expect(warnings).toEqual(['sim: expected "baked" | "live", got "fast"']);
+  });
+
   it('ignores unknown keys silently', () => {
     expect(parseParams('?foo=1').warnings).toEqual([]);
   });

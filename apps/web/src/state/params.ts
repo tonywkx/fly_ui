@@ -23,6 +23,8 @@ export interface Params {
   gl?: 'webgl2';
   /** Render preset; picked from the device (and stepped down on slow frames) when absent. */
   quality?: Quality;
+  /** Activity source: the baked spike train (default) or the live full-graph sim in a Worker. */
+  sim?: 'baked' | 'live';
 }
 
 const flag = (v: string | null) => v !== null && v !== '0' && v !== 'false';
@@ -68,6 +70,12 @@ export function parseParams(search: string): { params: Params; warnings: string[
   if (quality !== null) {
     if (isQuality(quality)) params.quality = quality;
     else warnings.push(`quality: unknown preset "${quality}" (${QUALITIES.join(' | ')})`);
+  }
+
+  const sim = q.get('sim');
+  if (sim !== null) {
+    if (sim === 'baked' || sim === 'live') params.sim = sim;
+    else warnings.push(`sim: expected "baked" | "live", got "${sim}"`);
   }
 
   return { params, warnings };

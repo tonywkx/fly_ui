@@ -43,9 +43,9 @@ import {
   type Node,
   RedFormat,
 } from 'three/webgpu';
+import { NEVER } from '@/sim/feed';
 import type { DebugMode } from '@/state/params';
 import { hexToLinear, NT_COLORS } from '@/ui/palette';
-import { NEVER } from '../activity';
 import { SEG_STRIDE } from '../segments';
 
 /** Ribbon width = node diameter × gain, clamped (µm): stylised, giant fibres must not swamp the view. */
@@ -64,7 +64,7 @@ const FAR_DIM = 0.35;
 
 /** Resting brightness relative to the wave (silent neurons stay visible as context). */
 const REST = 0.2;
-/** Conduction speed of the fake spike front along a neurite (µm per sim ms). */
+/** Conduction speed of the drawn spike front along a neurite (µm per sim ms). */
 const WAVE_UM_PER_MS = 20;
 /** Bright tail behind the front / soft lead in front of it (µm). */
 const TAIL_UM = 30;

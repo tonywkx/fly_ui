@@ -5,7 +5,7 @@ import { type Device, defaultQuality, type Quality } from '@/scene/quality';
 import { type Params, parseParams } from './params';
 
 /** Things that must finish before a snap is taken. */
-export type ReadyFlag = 'fonts' | 'data' | 'frame' | 'dust';
+export type ReadyFlag = 'fonts' | 'data' | 'frame' | 'dust' | 'sim';
 
 export class AppStore {
   readonly params: Params;
