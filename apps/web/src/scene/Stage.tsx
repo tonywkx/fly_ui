@@ -3,7 +3,8 @@ import { useEffect, useRef } from 'react';
 import { data } from '@/data/store';
 import { app } from '@/state/app';
 import { Engine } from './engine';
-import { smokeContent } from './smoke';
+import { CloudLayer } from './layers/cloud';
+import { shellsLayer } from './layers/shells';
 
 /** Frames rendered with content before the scene counts as drawn (snap readiness). */
 const SETTLE_FRAMES = 2;
@@ -47,16 +48,38 @@ export function Stage() {
 
 function populate(engine: Engine) {
   const m = data.manifest;
-  const lod0 = m?.chunks.find((c) => c.kind === 'cloud' && c.lod === 0);
-  const cloud = lod0 && data.get(lod0.id, 'cloud');
-  if (!m || !cloud) throw new Error('cloud lod0 missing from first-frame data');
+  if (!m) throw new Error('manifest missing');
+  const chunk = (kind: 'cloud' | 'neuropil', id: string) => {
+    const c = m.chunks.find((e) => e.id === id && e.kind === kind);
+    if (!c) throw new Error(`${id} missing from manifest`);
+    return c;
+  };
+  const shells = data.get(chunk('neuropil', 'neuropil-shells').id, 'neuropil');
+  const lod0 = data.get(chunk('cloud', 'cloud-lod0').id, 'cloud');
+  if (!shells || !lod0) throw new Error('shells or cloud lod0 missing from first-frame data');
+
   engine.setFrame(m);
-  engine.world.add(...smokeContent(m, cloud));
+  const cloud = new CloudLayer(m.unitNm / 1000);
+  cloud.add(lod0);
+  const shellMesh = shellsLayer(shells);
+  const { debug } = app.params;
+  cloud.group.visible = debug !== 'shells';
+  shellMesh.visible = debug !== 'cloud';
+  engine.world.add(cloud.group, shellMesh);
 
   let frames = 0;
   const off = engine.onFrame(() => {
     if (++frames <= SETTLE_FRAMES) return;
     off();
     app.markReady('frame');
+    // Refine the dust once the first frame is up; lod2 is left to quality presets (2.8).
+    const lod1 = chunk('cloud', 'cloud-lod1');
+    data
+      .loadChunk(lod1)
+      .then(() => {
+        const pos = data.get(lod1.id, 'cloud');
+        if (pos && !engine.disposed) cloud.add(pos);
+      })
+      .catch((e) => console.warn('[scene] cloud lod1', e));
   });
 }

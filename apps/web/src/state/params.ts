@@ -1,5 +1,5 @@
-/** Debug colour modes for the scene (rendered in 2.6). */
-export const DEBUG_MODES = ['soma-dist', 'id', 'nt', 'region'] as const;
+/** Colour modes (2.6) + layer isolation: `cloud` / `shells` show only that background layer. */
+export const DEBUG_MODES = ['soma-dist', 'id', 'nt', 'region', 'cloud', 'shells'] as const;
 export type DebugMode = (typeof DEBUG_MODES)[number];
 
 /** App state encoded in the URL (also what `pnpm snap --k=v` sets). */
