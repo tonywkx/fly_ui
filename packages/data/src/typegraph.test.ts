@@ -2,7 +2,13 @@ import { describe, expect, test } from 'vitest';
 import { encodeChunk } from './container';
 import { csrFromEdges } from './graph';
 import { NONE16 } from './meta';
-import { collapseByType, decodeTypeGraph, encodeTypeGraph, type TypeGraph } from './typegraph';
+import {
+  collapseByType,
+  decodeTypeGraph,
+  encodeTypeGraph,
+  pruneTypeGraph,
+  type TypeGraph,
+} from './typegraph';
 
 // neurons: 0,1 → type A (signs +1, -1); 2 → type B (sign 0); 3 → untyped (+1); 4 → type B (+1)
 const meta = {
@@ -70,5 +76,25 @@ describe('typegraph codec', () => {
 
   test('rejects other chunk kinds', () => {
     expect(() => decodeTypeGraph(encodeChunk('graph', [new Uint32Array(1)]))).toThrow(/typegraph/);
+  });
+});
+
+describe('pruneTypeGraph', () => {
+  test('keeps edges with weight >= min, rebuilds offsets, keeps nodes', () => {
+    const p = pruneTypeGraph(tg(), 7);
+    expect(p.names).toEqual(['A', 'B', 'C']);
+    expect(Array.from(p.count)).toEqual([3, 1, 2]);
+    expect(Array.from(p.offsets)).toEqual([0, 1, 1, 2]);
+    expect(Array.from(p.cols)).toEqual([2, 1]);
+    expect(Array.from(p.weight)).toEqual([100000, 7]);
+    expect(Array.from(p.signed)).toEqual([100000, 0]);
+    expect(() => encodeTypeGraph(p)).not.toThrow();
+  });
+
+  test('threshold above every weight leaves empty rows; min 0 keeps all', () => {
+    const p = pruneTypeGraph(tg(), 1e9);
+    expect(Array.from(p.offsets)).toEqual([0, 0, 0, 0]);
+    expect(p.cols.length).toBe(0);
+    expect(Array.from(pruneTypeGraph(tg(), 0).cols)).toEqual([0, 2, 1]);
   });
 });

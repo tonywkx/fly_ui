@@ -54,6 +54,32 @@ export function collapseByType(csr: Csr, meta: Pick<NeuronTable, 'type' | 'sign'
   return { names, count, offsets, cols, weight, signed };
 }
 
+/** Drops edges with summed weight < minWeight; nodes (names, count) are kept. */
+export function pruneTypeGraph(g: TypeGraph, minWeight: number): TypeGraph {
+  const n = g.names.length;
+  const keep: number[] = [];
+  const offsets = new Uint32Array(n + 1);
+  for (let k = 0; k < n; k++) {
+    for (let e = g.offsets[k] as number; e < (g.offsets[k + 1] as number); e++)
+      if ((g.weight[e] as number) >= minWeight) keep.push(e);
+    offsets[k + 1] = keep.length;
+  }
+  const pick = <T extends Uint32Array | Int32Array>(a: T, out: T) => {
+    keep.forEach((e, i) => {
+      out[i] = a[e] as number;
+    });
+    return out;
+  };
+  return {
+    names: g.names,
+    count: g.count,
+    offsets,
+    cols: pick(g.cols, new Uint32Array(keep.length)),
+    weight: pick(g.weight, new Uint32Array(keep.length)),
+    signed: pick(g.signed, new Int32Array(keep.length)),
+  };
+}
+
 /**
  * `typegraph` chunk sections: offsets u32 (n+1) | cols u32 delta-coded per row | weight u32 |
  * signed i32 | count u32 (n) | names u8 (UTF-8 JSON string[]).

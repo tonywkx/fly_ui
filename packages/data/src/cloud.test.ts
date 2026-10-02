@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { bboxOf, decodeCloud, encodeCloud, lodTiers, mulberry32, sampleCable } from './cloud';
+import { bboxOf, bboxUnion, decodeCloud, encodeCloud, lodTiers, mulberry32, sampleCable } from './cloud';
 import { encodeChunk } from './container';
 import type { BBox } from './skeleton';
 import { parseSwc } from './swc';
@@ -80,6 +80,13 @@ describe('cloud codec', () => {
 
   test('bboxOf pads every axis', () => {
     expect(bboxOf(Float32Array.of(1, 2, 3, 5, -2, 4), 1)).toEqual({ min: [0, -3, 2], max: [6, 3, 5] });
+  });
+
+  test('bboxUnion spans every box and pads', () => {
+    const a: BBox = { min: [0, 5, -1], max: [1, 6, 0] };
+    const b: BBox = { min: [-2, 7, 3], max: [0, 9, 4] };
+    expect(bboxUnion([a, b], 1)).toEqual({ min: [-3, 4, -2], max: [2, 10, 5] });
+    expect(() => bboxUnion([], 0)).toThrow();
   });
 
   test('roundtrip within half a quantization step', () => {

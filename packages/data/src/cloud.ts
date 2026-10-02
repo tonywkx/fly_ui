@@ -80,6 +80,16 @@ export function bboxOf(points: Float32Array, pad: number): BBox {
   };
 }
 
+/** Smallest box containing every box, padded on all axes. */
+export function bboxUnion(boxes: BBox[], pad: number): BBox {
+  if (!boxes.length) throw new Error('bboxUnion: no boxes');
+  const axes = [0, 1, 2] as const;
+  return {
+    min: axes.map((a) => Math.min(...boxes.map((b) => b.min[a])) - pad) as BBox['min'],
+    max: axes.map((a) => Math.max(...boxes.map((b) => b.max[a])) + pad) as BBox['max'],
+  };
+}
+
 /** `cloud` chunk (one per LOD tier): single section pos u16 (3N, bbox-quantized). */
 export function encodeCloud(pos: Float32Array, bbox: BBox): Uint8Array {
   return encodeChunk('cloud', [quantize(pos, bbox)]);
