@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-02 — 1.7b cell-type graph
+Done: `packages/data/src/typegraph.ts` (`collapseByType`, `encodeTypeGraph`/`decodeTypeGraph`; node k = `meta.strings.types[k]`, weight u32 + signed i32 Σ sign[pre]·w, count per type, untyped skipped, self-loops kept) + tests; `pnpm graph` also writes `data/build/typegraph-full.bin`.
+State: 11751 types / 934k edges, unpruned: 10.89 MB raw / 2.43 MB br. Not yet in a manifest.
+Next: 1.8 `pnpm bake` orchestrator + manifest + size report (first-frame ≤15 MB); decide typegraph tier/prune there.
+Gotchas: type-edge prune tradeoff (edges / br / synapse mass): w≥10 633k/1.65 MB/98% · w≥20 443k/1.24 MB/95% · w≥50 241k/0.76 MB/88% · w≥100 132k/0.48 MB/79%. Prune after `collapseByType` (filter rows), codec is threshold-agnostic.
+
 ## 2026-10-02 — 1.7 connectivity CSR + neuron meta
 Done: `packages/data/src/graph.ts` (`csrFromEdges`, `encodeGraph`/`decodeGraph`, delta-coded cols), `meta.ts` (`encodeMeta`/`decodeMeta`/`neuronAt`, NTS/SOMA_SIDES enums) + tests; `apps/pipeline/src/fetch/graph.ts` (`allBodyIds`, `regionOf`, `fetchNeuronBatch`, `fetchEdgeBatch`, resumable `fetchBatches`/`loadBatches`), `process/graph.ts` (`ntSign`, `toRecord`, `orderNeurons`, `buildGraph`, `subgraph`) + tests; CLI `pnpm graph`.
 State: full graph 176422 neurons / 6.29M edges (w≥5): graph 36.7 MB raw / 12.55 MB br, meta 0.50 MB br; scenario subgraphs escape/sugar/song ≤0.06 MB br each → `data/build/{graph,meta}-{full,escape,sugar,song}.bin`. Cache `data/cache/graph/` (ids.json + 89 meta + 353 edge batches); fetch ~2 min, rebuild from cache ~15 s. Not yet in a manifest (bake 1.8).
@@ -23,9 +29,3 @@ Done: `client.skeleton(bodyId)` in `apps/pipeline/src/neuprint/client.ts` (null 
 State: all 3605 scenario bodies cached in `data/cache/skeletons/*.swc` (~400 MB raw, 0 missing, 0 failed); rerun is a no-op. Not yet simplified/encoded into chunks.
 Next: 1.5 background cloud: sample points from cached skeletons (or synapse centroids) → quantized point buffer with LOD tiers, codec in packages/data (TDD).
 Gotchas: `pnpm fetch` is a pnpm builtin, hence `pull`. Dataset in the skeleton URL must not be url-encoded (403). Missing bodies get a `{id}.missing` marker; delete it to retry. `clientFromEnv` now takes `Partial<ClientOptions>` overrides.
-
-## 2026-10-01 — 1.3 skeleton processing + chunk codec
-Done: `packages/data/src/skeleton.ts` (`simplify` RDP on unbranched runs, `pathDistance`, `quantize`/`dequantize`, `encodeSkeletons`/`decodeSkeletons` → flat `SkeletonSet`), `skeleton.test.ts` (14 tests). Chunk layout in DECISIONS.md.
-State: SWC → simplify → multi-neuron `skeletons` chunk → decode works in tests; no real data run yet, epsilon not tuned.
-Next: 1.4 fetch skeletons for scenario bodyIds (`data/scout/*.json`) with p-limit, disk cache `data/cache/`, resumable.
-Gotchas: `dist` is recomputed from quantized positions on decode (≈0.1 nm off). parent stays i32 (4 B/node); if the first-frame budget is tight, switch to a u16 delta. Biome `useIterableCallbackReturn` rejects `forEach(x => expect(...))`, so use block bodies.
