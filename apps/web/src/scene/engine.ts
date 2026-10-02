@@ -1,11 +1,23 @@
 import type { Manifest } from '@fly/data';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Group, PerspectiveCamera, Scene, Vector3, WebGPURenderer } from 'three/webgpu';
+import { bloom } from 'three/addons/tsl/display/BloomNode.js';
+import { pass } from 'three/tsl';
+import {
+  AgXToneMapping,
+  Group,
+  PerspectiveCamera,
+  RenderPipeline,
+  Scene,
+  Vector3,
+  WebGPURenderer,
+} from 'three/webgpu';
 import { frameDistance } from './frame';
 import { sampleFrame } from './frameStats';
 
 /** Breathing room around the CNS front face in the initial framing. */
 const FRAME_MARGIN = 1.0;
+/** Bloom picks up only the HDR spike fronts; the resting glow stays below the threshold. */
+const BLOOM = { strength: 0.5, radius: 0.4, threshold: 1.0 };
 
 export type Backend = 'webgpu' | 'webgl2';
 
@@ -24,6 +36,7 @@ export class Engine {
   readonly renderer: WebGPURenderer;
   disposed = false;
   private readonly controls: OrbitControls;
+  private readonly pipeline: RenderPipeline;
   private readonly resize = new ResizeObserver(() => this.fit());
   private readonly hooks = new Set<(now: number) => void>();
   private initialized?: Promise<unknown>;
@@ -35,11 +48,19 @@ export class Engine {
     this.renderer = new WebGPURenderer({ antialias: true, forceWebGL: opts.forceWebGL });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setClearColor(0x000000, 1);
+    // additive neuropils stack far above 1; roll off instead of clipping to white
+    this.renderer.toneMapping = AgXToneMapping;
     this.renderer.domElement.className = 'block size-full outline-none';
     host.appendChild(this.renderer.domElement);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = !opts.reducedMotion;
     this.scene.add(this.world);
+    const scenePass = pass(this.scene, this.camera);
+    const color = scenePass.getTextureNode('output');
+    this.pipeline = new RenderPipeline(
+      this.renderer,
+      color.add(bloom(color, BLOOM.strength, BLOOM.radius, BLOOM.threshold)),
+    );
   }
 
   async init(): Promise<Backend> {
@@ -95,6 +116,7 @@ export class Engine {
     this.resize.disconnect();
     this.controls.dispose();
     this.hooks.clear();
+    this.pipeline.dispose();
     // Disposing mid-init (StrictMode double mount) would race the device request.
     void Promise.resolve(this.initialized)
       .catch(() => {})
@@ -106,7 +128,7 @@ export class Engine {
     this.controls.update();
     for (const fn of this.hooks) fn(now);
     const t0 = performance.now();
-    this.renderer.render(this.scene, this.camera);
+    this.pipeline.render();
     sampleFrame(now, performance.now() - t0);
   }
 
