@@ -1,6 +1,6 @@
 import { type Remote, wrap } from 'comlink';
 import { SpikeFeed } from './feed';
-import type { LiveInit, SimApi } from './sim.worker';
+import type { LiveInit, SimApi, Tuning } from './sim.worker';
 
 /** Sim time kept buffered ahead of the display clock, and the size of one Worker request (ms). */
 const AHEAD_MS = 100;
@@ -71,6 +71,13 @@ export class LiveClient {
     this.gen++;
     this.feed.reset();
     await this.api.reset();
+  }
+
+  /** Restarts the scenario at t = 0 with new params; a batch still in flight is dropped. */
+  async tune(t: Tuning): Promise<void> {
+    this.gen++;
+    this.feed.reset();
+    await this.api.tune(t);
   }
 
   dispose(): void {

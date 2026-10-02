@@ -294,13 +294,27 @@ function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, s
     .then((c) => {
       if (disposed) return c.dispose();
       client = c;
-      stop();
-      stop = play(
-        engine,
-        layer,
-        { feed: c.feed, pump: (t) => c.pump(t) },
-        { rate: SIM_MS_PER_S, fixed, onReached: () => app.markReady('sim') },
-      );
+      const start = () => {
+        stop();
+        stop = play(
+          engine,
+          layer,
+          { feed: c.feed, pump: (t) => c.pump(t) },
+          { rate: SIM_MS_PER_S, fixed, onReached: () => app.markReady('sim') },
+        );
+      };
+      start();
+      if (import.meta.env.DEV && (!app.params.snap || app.params.ui === 'tune')) {
+        import('@/dev/tuning').then(({ mountTuning }) => {
+          if (disposed) return;
+          stops.push(
+            mountTuning({
+              apply: (t) => void c.tune(t).then(() => !disposed && start()),
+              speed: () => c.speed,
+            }),
+          );
+        });
+      }
     })
     .catch((e) => {
       console.error('[sim] live mode failed, staying on baked', e);

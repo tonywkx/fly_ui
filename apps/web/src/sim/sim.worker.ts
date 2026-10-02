@@ -1,5 +1,5 @@
-import { decodeGraph, decodeMeta } from '@fly/data';
-import { LIF_DEFAULTS, netFromCsr } from '@fly/sim';
+import { type Csr, decodeGraph, decodeMeta } from '@fly/data';
+import { LIF_DEFAULTS, type LifParams, netFromCsr } from '@fly/sim';
 import { expose, transfer } from 'comlink';
 import { type Batch, Live, rowMap } from './live';
 
@@ -14,8 +14,13 @@ export interface LiveInit {
   seed: number;
 }
 
+/** Sim params plus `gain`: a multiplier on synaptic weights only (the Poisson kick keeps `wSyn`). */
+export type Tuning = Partial<LifParams> & { gain?: number };
+
 let live: Live | undefined;
 let stim: number[] = [];
+let graph: { csr: Csr; sign: Int8Array } | undefined;
+let synW: number = LIF_DEFAULTS.wSyn; // wSyn · gain the current net was built with
 
 const need = () => {
   if (!live) throw new Error('sim worker: init first');
@@ -35,7 +40,9 @@ const api = {
       bytes(o.graphUrl).then(decodeGraph),
       bytes(o.metaUrl).then(decodeMeta),
     ]);
-    const net = netFromCsr(csr, meta.sign, LIF_DEFAULTS.wSyn);
+    graph = { csr, sign: meta.sign };
+    synW = LIF_DEFAULTS.wSyn;
+    const net = netFromCsr(csr, meta.sign, synW);
     live = new Live(net, rowMap(meta.bodyIds, o.scenarioBodyIds), { seed: o.seed });
     stim = o.stim;
     for (const r of stim) live.stimulate(r);
@@ -54,6 +61,16 @@ const api = {
 
   silence(row: number, on = true) {
     need().silence(row, on);
+  },
+
+  /** Restarts the scenario with new params; the net is rebuilt only when wSyn · gain changes. */
+  tune({ gain = 1, ...params }: Tuning) {
+    const l = need();
+    const w = (params.wSyn ?? LIF_DEFAULTS.wSyn) * gain;
+    const net = graph && w !== synW ? netFromCsr(graph.csr, graph.sign, w) : undefined;
+    if (net) synW = w;
+    l.retune(params, net);
+    for (const r of stim) l.stimulate(r);
   },
 
   /** Restarts the scenario: rest, t = 0, initial stimulus. */

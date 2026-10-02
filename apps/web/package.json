@@ -26,11 +26,13 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
+    "@tweakpane/core": "^2.0.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.1",
     "tailwindcss": "^4.3.3",
+    "tweakpane": "^4.0.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.1"
   }
