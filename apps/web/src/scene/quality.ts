@@ -9,14 +9,16 @@ export interface Preset {
   /** Cap on `devicePixelRatio`. */
   pixelRatio: number;
   bloom: boolean;
-  /** Fixed when the renderer is created; a live switch keeps the initial value. */
-  msaa: boolean;
 }
 
+/**
+ * Measured on M4 at 1600×1000 css px (`pnpm perf`): MSAA costs most and is off everywhere; dust past
+ * lod0 halves the frame rate whatever the pixel ratio (primitive-bound), so every preset keeps lod0. high at pr 2 dips to 54 fps, 1.75 holds 60.
+ */
 export const QUALITY: Record<Quality, Preset> = {
-  low: { dustTiers: 1, pixelRatio: 1, bloom: false, msaa: false },
-  med: { dustTiers: 2, pixelRatio: 1.5, bloom: true, msaa: true },
-  high: { dustTiers: 3, pixelRatio: 2, bloom: true, msaa: true },
+  low: { dustTiers: 1, pixelRatio: 1, bloom: false },
+  med: { dustTiers: 1, pixelRatio: 1.5, bloom: true },
+  high: { dustTiers: 1, pixelRatio: 1.75, bloom: true },
 };
 
 export const isQuality = (v: unknown): v is Quality => (QUALITIES as readonly unknown[]).includes(v);

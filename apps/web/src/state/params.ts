@@ -1,4 +1,4 @@
-import { isQuality, QUALITIES, type Quality } from '@/scene/quality';
+import { isQuality, QUALITIES, type Quality } from '../scene/quality';
 
 /** Colour modes (2.6) + layer isolation: `cloud` / `shells` show only that background layer. */
 export const DEBUG_MODES = ['soma-dist', 'id', 'nt', 'region', 'cloud', 'shells', 'neurons'] as const;

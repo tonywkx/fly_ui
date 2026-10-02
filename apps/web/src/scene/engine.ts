@@ -28,8 +28,6 @@ export interface EngineOptions {
   /** Use the WebGL2 backend even when WebGPU is available (`?gl=webgl2`). */
   forceWebGL: boolean;
   reducedMotion: boolean;
-  /** Multisampling; fixed for the renderer's lifetime. */
-  msaa: boolean;
 }
 
 /** Renderer, camera and frame loop. Owns its canvas inside `host`; React never touches it. */
@@ -55,7 +53,7 @@ export class Engine {
     private readonly host: HTMLElement,
     opts: EngineOptions,
   ) {
-    this.renderer = new WebGPURenderer({ antialias: opts.msaa, forceWebGL: opts.forceWebGL });
+    this.renderer = new WebGPURenderer({ antialias: false, forceWebGL: opts.forceWebGL });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.maxPixelRatio));
     this.renderer.setClearColor(0x000000, 1);
     // additive neuropils stack far above 1; roll off instead of clipping to white
@@ -72,7 +70,7 @@ export class Engine {
     this.pipeline = new RenderPipeline(this.renderer, this.bloomed);
   }
 
-  /** Pixel-ratio cap and bloom of a quality preset (MSAA is fixed at construction). */
+  /** Pixel-ratio cap and bloom of a quality preset. MSAA stays off: it was the costliest thing (2.8). */
   applyQuality(p: Preset) {
     const out = p.bloom ? this.bloomed : this.plain;
     if (this.pipeline.outputNode !== out) {

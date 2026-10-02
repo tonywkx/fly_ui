@@ -12,7 +12,6 @@ describe('quality presets', () => {
       expect(a.dustTiers).toBeLessThanOrEqual(b.dustTiers);
       expect(a.pixelRatio).toBeLessThanOrEqual(b.pixelRatio);
       expect(+a.bloom).toBeLessThanOrEqual(+b.bloom);
-      expect(+a.msaa).toBeLessThanOrEqual(+b.msaa);
     }
     expect(low.dustTiers).toBeGreaterThanOrEqual(1);
   });

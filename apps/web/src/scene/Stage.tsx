@@ -42,7 +42,6 @@ export function Stage() {
     const engine = new Engine(el, {
       forceWebGL: app.params.gl === 'webgl2',
       reducedMotion: app.reducedMotion,
-      msaa: QUALITY[app.quality].msaa,
     });
     engine.applyQuality(QUALITY[app.quality]);
     const stops: (() => void)[] = [];
