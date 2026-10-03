@@ -24,7 +24,7 @@ export const Legend = observer(function Legend() {
   return (
     <section
       aria-label="Colour legend"
-      className="pointer-events-auto absolute top-8 left-8 z-10 hidden w-48 flex-col gap-1 rounded-xl bg-card p-1 backdrop-blur-md md:flex"
+      className="pointer-events-auto absolute top-8 left-8 z-10 hidden w-57 flex-col gap-1 rounded-xl bg-card p-2 backdrop-blur-md md:flex"
     >
       <fieldset aria-label="Colour by" className="flex items-center gap-0.5">
         {MODES.map(({ mode: m, label }) => (
@@ -33,16 +33,21 @@ export const Legend = observer(function Legend() {
             aria-pressed={mode === m}
             aria-keyshortcuts="C"
             onClick={() => app.setColorBy(m)}
-            className="h-4 flex-1 rounded-full px-1 text-caption aria-pressed:bg-accent aria-pressed:text-bone"
+            className="h-5 flex-1 rounded-full px-1.5 text-caption aria-pressed:bg-accent aria-pressed:text-bone"
           >
             {label}
           </Button>
         ))}
+        <kbd className="px-0.5 font-mono text-caption text-mist">C</kbd>
       </fieldset>
       <ul className="flex flex-col px-1 pb-0.5 text-caption">
         {legend.map((e) => (
-          <li key={e.label} className="flex items-center gap-1 py-0.25">
-            <span aria-hidden className="size-1 shrink-0 rounded-full" style={{ background: e.swatch.hex }} />
+          <li key={e.label} className="flex items-center gap-1 py-0.5">
+            <span
+              aria-hidden
+              className="size-1.5 shrink-0 rounded-full"
+              style={{ background: e.swatch.hex }}
+            />
             <span className="min-w-0 flex-1 truncate text-bone">{e.label}</span>
             <span className="font-mono text-mist tabular-nums">{e.count}</span>
           </li>

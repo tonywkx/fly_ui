@@ -17,7 +17,7 @@ const COLOR_ITEMS: { mode: ColorBy; label: string }[] = [
 const MAX_IDS = 8;
 
 const ITEM =
-  'flex cursor-default items-center gap-1 rounded-lg px-1 py-0.5 text-label text-mist select-none data-[selected=true]:bg-accent data-[selected=true]:text-bone';
+  'flex cursor-default items-center gap-1 rounded-lg px-1 py-0.5 text-label text-mist select-none data-[selected=true]:bg-accent data-[selected=true]:text-bone data-[selected=true]:*:text-bone';
 
 /**
  * ⌘K / Ctrl+K: search the scenario's cell types (or bodyIds by digits) → inspect and fly to it;
@@ -56,14 +56,14 @@ export const CommandPalette = observer(function CommandPalette() {
       onOpenChange={(o) => (o ? setOpen(true) : close())}
       label="Search cell types"
       loop
-      overlayClassName="fixed inset-0 z-40 bg-void/40"
+      overlayClassName="fixed inset-0 z-40 bg-void/60"
       contentClassName="fixed top-[18%] left-1/2 z-50 w-[min(32rem,calc(100%-2rem))] -translate-x-1/2 overflow-hidden rounded-xl bg-popover backdrop-blur-md"
     >
       <Command.Input
         value={query}
         onValueChange={setQuery}
         placeholder="Cell type or bodyId…"
-        className="w-full border-b border-accent bg-transparent px-2 py-1.5 text-body font-extralight text-bone outline-none placeholder:text-ash"
+        className="w-full bg-transparent px-2 pt-1.5 pb-1 text-body font-extralight text-bone outline-none placeholder:text-mist"
       />
       <Command.List className="max-h-[min(24rem,50vh)] overflow-y-auto overscroll-contain p-0.5 [&_[cmdk-group-heading]]:px-1 [&_[cmdk-group-heading]]:pt-1 [&_[cmdk-group-heading]]:pb-0.5 [&_[cmdk-group-heading]]:text-caption [&_[cmdk-group-heading]]:text-ash">
         <Command.Empty className="px-1 py-2 text-label text-ash">No matching cell type.</Command.Empty>
@@ -75,28 +75,12 @@ export const CommandPalette = observer(function CommandPalette() {
               return (
                 <Command.Item key={id} value={id} onSelect={() => inspect(row)} className={ITEM}>
                   <span className="font-mono text-bone tabular-nums">{id}</span>
-                  <span className="text-ash">{meta.strings.types[t] ?? 'untyped'}</span>
+                  <span className="text-mist">{meta.strings.types[t] ?? 'untyped'}</span>
                 </Command.Item>
               );
             })}
           </Command.Group>
         )}
-        <Command.Group heading={`Cell types in ${data.scenario ?? 'scenario'}`}>
-          {types.map((e) => (
-            <Command.Item
-              key={e.type}
-              value={e.type}
-              onSelect={() => inspect(e.rows[0] as number)}
-              className={ITEM}
-            >
-              <span className="min-w-0 flex-1 truncate text-bone">{e.type}</span>
-              <span className="text-caption text-ash">{CLASS_GROUPS[classGroup(e.superclass)]}</span>
-              <span className="w-4 text-right font-mono text-caption text-mist tabular-nums">
-                {e.rows.length}
-              </span>
-            </Command.Item>
-          ))}
-        </Command.Group>
         <Command.Group heading="Colour by">
           {COLOR_ITEMS.map(({ mode, label }) => (
             <Command.Item
@@ -110,7 +94,23 @@ export const CommandPalette = observer(function CommandPalette() {
               className={ITEM}
             >
               <span className="flex-1">Colour by {label}</span>
-              {app.colorBy === mode && <span className="text-caption text-ash">current</span>}
+              {app.colorBy === mode && <span className="text-caption text-mist">current</span>}
+            </Command.Item>
+          ))}
+        </Command.Group>
+        <Command.Group heading={`Cell types in ${data.scenario ?? 'scenario'}`}>
+          {types.map((e) => (
+            <Command.Item
+              key={e.type}
+              value={e.type}
+              onSelect={() => inspect(e.rows[0] as number)}
+              className={ITEM}
+            >
+              <span className="min-w-0 flex-1 truncate text-bone">{e.type}</span>
+              <span className="text-caption text-mist">{CLASS_GROUPS[classGroup(e.superclass)]}</span>
+              <span className="w-4 text-right font-mono text-caption text-mist tabular-nums">
+                {e.rows.length}
+              </span>
             </Command.Item>
           ))}
         </Command.Group>
