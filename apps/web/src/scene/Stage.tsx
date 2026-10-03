@@ -7,6 +7,7 @@ import { data } from '@/data/store';
 import { LiveClient } from '@/sim/client';
 import { app } from '@/state/app';
 import { experiment } from '@/state/experiment';
+import { playback } from '@/state/playback';
 import { Engine } from './engine';
 import { startFocus } from './focus';
 import { onFrameSample } from './frameStats';
@@ -29,8 +30,7 @@ const FAR_ELEVATION = (12 * Math.PI) / 180;
 const DRIFT_PER_S = (3 * Math.PI) / 180;
 /** Frames rendered with content before the scene counts as drawn (snap readiness). */
 const SETTLE_FRAMES = 2;
-/** Playback speed (sim ms per real s) and the pause after a baked run before it loops (sim ms). */
-const SIM_MS_PER_S = 40;
+/** Pause after a baked run before it loops (sim ms). */
 const TAIL_MS = 60;
 /** Pointer travel (px) up to which a press + release still counts as a click, not an orbit. */
 const CLICK_PX = 4;
@@ -357,7 +357,7 @@ function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, s
   const train = data.get(`${data.scenario}-spikes`, 'spikes');
   if (!train) return;
   const { t: fixed, sim } = app.params;
-  let stop = play(engine, layer, bakedSource(train, TAIL_MS), { rate: SIM_MS_PER_S, fixed });
+  let stop = play(engine, layer, bakedSource(train, TAIL_MS), playback, { fixed });
   let client: LiveClient | undefined;
   let disposed = false;
   stops.push(() => {
@@ -407,12 +407,12 @@ function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, s
         };
         const start = () => {
           stop();
-          stop = play(
-            engine,
-            layer,
-            { feed: c.feed, pump: (t) => c.pump(t) },
-            { rate: SIM_MS_PER_S, fixed, onReached: () => app.markReady('sim') },
-          );
+          // a stimulus is meant to be seen: live starts playing unless a snap holds `?t=`
+          if (fixed === undefined) playback.setPaused(false);
+          stop = play(engine, layer, { log: c.log, pump: (t) => c.pump(t) }, playback, {
+            fixed,
+            onReached: () => app.markReady('sim'),
+          });
         };
         sync();
         start();

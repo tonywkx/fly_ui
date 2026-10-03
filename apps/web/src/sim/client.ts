@@ -1,20 +1,22 @@
 import { type Remote, wrap } from 'comlink';
-import { SpikeFeed } from './feed';
+import { SpikeLog } from './feed';
 import type { LiveInit, SimApi, Tuning } from './sim.worker';
 
 /** Sim time kept buffered ahead of the display clock, and the size of one Worker request (ms). */
 const AHEAD_MS = 100;
 const CHUNK_MS = 20;
+/** Sim time kept behind the newest spikes for scrubbing back (ms). */
+const HISTORY_MS = 2000;
 /** Batches after which the measured speed is logged once. */
 const SPEED_LOG_AFTER = 20;
 
 /**
- * Main-thread side of the live sim: owns the Worker, keeps `feed` filled ahead of the display
+ * Main-thread side of the live sim: owns the Worker, keeps `log` filled ahead of the display
  * clock with at most one `advance` in flight. Batches arrive by transfer (no SharedArrayBuffer:
- * static hosting cannot send COOP/COEP).
+ * static hosting cannot send COOP/COEP). The log keeps the last `HISTORY_MS` for scrubbing.
  */
 export class LiveClient {
-  readonly feed = new SpikeFeed();
+  readonly log = new SpikeLog();
   /** Sim ms per wall-clock s of Worker round trips, averaged since start (0 until measured). */
   speed = 0;
   private simMs = 0;
@@ -44,9 +46,9 @@ export class LiveClient {
     }
   }
 
-  /** Requests more sim time unless the feed already reaches `t + AHEAD_MS`. Call every frame. */
+  /** Requests more sim time unless the log already reaches `t + AHEAD_MS`. Call every frame. */
   pump(t: number): void {
-    if (this.busy || this.disposed || this.feed.until >= t + AHEAD_MS) return;
+    if (this.busy || this.disposed || this.log.until >= t + AHEAD_MS) return;
     this.busy = true;
     const gen = this.gen;
     const t0 = performance.now();
@@ -58,7 +60,8 @@ export class LiveClient {
         this.wallMs += performance.now() - t0;
         this.speed = (this.simMs * 1000) / Math.max(1, this.wallMs);
         if (++this.batches === SPEED_LOG_AFTER) console.info(`[sim] ${this.speed.toFixed(0)} sim ms/s`);
-        this.feed.push(b.t, b.row, b.until);
+        this.log.push(b.t, b.row, b.until);
+        this.log.trim(b.until - HISTORY_MS);
       })
       .catch((e) => console.error('[sim]', e))
       .finally(() => {
@@ -78,14 +81,14 @@ export class LiveClient {
   /** Restarts the scenario at t = 0; a batch still in flight is dropped. */
   async reset(): Promise<void> {
     this.gen++;
-    this.feed.reset();
+    this.log.reset();
     await this.api.reset();
   }
 
   /** Restarts the scenario at t = 0 with new params; a batch still in flight is dropped. */
   async tune(t: Tuning): Promise<void> {
     this.gen++;
-    this.feed.reset();
+    this.log.reset();
     await this.api.tune(t);
   }
 

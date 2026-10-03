@@ -6,74 +6,123 @@ export const NEVER = -1e9;
 const MAX_FRAME_MS = 100;
 
 /**
- * Ring buffer of time-ordered spike events (sim ms, scenario row) between a producer (baked train or
- * the live sim Worker) and the frame loop. `until` = sim time up to which the stream is complete.
+ * Spikes older than this (sim ms) have faded from the scene: a seek replays only this much history.
+ * Afterglow is 40 ms; the wave front still travels a long neurite for a while after its spike.
  */
-export class SpikeFeed {
+export const LOOKBACK_MS = 300;
+
+/**
+ * Time-ordered spike events (sim ms, scenario row) from a producer (baked train or the live sim
+ * Worker), kept so the display clock can move both ways: play applies (prev, t], a seek rebuilds
+ * `lastSpike` from the look-back window. `until` = sim time up to which the stream is complete;
+ * `start` = earliest time still held (live history is trimmed).
+ */
+export class SpikeLog {
   until = 0;
+  start = 0;
   private t: Float32Array;
   private row: Uint32Array;
   private head = 0;
-  private len = 0;
+  private end = 0;
 
   constructor(capacity = 4096) {
     this.t = new Float32Array(capacity);
     this.row = new Uint32Array(capacity);
   }
 
-  get pending(): number {
-    return this.len;
+  get size(): number {
+    return this.end - this.head;
   }
 
-  /** Appends events (times ≥ every queued one) and moves the horizon to `until`. */
+  /** Event times / rows; index with `span`. Valid until the next `push`. */
+  get times(): Float32Array {
+    return this.t;
+  }
+
+  get rows(): Uint32Array {
+    return this.row;
+  }
+
+  /** Appends events (times ≥ every held one) and moves the horizon to `until`. */
   push(t: ArrayLike<number>, row: ArrayLike<number>, until: number): void {
     const m = t.length;
-    if (this.len + m > this.t.length) this.grow(this.len + m);
-    const cap = this.t.length;
+    if (this.end + m > this.t.length) this.make(this.size + m);
     for (let k = 0; k < m; k++) {
-      const j = (this.head + this.len + k) % cap;
-      this.t[j] = t[k] as number;
-      this.row[j] = row[k] as number;
+      this.t[this.end] = t[k] as number;
+      this.row[this.end++] = row[k] as number;
     }
-    this.len += m;
     this.until = until;
   }
 
-  /** Pops every event with time ≤ `upTo` into `lastSpike[row]`; true if anything was written. */
-  drain(upTo: number, lastSpike: Float32Array): boolean {
-    const cap = this.t.length;
-    let n = 0;
-    while (n < this.len) {
-      const j = (this.head + n) % cap;
-      const t = this.t[j] as number;
-      if (t > upTo) break;
-      lastSpike[this.row[j] as number] = t;
-      n++;
+  /** Index range [i0, i1) of the events with from < time ≤ to. */
+  span(from: number, to: number): [number, number] {
+    return [this.after(from), this.after(to)];
+  }
+
+  /** Writes the events of (from, to] into `lastSpike[row]`; true if anything was written. */
+  apply(from: number, to: number, lastSpike: Float32Array): boolean {
+    const [i0, i1] = this.span(from, to);
+    for (let i = i0; i < i1; i++) lastSpike[this.row[i] as number] = this.t[i] as number;
+    return i1 > i0;
+  }
+
+  /** `lastSpike` as it stands at time `t`, from scratch. */
+  seek(t: number, lastSpike: Float32Array): void {
+    lastSpike.fill(NEVER);
+    this.apply(t - LOOKBACK_MS, t, lastSpike);
+  }
+
+  /** Drops the events before `time`. */
+  trim(time: number): void {
+    if (time <= this.start) return;
+    let lo = this.head;
+    let hi = this.end;
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1;
+      if ((this.t[mid] as number) < time) lo = mid + 1;
+      else hi = mid;
     }
-    this.head = (this.head + n) % cap;
-    this.len -= n;
-    return n > 0;
+    this.head = lo;
+    this.start = time;
   }
 
   reset(): void {
     this.head = 0;
-    this.len = 0;
+    this.end = 0;
     this.until = 0;
+    this.start = 0;
   }
 
-  private grow(need: number): void {
-    let cap = this.t.length * 2;
-    while (cap < need) cap *= 2;
-    const t = new Float32Array(cap);
-    const row = new Uint32Array(cap);
-    for (let k = 0; k < this.len; k++) {
-      const j = (this.head + k) % this.t.length;
-      t[k] = this.t[j] as number;
-      row[k] = this.row[j] as number;
+  /** First index with time > x. */
+  private after(x: number): number {
+    let lo = this.head;
+    let hi = this.end;
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1;
+      if ((this.t[mid] as number) <= x) lo = mid + 1;
+      else hi = mid;
     }
-    this.t = t;
-    this.row = row;
+    return lo;
+  }
+
+  /** Moves the held events to index 0, growing (doubling) to fit `need`. */
+  private make(need: number): void {
+    let cap = this.t.length;
+    while (cap < need) cap *= 2;
+    const n = this.size;
+    if (cap === this.t.length) {
+      this.t.copyWithin(0, this.head, this.end);
+      this.row.copyWithin(0, this.head, this.end);
+    } else {
+      const t = new Float32Array(cap);
+      const row = new Uint32Array(cap);
+      t.set(this.t.subarray(this.head, this.end));
+      row.set(this.row.subarray(this.head, this.end));
+      this.t = t;
+      this.row = row;
+    }
     this.head = 0;
+    this.end = n;
   }
 }
 
