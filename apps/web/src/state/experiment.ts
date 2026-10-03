@@ -25,7 +25,7 @@ export interface Stimulus {
   gain: number;
 }
 
-/** What the user did to the circuit (scenario rows). Encoded in the URL later (4.7). */
+/** What the user did to the circuit (scenario rows). Shared as `?x=` by bodyId (`state/share.ts`). */
 export class ExperimentStore {
   /** Scenario row open in the inspector. */
   selected: number | null = null;
@@ -75,6 +75,14 @@ export class ExperimentStore {
   clear() {
     this.stimulated.clear();
     this.silenced.clear();
+  }
+
+  /** Replaces stimuli, silencing and drive (a shared link opening). */
+  load(stimulated: number[], silenced: number[], stim: Stimulus) {
+    this.clear();
+    for (const r of stimulated) this.stimulated.add(r);
+    for (const r of silenced) this.silenced.add(r);
+    this.setStim(stim);
   }
 
   flyTo(row: number) {

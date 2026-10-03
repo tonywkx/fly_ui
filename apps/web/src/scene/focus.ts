@@ -13,7 +13,7 @@ const FOCUS_MS = 200;
 /**
  * Selection → scene: roles of the selected neuron's partners, silenced rows and electrode slots go
  * into the layer's row-state texture, the focus look fades with the selection, fly-to requests move the camera.
- * `?select=<bodyId>` selects (and frames) that neuron once.
+ * `?select=<bodyId>` selects (and frames) that neuron once; `?probes=` / `?x=` (shared experiment) apply once.
  */
 export function startFocus(
   engine: Engine,
@@ -36,12 +36,16 @@ export function startFocus(
     engine.flyTo(engine.world.localToWorld(c), r * engine.world.scale.x, now);
   };
 
-  const { select, probes } = app.params;
-  for (const id of probes ?? []) {
-    const row = meta.bodyIds.indexOf(id);
-    if (row < 0) console.warn(`[scene] probes: bodyId ${id} not in this scenario`);
-    else experiment.toggleProbe(row);
-  }
+  const rows = (key: string, ids: number[] = []) =>
+    ids.flatMap((id) => {
+      const row = meta.bodyIds.indexOf(id);
+      if (row < 0) console.warn(`[scene] ${key}: bodyId ${id} not in this scenario`);
+      return row < 0 ? [] : [row];
+    });
+  const { select, probes, experiment: shared } = app.params;
+  for (const row of rows('probes', probes)) experiment.toggleProbe(row);
+  // a shared experiment: stimulus / silencing make the live sim start (Stage)
+  if (shared) experiment.load(rows('x', shared.stimulated), rows('x', shared.silenced), shared.stim);
   if (select !== undefined) {
     const row = meta.bodyIds.indexOf(select);
     if (row < 0) console.warn(`[scene] select: bodyId ${select} not in this scenario`);

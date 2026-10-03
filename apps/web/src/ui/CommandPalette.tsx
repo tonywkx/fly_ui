@@ -6,6 +6,7 @@ import { data } from '@/data/store';
 import { findBodyIds, typeIndex } from '@/data/typeIndex';
 import { app } from '@/state/app';
 import { experiment, paletteKey } from '@/state/experiment';
+import { shareExperiment } from '@/ui/share';
 
 const COLOR_ITEMS: { mode: ColorBy; label: string }[] = [
   { mode: 'nt', label: 'transmitter' },
@@ -81,6 +82,19 @@ export const CommandPalette = observer(function CommandPalette() {
             })}
           </Command.Group>
         )}
+        <Command.Group heading="Experiment">
+          <Command.Item
+            value="share experiment"
+            keywords={['link', 'copy', 'url', 'share']}
+            onSelect={() => {
+              void shareExperiment();
+              close();
+            }}
+            className={ITEM}
+          >
+            Share experiment
+          </Command.Item>
+        </Command.Group>
         <Command.Group heading="Colour by">
           {COLOR_ITEMS.map(({ mode, label }) => (
             <Command.Item

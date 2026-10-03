@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { app } from '@/state/app';
 import { experiment, keyAction, MAX_PROBES, STIM_RANGE, TOOL_KEYS, type Tool } from '@/state/experiment';
 import { PROBES } from '@/ui/palette';
+import { shareExperiment, shareNote } from '@/ui/share';
 import { Tracer } from '@/ui/Tracer';
 
 const TOOLS: { tool: Tool; label: string; hint: string }[] = [
@@ -18,12 +19,16 @@ const TOOLS: { tool: Tool; label: string; hint: string }[] = [
   { tool: 'trace', label: 'Trace', hint: 'Click a neuron for From, another for To, or type a cell type.' },
 ];
 
+const SHARE_LABEL = { idle: 'Share', copied: 'Copied', address: 'In URL' } as const;
+const SHARE_KEYS = Object.keys(SHARE_LABEL) as (keyof typeof SHARE_LABEL)[];
+const SHARE_STATUS = { copied: 'Link copied', address: 'Copy the link from the address bar' } as const;
+
 /** Keys typed into a field are not hotkeys. */
 const typing = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
 
 /**
- * Tool rail (Select / Stimulate / Silence / Electrode / Trace) with the active tool's options above it:
+ * Tool rail (Select / Stimulate / Silence / Electrode / Trace, then Share) with the active tool's options above it:
  * stimulus rate and strength, electrode slots, tracer ends and paths. Owns the global hotkeys (V S X E T, C colour mode, Esc).
  * `?ui=<tool>` (snaps) starts with that tool.
  */
@@ -46,6 +51,7 @@ export const Toolbar = observer(function Toolbar() {
   }, []);
 
   const active = TOOLS.find((t) => t.tool === experiment.tool) ?? TOOLS[0];
+  const note = shareNote.get() ?? 'idle';
   return (
     <div className="flex w-full flex-col-reverse items-center gap-1">
       <div
@@ -65,6 +71,25 @@ export const Toolbar = observer(function Toolbar() {
             <kbd className="font-mono text-caption text-mist">{TOOL_KEYS[tool]}</kbd>
           </Button>
         ))}
+        <span aria-hidden className="mx-0.5 h-3 w-px bg-border" />
+        <Button
+          aria-label="Share experiment"
+          onClick={() => void shareExperiment()}
+          title="Copy a link to this experiment"
+          className={cn('h-5 rounded-full px-1.5', note === 'idle' && 'text-ash')}
+        >
+          {/* every label in one cell: the button keeps its width, the centred rail does not shift */}
+          <span aria-hidden className="grid">
+            {SHARE_KEYS.map((k) => (
+              <span key={k} className={cn('col-start-1 row-start-1 text-center', k !== note && 'invisible')}>
+                {SHARE_LABEL[k]}
+              </span>
+            ))}
+          </span>
+        </Button>
+        <span role="status" className="sr-only">
+          {note === 'idle' ? '' : SHARE_STATUS[note]}
+        </span>
       </div>
       {active && active.tool !== 'select' && (
         <div
