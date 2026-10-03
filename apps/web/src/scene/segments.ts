@@ -43,3 +43,36 @@ export function buildSegments(sk: SkeletonSet, meta: NeuronTable): Float32Array 
   }
   return out;
 }
+
+/** Per row `cx, cy, cz, radius` (source units): bbox centre and half-diagonal; radius −1 = no segments. */
+export function rowBounds(seg: Float32Array, rows: number): Float32Array {
+  const lo = new Float32Array(rows * 3).fill(Infinity);
+  const hi = new Float32Array(rows * 3).fill(-Infinity);
+  for (let o = 0; o < seg.length; o += SEG_STRIDE) {
+    const row = seg[o + 8] as number;
+    if (row < 0 || row >= rows) continue;
+    for (const p of [o, o + 4])
+      for (let k = 0; k < 3; k++) {
+        const v = seg[p + k] as number;
+        const i = row * 3 + k;
+        if (v < (lo[i] as number)) lo[i] = v;
+        if (v > (hi[i] as number)) hi[i] = v;
+      }
+  }
+  const out = new Float32Array(rows * 4);
+  for (let r = 0; r < rows; r++) {
+    if (!Number.isFinite(lo[r * 3] as number)) {
+      out[r * 4 + 3] = -1;
+      continue;
+    }
+    let d2 = 0;
+    for (let k = 0; k < 3; k++) {
+      const a = lo[r * 3 + k] as number;
+      const b = hi[r * 3 + k] as number;
+      out[r * 4 + k] = (a + b) / 2;
+      d2 += ((b - a) / 2) ** 2;
+    }
+    out[r * 4 + 3] = Math.sqrt(d2);
+  }
+  return out;
+}

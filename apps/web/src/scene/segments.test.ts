@@ -1,6 +1,6 @@
 import { decodeMeta, encodeMeta, type NeuronRecord, NTS, type SkeletonSet } from '@fly/data';
 import { describe, expect, it } from 'vitest';
-import { buildSegments, SEG_STRIDE } from './segments';
+import { buildSegments, rowBounds, SEG_STRIDE } from './segments';
 
 const record = (bodyId: number, nt: NeuronRecord['nt'], region: string | null = null): NeuronRecord => ({
   bodyId,
@@ -61,5 +61,20 @@ describe('buildSegments', () => {
     expect(field(seg, 3, 11)).toBe(-1);
     const lone = buildSegments(sk, decodeMeta(encodeMeta([record(5, null, 'LO(R)')])));
     expect(field(lone, 0, 11)).toBe(-1);
+  });
+});
+
+describe('rowBounds', () => {
+  const b = rowBounds(buildSegments(sk, meta), 3);
+
+  it('gives the bbox centre and half-diagonal per row', () => {
+    // row 1 = bodyId 7: nodes 0..4 span (0,1,2)..(12,13,14)
+    expect(Array.from(b.subarray(4, 8))).toEqual([6, 7, 8, expect.closeTo(6 * Math.sqrt(3), 5)]);
+    // row 0 = bodyId 5: nodes (15,16,17)..(18,19,20)
+    expect(Array.from(b.subarray(0, 4))).toEqual([16.5, 17.5, 18.5, expect.closeTo(1.5 * Math.sqrt(3), 5)]);
+  });
+
+  it('marks rows without segments with radius -1', () => {
+    expect(b[11]).toBe(-1);
   });
 });
