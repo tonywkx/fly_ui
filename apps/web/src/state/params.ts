@@ -29,6 +29,8 @@ export interface Params {
   pick?: [number, number];
   /** Open the inspector on this bodyId (scenario neuron) — snaps of the focus look. */
   select?: number;
+  /** Signal tracer ends `FROM>TO`, optionally `>i` (path index) — snaps of the trace look. */
+  trace?: { from: string; to: string; path: number };
 }
 
 const flag = (v: string | null) => v !== null && v !== '0' && v !== 'false';
@@ -94,6 +96,13 @@ export function parseParams(search: string): { params: Params; warnings: string[
     const id = Number(select);
     if (/^\d+$/.test(select) && Number.isSafeInteger(id)) params.select = id;
     else warnings.push(`select: expected a bodyId, got "${select}"`);
+  }
+
+  const trace = q.get('trace');
+  if (trace !== null) {
+    const [from, to, i = '0', ...rest] = trace.split('>').map((v) => v.trim());
+    if (from && to && rest.length === 0 && /^\d$/.test(i)) params.trace = { from, to, path: Number(i) };
+    else warnings.push(`trace: expected "FROM>TO[>i]", got "${trace}"`);
   }
 
   return { params, warnings };

@@ -4,9 +4,15 @@ import { makeAutoObservable, observable, observableRef } from 'mobx';
 export type LiveStatus = 'off' | 'loading' | 'on' | 'failed';
 
 /** What a click on a neuron does. */
-export type Tool = 'select' | 'stimulate' | 'silence' | 'electrode';
+export type Tool = 'select' | 'stimulate' | 'silence' | 'electrode' | 'trace';
 
-export const TOOL_KEYS: Record<Tool, string> = { select: 'V', stimulate: 'S', silence: 'X', electrode: 'E' };
+export const TOOL_KEYS: Record<Tool, string> = {
+  select: 'V',
+  stimulate: 'S',
+  silence: 'X',
+  electrode: 'E',
+  trace: 'T',
+};
 
 /** Electrode slots (one oscilloscope each, 4.5). */
 export const MAX_PROBES = 4;
@@ -28,6 +34,8 @@ export class ExperimentStore {
   live: LiveStatus = 'off';
   /** Latest fly-to request (the scene reacts to a new object, even for the same row). */
   fly: { row: number } | null = null;
+  /** Latest neuron clicked with the Trace tool (the scene turns it into a tracer end). */
+  tracePick: { row: number } | null = null;
   tool: Tool = 'select';
   /** Drive applied to every stimulated row. */
   stim: Stimulus = { hz: 150, gain: 1 };
@@ -35,7 +43,12 @@ export class ExperimentStore {
   probes: (number | null)[] = Array(MAX_PROBES).fill(null);
 
   constructor() {
-    makeAutoObservable(this, { stimulated: false, silenced: false, fly: observableRef });
+    makeAutoObservable(this, {
+      stimulated: false,
+      silenced: false,
+      fly: observableRef,
+      tracePick: observableRef,
+    });
   }
 
   /** Stimulus or silencing present (needs the live sim). */
@@ -104,6 +117,7 @@ export class ExperimentStore {
     else if (row === null) return false;
     else if (this.tool === 'stimulate') this.toggleStim(row);
     else if (this.tool === 'silence') this.toggleSilence(row);
+    else if (this.tool === 'trace') this.tracePick = { row };
     else return this.toggleProbe(row);
     return true;
   }

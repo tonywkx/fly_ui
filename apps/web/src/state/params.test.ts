@@ -45,6 +45,20 @@ describe('parseParams', () => {
     }
   });
 
+  it('reads tracer ends (type names may hold commas and spaces)', () => {
+    expect(parseParams('?trace=LPLC2>TTMn').params.trace).toEqual({ from: 'LPLC2', to: 'TTMn', path: 0 });
+    expect(parseParams(`?trace=${encodeURIComponent('LC4>DLMn a, b>2')}`).params.trace).toEqual({
+      from: 'LC4',
+      to: 'DLMn a, b',
+      path: 2,
+    });
+    for (const bad of ['', 'LC4', 'LC4>', 'a>b>x', 'a>b>1>2']) {
+      const { params, warnings } = parseParams(`?trace=${encodeURIComponent(bad)}`);
+      expect(params.trace).toBeUndefined();
+      expect(warnings).toHaveLength(1);
+    }
+  });
+
   it('treats bare / truthy flags as on, 0/false as off', () => {
     expect(parseParams('?stats').params.stats).toBe(true);
     expect(parseParams('?stats=true').params.stats).toBe(true);

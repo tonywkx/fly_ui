@@ -64,6 +64,10 @@ describe('ExperimentStore', () => {
     x.setTool('silence');
     x.apply(5);
     expect([...x.silenced]).toEqual([5]);
+    x.setTool('trace');
+    x.apply(6);
+    expect(x.tracePick).toEqual({ row: 6 });
+    expect(x.apply(null)).toBe(false);
     x.setTool('select');
     x.apply(null);
     expect(x.selected).toBeNull();
