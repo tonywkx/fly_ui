@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-04 — 4.6 ⌘K search, colour modes, legend
+Done: `data/colorBy.ts` (modes nt/region/class/male → per-row group + legend; region = coarse neuropil groups, hemispheres merged; class = superclass groups; tested), neurons shader reads a per-row `tints` texture (no recompile on switch), `app.colorBy` + `?color=` + C cycles, `ui/Legend.tsx` (top-left switch + names/counts), `ui/CommandPalette.tsx` (cmdk, ⌘K/Ctrl+K: colour modes, scenario types → select + fly-to, digits → bodyIds; `?ui=palette`), `data/typeIndex.ts` (tested).
+State: 342+ tests, typecheck, lint green. Snaps escape `--color=region|class`, song `--color=male` (+ webgl2), `--ui=palette`, 1024×700 legend fit. One-off Playwright: ⌘K → "GF" → Enter opens inspector; "10001" → Neurons group; C cycles; no console warnings.
+Next: 4.7 Experiment URL encoding (stimuli + silenced ids, base64url) + "Share experiment".
+Gotchas: `data.get` was not reactive (plain Map) — now reads `loaded.has(id)` first, so observers re-render on chunk arrival (before: UI reading meta stayed empty until another re-render). Type pick selects the type's first row only. `?debug=` colour modes still static/separate; Legend hides under any `?debug=`. Focus/trace/electrode tints still override the colour mode.
+
 ## 2026-10-04 — 4.5 Electrode oscilloscopes
 Done: `sim/trace.ts` (`scenarioNet` = worker net incl. overrides that have edges, `probe` inputs by CSR scan, `voltage` rebuilds v over [from, to] from the `SpikeLog`: exact LIF between logged events, own spikes → reset/refractory + `SPIKE_MV` peak; parity with `Sim` tested), `ui/Scopes.tsx` (card per placed electrode, grid column = slot, own rAF per scope, redraw only when clock/horizon moves), `ui/scope.ts` (lazy uPlot, y −64…−40 mV so spikes clip, threshold/rest guides from `palette.SCOPE_GUIDE`), `?probes=<bodyId,…>` (≤4, applied in `scene/focus.ts`).
 State: 328 tests, typecheck, lint green. Snaps `--scenario=escape --t=40 --ui=electrode --probes=10001` (1600/1024, webgl2) → GF card: flat at rest, then clipped spike burst; t=200 continuous comb.
@@ -23,9 +29,3 @@ Done: `packages/sim` `stimulate(i, hz, gain)` (per-neuron kick gain, tested) →
 State: 293 tests, typecheck, lint green. Snaps `--ui=stimulate|electrode` (tool preset), 1024 px no overlap, hidden < md (PRODUCT: phone = viewer). One-off Playwright: E+click → DNpe042 lime + chip; S+stroke → camera still, live starts; slider keys; Esc → Select.
 Next: 4.3b signal tracer (type graph k-best paths, tests first).
 Gotchas: pointerdown listener is capture-phase so it runs before OrbitControls and can disable it for a stroke. Probes need hover-level emphasis — partner level drowns in the optic lobes. Root `pnpm test` does not resolve `@/` from `ui/*.test.ts` importing state → use relative import. Inspector Esc moved into Toolbar hotkeys (tool first, then selection).
-
-## 2026-10-03 — 4.2 Inspector, focus dimming, stimulate/silence
-Done: `data/partners.ts` (`partners` by type, `focusRoles`; tested), `state/experiment.ts` (selected / stimulated / silenced / live status / fly request), `scene/focus.ts` (roles + silenced → RG row-state texture, `focus` uniform fade, fly-to, `?select=<bodyId>`), `segments.ts` `rowBounds`, `engine.flyTo` + `scene/orbit.ts` (`orbitDistance` uniform: depth dim around the target, not the origin), `ui/Inspector.tsx`.
-State: 283 tests, typecheck, lint green. Snap `--scenario=escape --t=40 --select=10001` → GF white, inputs blue, outputs saffron, rest dim; same on webgl2. One-off Playwright run: click selects, Stimulate starts live sim on demand (graph-full ~0.5 s), Silence, Esc. Click-select is mouse/pen only. Partners = scenario graph only (labelled).
-Next: 4.3 tools + hotkeys (Stimulate brush, Silence, Electrode), stimulus strength/frequency sliders.
-Gotchas: partner glow must stay at normal additive gain — GF has ~140 LC4/LPLC2 inputs, brighter partners bloom into a white blob. Fly-to frames the bbox half-diagonal (long neurons like GF ≈ whole CNS). Silenced rows grey + no wave even on baked. Live sim re-applies experiment diffs after tune/reset (applied sets cleared). Panel covers the right edge of the view; centring the target in the free area (camera view offset) left for 4.8.
