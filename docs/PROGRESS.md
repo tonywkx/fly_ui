@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-04 — 4.4 Timeline (raster, scrub, pause, slow-mo)
+Done: `sim/feed.ts` `SpikeLog` (append-only, seek/apply/trim/span; replaces consuming `SpikeFeed`; tested), `state/playback.ts` (paused, speed 1/½/¼/⅛ × 40 sim ms/s, seek/step, `playbackKey` Space , . [ ]; tested), `scene/playback.ts` `play(…, playback)` (seek rebuilds `lastSpike` from 300 ms look-back; live keeps 2 s history in `LiveClient.log`), `data/bands.ts` (Optic / Central / Descending / VNC lanes; tested), `ui/raster.ts` (density counts; tested), `ui/Timeline.tsx` (own rAF, drag scrub, slider keys, `live` tag), dock in `App.tsx` (rail above timeline, always above the attribution row).
+State: 320 tests, typecheck, lint green. Snaps escape t=40 (1600/1024), song t=200 @1280, webgl2 OK. One-off Playwright: Space pauses (3D + readout frozen), drag to 10% → 36 ms, `.`×3 → +3, `[` → ½× (Δ20 ms/s); live: pause holds the Worker, click back in history, resume.
+Next: 4.5 Oscilloscopes (uPlot) for electrodes.
+Gotchas: baked loop = 300 ms run + 60 ms silent tail → last 1/6 of the raster is empty lanes by design. Live window is 400 ms ([0, 400] until the run is longer); pause/scrub back needs no Worker control — pump only fills ≤100 ms ahead of the display. Space on a focused button presses it (hotkey skipped); on the raster slider it toggles. Starting live (first stimulus) unpauses. Snap readouts: `section[aria-label=Timeline] p span`.
+
 ## 2026-10-04 — 4.3b Signal tracer
 Done: `data/paths.ts` (`preparePaths`, `kBestPaths`: Yen over hop-bounded layered Bellman–Ford, cost −log input fraction; tested), `data/trace.worker.ts` (fetches `typegraph-full` on first query), `state/trace.ts` (`TraceStore`, `pathHops`; tested), Trace tool `T` (`experiment.tracePick`), `scene/trace.ts` (row-state w = hop+1, fade / hop-by-hop reveal / looping pulse), neurons shader `trace*` uniforms + per-hop `traceGain`, `ui/Tracer.tsx` (From/To datalist fields, swap, ≤5 paths), `?trace=FROM>TO[>i]` + `trace` ready flag.
 State: 306 tests, typecheck, lint green. Snaps `--ui=trace "--trace=LPLC2>TTMn"` (+ `--select=10001` to see the VNC end) → LPLC2 blue → GF white → TTMn saffron, rest dimmed; same on webgl2. One-off Playwright: T, type ends, pick 2nd path, swap, Esc, T restores. Search ≈6 ms in-scenario (160 ms whole CNS).
@@ -23,9 +29,3 @@ Done: `apps/web/src/scene/pick.ts` (`Picker`: RGBA8 id target = drawing-buffer s
 State: 72 web tests, typecheck, lint green. Snap `--scenario=escape --t=40 --pick=0.39,0.37` → DNpe042 highlighted + tooltip, identical on `--gl=webgl2`; `--debug=id --pick=0.766,0.405` → LPLC2. Picks only on pointer/camera move, off while dragging, mouse/pen only (no touch).
 Next: 4.2 Inspector (type, NT, inputs/outputs, fly-to / stimulate / silence); focus dimming, inputs vs outputs colours.
 Gotchas: R32F `readPixels(RED, FLOAT)` returns nothing on WebGL2 → RGBA8 packing. WebGL readback is bottom-up (Picker flips window + centre). `fragmentNode` bypasses tone mapping/colour space, so ids are exact. Tailwind v4 drops unused `@theme` vars (`--color-nt-*` empty in inline styles) → use `NT_COLORS[nt].hex`. Snaps fire right after the pick → tooltip fade disabled under `snap`.
-
-## 2026-10-02 — 3.7 GF-silenced residual TTMn route
-Done: `apps/pipeline/src/process/drive.ts` (`inputDrive` = per-pre Σ spikes·w onto targets, `firstSpike`; tested); `apps/pipeline/src/explore/gfRoute.ts` (`pnpm --filter pipeline explore:gf`, ~1 min, prints markdown); findings in `data/scout/escape.md` §GF silenced.
-State: Phase 3 done. Without GF, TTMn 30–62 Hz, 1st spike 16–19 ms (intact ≈225 Hz, 8 ms). Route is distributed: DNp02+DNp06+DNp103 → AN19B001 → IN07B055/GFC2 → TTMn, plus weak direct DNp06/DNp02. No single knockout kills it; DN group → 5 Hz, relays → 7 Hz, all → 0.
-Next: Phase 4.1 GPU picking (id buffer), hover highlight whole neuron + tooltip.
-Gotchas: several single ablations *raise* TTMn (GFC2 → 105 Hz, DNp04 → 67) — they also feed TTMn's inhibitory INs (IN13A022, IN13B008). GF silencing changes no other DN rate (sign 0 → only NET_OVERRIDES outputs). GFC2 is chemically driven here, in vivo GF-coupled → residual route likely overstated.
