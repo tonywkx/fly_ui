@@ -83,9 +83,10 @@ const HOVER_WHITEN = 0.5;
 /** Focus (a selected neuron): unrelated neurons dim to this brightness and opacity. */
 const CONTEXT_LEVEL = 0.12;
 const CONTEXT_ALPHA = 0.3;
-/** Focus: inputs/outputs stay at least this bright (× tint) with this opacity. */
-const PARTNER_LEVEL = 0.7;
-const PARTNER_ALPHA = 0.45;
+/** Focus: inputs/outputs stay at least this bright (× tint) at the normal opacity — hundreds of
+ *  partners (LC4/LPLC2 onto the GF) stack additively, more would bloom into a blob. */
+const PARTNER_LEVEL = 0.3;
+const PARTNER_ALPHA = GAIN;
 /** Silenced: resting brightness, no wave. */
 const SILENCED_LEVEL = 0.35;
 /** Width of the per-row spike texture. */

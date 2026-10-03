@@ -2,6 +2,7 @@ import { observer } from 'mobx-react-lite';
 import { Button } from '@/components/ui/button';
 import { Stage } from '@/scene/Stage';
 import { app } from '@/state/app';
+import { Inspector } from '@/ui/Inspector';
 import { IntroHint } from '@/ui/IntroHint';
 import { NeuronTooltip } from '@/ui/NeuronTooltip';
 import { Stats } from '@/ui/Stats';
@@ -21,6 +22,7 @@ export const App = observer(function App() {
       <Stage />
       <IntroHint />
       <NeuronTooltip />
+      <Inspector />
 
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-4 md:p-8">
         <div className="flex flex-col items-end gap-1 font-mono text-caption tabular-nums">

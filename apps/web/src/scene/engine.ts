@@ -24,7 +24,7 @@ const FRAME_MARGIN = 1.0;
 const BLOOM = { strength: 0.5, radius: 0.4, threshold: 1.0 };
 /** Fly-to: duration and framing margin around the neuron's bounding sphere. */
 const FLY_MS = 900;
-const FLY_MARGIN = 1.6;
+const FLY_MARGIN = 1.1;
 
 interface Flight {
   t0: number;
@@ -161,7 +161,7 @@ export class Engine {
       this.controls.maxDistance,
       Math.max(
         this.controls.minDistance,
-        frameDistance([radius, radius, radius], this.camera.fov, this.camera.aspect, FLY_MARGIN),
+        frameDistance([radius, radius, 0], this.camera.fov, this.camera.aspect, FLY_MARGIN),
       ),
     );
     const fromTarget = this.controls.target.clone();
