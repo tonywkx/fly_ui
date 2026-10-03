@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-03 — 4.3 Tools, hotkeys, brush, electrodes
+Done: `packages/sim` `stimulate(i, hz, gain)` (per-neuron kick gain, tested) → Live/worker/client; `state/experiment.ts` tool / stim {hz, gain} / probes (4 fixed slots) / `apply` / `paint` / `escape` + `keyAction` (tested); `Stage.tsx` click applies the tool, brush stroke (Stimulate/Silence, drag starting on a neuron, orbit off via `engine.setOrbit`), live sync re-applies all stimuli on drive change; row-state texture RGBA (z = probe slot, `PROBES` palette); `ui/Toolbar.tsx` (rail + per-tool panel, owns V/S/X/E/Esc), `components/ui/slider.tsx`.
+State: 293 tests, typecheck, lint green. Snaps `--ui=stimulate|electrode` (tool preset), 1024 px no overlap, hidden < md (PRODUCT: phone = viewer). One-off Playwright: E+click → DNpe042 lime + chip; S+stroke → camera still, live starts; slider keys; Esc → Select.
+Next: 4.3b signal tracer (type graph k-best paths, tests first).
+Gotchas: pointerdown listener is capture-phase so it runs before OrbitControls and can disable it for a stroke. Probes need hover-level emphasis — partner level drowns in the optic lobes. Root `pnpm test` does not resolve `@/` from `ui/*.test.ts` importing state → use relative import. Inspector Esc moved into Toolbar hotkeys (tool first, then selection).
+
 ## 2026-10-03 — 4.2 Inspector, focus dimming, stimulate/silence
 Done: `data/partners.ts` (`partners` by type, `focusRoles`; tested), `state/experiment.ts` (selected / stimulated / silenced / live status / fly request), `scene/focus.ts` (roles + silenced → RG row-state texture, `focus` uniform fade, fly-to, `?select=<bodyId>`), `segments.ts` `rowBounds`, `engine.flyTo` + `scene/orbit.ts` (`orbitDistance` uniform: depth dim around the target, not the origin), `ui/Inspector.tsx`.
 State: 283 tests, typecheck, lint green. Snap `--scenario=escape --t=40 --select=10001` → GF white, inputs blue, outputs saffron, rest dim; same on webgl2. One-off Playwright run: click selects, Stimulate starts live sim on demand (graph-full ~0.5 s), Silence, Esc. Click-select is mouse/pen only. Partners = scenario graph only (labelled).
@@ -23,9 +29,3 @@ Done: `packages/sim/src/overrides.ts` (`applyOverrides`, `NET_OVERRIDES`: GF→T
 State: all green (257 unit + 6 bio), rebaked. Hz @300 ms: escape GF 415, TTMn 230 (GF silenced → ≈35, first spike 8.5 → 21 ms), PSI 120; sugar MN9 227, MN8 62, DNge062 203; song pIP10 68, hg1 128, hg3 197. Bio tests run on the whole graph as one "scenario" (all rows), not the scout subset.
 Next: 3.7 exploratory — GF silenced, TTMn still ≈35 Hz with ≈21 ms latency: trace which DNs (DNp02/DNp11 at 350/275 Hz?) carry it; document, no assert.
 Gotchas: DNp01 NT conf 0.53 → sign 0, so GF drives nothing chemically; overrides only touch existing edges. TTMn has heavy inhibitory input (IN13A022 987 syn) — 10 mV overrides gave only 90 Hz. Snap sugar t=40: SEZ blob saturated white (bloom/gain, like song) — visual tuning still open. Scout JSON files are minified one-liners; keep them that way.
-
-## 2026-10-02 — 3.5 dev tweakpane sim panel
-Done: `Live.retune(params, net?)` (`apps/web/src/sim/live.ts`, tests); worker `tune(Tuning)` (`Tuning = Partial<LifParams> & {gain}`, net rebuilt via `netFromCsr` only when wSyn·gain changes) + `LiveClient.tune`; `apps/web/src/dev/tuning.ts` (Tweakpane, imperative, lazy-imported under `import.meta.env.DEV`), mounted in Stage `startActivity` when live and (!snap or `ui=tune`).
-State: 253 tests, typecheck, lint green; `pnpm snap --scenario=escape --t=40 --sim=live --ui=tune` shows panel top-right. Released slider → scenario restarts at t = 0 (same seed); "copy JSON" = diff from defaults. Prod-bundle exclusion of tweakpane not inspected (dist reads denied).
-Next: 3.6 biology checks as tests (GF fires on shadow, MN9 on sugar — currently 0 Hz, pIP10/wing MNs on song, GF silencing kills TTMn); use the panel to find params first.
-Gotchas: Tweakpane v4 types need `@tweakpane/core` devDep. A readonly monitor binding emits `change` on every poll → listen on folders, not the root pane (otherwise endless restarts). `gain` scales synapses only; `wSyn` also scales the Poisson kick.
