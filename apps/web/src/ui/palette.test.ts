@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { NTS } from '@fly/data';
 import { describe, expect, it } from 'vitest';
-import { MAX_PROBES } from '@/state/experiment';
+import { MAX_PROBES } from '../state/experiment';
 import { contrast, hexToLinear, MALE, NT_COLORS, PROBES, TEXT } from './palette';
 
 const css = readFileSync(new URL('./theme.css', import.meta.url), 'utf8');
