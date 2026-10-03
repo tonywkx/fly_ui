@@ -24,6 +24,18 @@ describe('parseParams', () => {
     });
   });
 
+  it('reads a pick point as viewport fractions', () => {
+    expect(parseParams('?pick=0.5,0.25')).toEqual({
+      params: { stats: false, snap: false, pick: [0.5, 0.25] },
+      warnings: [],
+    });
+    for (const bad of ['0.5', '1.2,0.5', 'a,b', '0.5,-0.1', '0.5,0.5,0.5']) {
+      const { params, warnings } = parseParams(`?pick=${bad}`);
+      expect(params.pick).toBeUndefined();
+      expect(warnings).toHaveLength(1);
+    }
+  });
+
   it('treats bare / truthy flags as on, 0/false as off', () => {
     expect(parseParams('?stats').params.stats).toBe(true);
     expect(parseParams('?stats=true').params.stats).toBe(true);

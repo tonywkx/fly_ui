@@ -12,6 +12,7 @@ import { INTRO, type IntroPhase, introTimeline, lerpPose, type Pose } from './in
 import { CloudLayer } from './layers/cloud';
 import { isColorMode, type NeuronsLayer, neuronsLayer } from './layers/neurons';
 import { shellsLayer } from './layers/shells';
+import { Picker } from './pick';
 import { bakedSource, play } from './playback';
 import { FpsGuard, QUALITY } from './quality';
 import { buildSegments } from './segments';
@@ -246,6 +247,7 @@ function populate(engine: Engine, intro: Intro, stops: (() => void)[]) {
     neurons.mesh.visible = !only || only === 'neurons';
     engine.world.add(neurons.mesh);
     if (!colorMode) startActivity(engine, neurons, meta, stops);
+    if (neurons.mesh.visible) stops.push(...startPicking(engine, neurons));
   }
 
   intro.ready();
@@ -256,6 +258,63 @@ function populate(engine: Engine, intro: Intro, stops: (() => void)[]) {
     off();
     app.markReady('frame');
   });
+}
+
+/**
+ * Hover: GPU-picks the neuron under a mouse/pen pointer (not while dragging the orbit) into
+ * `app.hover`, which highlights it. `?pick=x,y` picks once at that viewport point (snaps).
+ */
+function startPicking(engine: Engine, layer: NeuronsLayer): (() => void)[] {
+  const canvas = engine.renderer.domElement;
+  const { pick } = app.params;
+  if (pick) app.waitFor('pick');
+  const picker = new Picker(engine, layer.pickMesh, (row) => {
+    if (row !== app.hover) app.setHover(row);
+    if (pick) app.markReady('pick');
+  });
+  let dragging = false;
+  const at = (e: PointerEvent): [number, number] | null => {
+    const r = canvas.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    return e.pointerType === 'touch' || x < 0 || y < 0 || x >= r.width || y >= r.height ? null : [x, y];
+  };
+  const move = (e: PointerEvent) => {
+    if (!dragging) picker.setPointer(at(e));
+  };
+  const down = () => {
+    dragging = true;
+    picker.setPointer(null);
+  };
+  const up = (e: PointerEvent) => {
+    dragging = false;
+    picker.setPointer(at(e));
+  };
+  const leave = () => picker.setPointer(null);
+  canvas.addEventListener('pointermove', move);
+  canvas.addEventListener('pointerdown', down);
+  canvas.addEventListener('pointerup', up);
+  canvas.addEventListener('pointerleave', leave);
+  if (pick) picker.setPointer([pick[0] * canvas.clientWidth, pick[1] * canvas.clientHeight]);
+
+  return [
+    engine.onFrame(() => picker.update()),
+    reaction(
+      () => app.hover,
+      (row) => {
+        layer.hovered.value = row ?? -1;
+        canvas.style.cursor = row === null ? '' : 'pointer';
+      },
+    ),
+    () => {
+      canvas.removeEventListener('pointermove', move);
+      canvas.removeEventListener('pointerdown', down);
+      canvas.removeEventListener('pointerup', up);
+      canvas.removeEventListener('pointerleave', leave);
+      picker.dispose();
+      app.setHover(null);
+    },
+  ];
 }
 
 /**

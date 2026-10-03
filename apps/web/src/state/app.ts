@@ -5,7 +5,7 @@ import { type Device, defaultQuality, type Quality } from '@/scene/quality';
 import { type Params, parseParams } from './params';
 
 /** Things that must finish before a snap is taken. */
-export type ReadyFlag = 'fonts' | 'data' | 'frame' | 'dust' | 'sim';
+export type ReadyFlag = 'fonts' | 'data' | 'frame' | 'dust' | 'sim' | 'pick';
 
 export class AppStore {
   readonly params: Params;
@@ -23,6 +23,8 @@ export class AppStore {
   readonly qualityPinned: boolean;
   /** Outstanding readiness flags; `ready` once empty. */
   readonly pending = observable.set<ReadyFlag>();
+  /** Scenario graph row under the pointer (set on change only). */
+  hover: number | null = null;
 
   constructor(search: string) {
     ({ params: this.params, warnings: this.warnings } = parseParams(search));
@@ -70,6 +72,10 @@ export class AppStore {
 
   setQuality(q: Quality) {
     this.quality = q;
+  }
+
+  setHover(row: number | null) {
+    this.hover = row;
   }
 }
 

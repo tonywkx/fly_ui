@@ -25,6 +25,8 @@ export interface Params {
   quality?: Quality;
   /** Activity source: the baked spike train (default) or the live full-graph sim in a Worker. */
   sim?: 'baked' | 'live';
+  /** Hover-pick at this viewport point (fractions 0..1, x right, y down) — snaps of the tooltip. */
+  pick?: [number, number];
 }
 
 const flag = (v: string | null) => v !== null && v !== '0' && v !== 'false';
@@ -76,6 +78,13 @@ export function parseParams(search: string): { params: Params; warnings: string[
   if (sim !== null) {
     if (sim === 'baked' || sim === 'live') params.sim = sim;
     else warnings.push(`sim: expected "baked" | "live", got "${sim}"`);
+  }
+
+  const pick = q.get('pick');
+  if (pick !== null) {
+    const xy = pick.split(',').map((v) => (v.trim() === '' ? Number.NaN : Number(v)));
+    if (xy.length === 2 && xy.every((n) => n >= 0 && n <= 1)) params.pick = xy as [number, number];
+    else warnings.push(`pick: expected "x,y" in 0..1, got "${pick}"`);
   }
 
   return { params, warnings };

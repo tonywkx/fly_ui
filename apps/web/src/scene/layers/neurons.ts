@@ -74,6 +74,11 @@ const PULSE = 3;
 /** The whole neuron keeps a fading glow after it fired. */
 const AFTERGLOW = 0.4;
 const AFTERGLOW_MS = 40;
+/** Hovered neuron: at least this bright (× tint, HDR — just over the bloom threshold) and opacity. */
+const HOVER_LEVEL = 1.4;
+const HOVER_ALPHA = 0.8;
+/** Hovered neuron in colour modes: tint pushed this far towards white. */
+const HOVER_WHITEN = 0.5;
 /** Width of the per-row spike texture. */
 const TEX_W = 256;
 
@@ -100,6 +105,10 @@ export interface NeuronsLayer {
   /** Last spike time per graph row (sim ms, NEVER if silent); call `commit` after writing. */
   lastSpike: Float32Array;
   commit(): void;
+  /** Graph row drawn highlighted (−1 = none). */
+  hovered: { value: number };
+  /** Same ribbons, opaque, writing `row + 1` (0 = no neuron) packed into rgb — for an RGBA8 id target. */
+  pickMesh: Mesh;
 }
 
 /**
@@ -127,6 +136,92 @@ export function neuronsLayer(
   geo.setAttribute('segC', new InterleavedBufferAttribute(buf, 4, 8));
   geo.instanceCount = seg.length / SEG_STRIDE;
 
+  const { segA, segB, segC, c, px, position } = ribbon(worldScale);
+
+  // activity: last spike of this segment's neuron (rows without meta never fire)
+  const texH = Math.max(1, Math.ceil(rows / TEX_W));
+  const lastSpike = new Float32Array(TEX_W * texH).fill(NEVER);
+  const spikeTex = new DataTexture(lastSpike, TEX_W, texH, RedFormat, FloatType);
+  spikeTex.needsUpdate = true;
+  const simTime = uniform(0);
+  const row = int(segC.x);
+  const spike = select(
+    row.greaterThanEqual(0),
+    textureLoad(spikeTex, ivec2(row.mod(TEX_W), row.div(TEX_W))).x,
+    float(NEVER),
+  );
+  const age = varying(simTime.sub(spike));
+  const distUm = varying(mix(segA.w, segB.w, positionGeometry.x).mul(worldScale));
+
+  const mat = mode
+    ? new MeshBasicNodeMaterial()
+    : new MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: AdditiveBlending });
+  mat.vertexNode = position;
+
+  const palette = uniformArray(
+    NTS.map((nt) => new Color(...NT_COLORS[nt].rgb)),
+    'color',
+  );
+  // typings lose the element type of a uniform array
+  const ntTint = palette.element(int(segC.y)) as unknown as Node<'vec3'>;
+  const tint = varying(mode === 'id' ? codeColor(segC.x) : mode === 'region' ? codeColor(segC.w) : ntTint);
+  const fade = varying(min(px.div(MIN_PX), 1));
+  const hovered = uniform(-1);
+  const isHover = varying(select(segC.x.equal(hovered), float(1), float(0)));
+  // c.w = view depth; the orbit target is the origin
+  const behind = c.w.sub(length(cameraPosition)).div(DEPTH_RANGE);
+  const depthDim = varying(mix(1, FAR_DIM, smoothstep(-1, 1, behind)));
+  const across = abs(varying(positionGeometry.y));
+  const glow = oneMinus(across).pow(1.5);
+  const core = oneMinus(smoothstep(0, 0.35, across)).mul(CORE);
+  // opaque ribbons: shade across the width so they still read as tubes
+  const shade = mix(0.45, 1, oneMinus(across)).mul(depthDim).mul(DEBUG_LEVEL);
+  if (mode === 'soma-dist') {
+    const tick = mix(0.35, 1, smoothstep(0, 0.12, fract(distUm.div(DIST_TICK_UM))));
+    const dist = ramp(distUm.div(DIST_SPAN_UM).min(1)).mul(tick);
+    mat.colorNode = mix(dist, vec3(1), isHover.mul(HOVER_WHITEN)).mul(shade);
+  } else if (mode) {
+    mat.colorNode = mix(tint, vec3(1), isHover.mul(HOVER_WHITEN)).mul(shade);
+  } else {
+    // distance the front has run past this point (µm); < 0 = not reached yet
+    const past = age.mul(WAVE_UM_PER_MS).sub(distUm);
+    const pulse = select(past.greaterThanEqual(0), exp(past.negate().div(TAIL_UM)), exp(past.div(LEAD_UM)));
+    const after = select(past.greaterThanEqual(0), exp(age.negate().div(AFTERGLOW_MS)), float(0));
+    const level = max(float(REST).add(pulse.mul(PULSE)).add(after.mul(AFTERGLOW)), isHover.mul(HOVER_LEVEL));
+    mat.colorNode = mix(tint, vec3(1), core.add(pulse.mul(0.5)).min(1)).mul(level);
+    const gain = mix(float(GAIN), float(HOVER_ALPHA), isHover);
+    mat.opacityNode = glow.mul(fade).mul(depthDim).mul(gain).mul(reveal);
+  }
+
+  const mesh = new Mesh(geo, mat);
+  mesh.name = 'neurons';
+  mesh.frustumCulled = false;
+  mesh.renderOrder = 1;
+
+  const pickMat = new MeshBasicNodeMaterial();
+  pickMat.vertexNode = position;
+  // id = row + 1 (0 = none) as 24-bit little-endian rgb; constant per instance, rounded against interpolation
+  const id = varying(segC.x.add(1).max(0)).round();
+  const byte = (shift: number) => id.div(shift).floor().mod(256).div(255);
+  pickMat.fragmentNode = vec4(byte(1), byte(256), byte(65536), 1);
+  const pickMesh = new Mesh(geo, pickMat);
+  pickMesh.name = 'neurons-pick';
+  pickMesh.frustumCulled = false;
+
+  return {
+    mesh,
+    simTime,
+    lastSpike,
+    commit: () => {
+      spikeTex.needsUpdate = true;
+    },
+    hovered,
+    pickMesh,
+  };
+}
+
+/** Clip-space position of a screen-facing ribbon quad; `px` = true width in physical px. */
+function ribbon(worldScale: number) {
   const segA = attribute('segA', 'vec4');
   const segB = attribute('segB', 'vec4');
   const segC = attribute('segC', 'vec4');
@@ -147,70 +242,8 @@ export function neuronsLayer(
   const px = widthUm.mul(projY).mul(screenSize.y).mul(0.5).div(c.w);
   const drawPx = max(px, MIN_PX);
   const offset = normal.mul(positionGeometry.y).mul(drawPx).div(screenSize).mul(c.w);
-
-  // activity: last spike of this segment's neuron (rows without meta never fire)
-  const texH = Math.max(1, Math.ceil(rows / TEX_W));
-  const lastSpike = new Float32Array(TEX_W * texH).fill(NEVER);
-  const spikeTex = new DataTexture(lastSpike, TEX_W, texH, RedFormat, FloatType);
-  spikeTex.needsUpdate = true;
-  const simTime = uniform(0);
-  const row = int(segC.x);
-  const spike = select(
-    row.greaterThanEqual(0),
-    textureLoad(spikeTex, ivec2(row.mod(TEX_W), row.div(TEX_W))).x,
-    float(NEVER),
-  );
-  const age = varying(simTime.sub(spike));
-  const distUm = varying(mix(segA.w, segB.w, positionGeometry.x).mul(worldScale));
-
-  const mat = mode
-    ? new MeshBasicNodeMaterial()
-    : new MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: AdditiveBlending });
-  mat.vertexNode = vec4(c.x.add(offset.x), c.y.add(offset.y), c.z, c.w);
-
-  const palette = uniformArray(
-    NTS.map((nt) => new Color(...NT_COLORS[nt].rgb)),
-    'color',
-  );
-  // typings lose the element type of a uniform array
-  const ntTint = palette.element(int(segC.y)) as unknown as Node<'vec3'>;
-  const tint = varying(mode === 'id' ? codeColor(segC.x) : mode === 'region' ? codeColor(segC.w) : ntTint);
-  const fade = varying(min(px.div(MIN_PX), 1));
-  // c.w = view depth; the orbit target is the origin
-  const behind = c.w.sub(length(cameraPosition)).div(DEPTH_RANGE);
-  const depthDim = varying(mix(1, FAR_DIM, smoothstep(-1, 1, behind)));
-  const across = abs(varying(positionGeometry.y));
-  const glow = oneMinus(across).pow(1.5);
-  const core = oneMinus(smoothstep(0, 0.35, across)).mul(CORE);
-  // opaque ribbons: shade across the width so they still read as tubes
-  const shade = mix(0.45, 1, oneMinus(across)).mul(depthDim).mul(DEBUG_LEVEL);
-  if (mode === 'soma-dist') {
-    const tick = mix(0.35, 1, smoothstep(0, 0.12, fract(distUm.div(DIST_TICK_UM))));
-    mat.colorNode = ramp(distUm.div(DIST_SPAN_UM).min(1)).mul(tick).mul(shade);
-  } else if (mode) {
-    mat.colorNode = tint.mul(shade);
-  } else {
-    // distance the front has run past this point (µm); < 0 = not reached yet
-    const past = age.mul(WAVE_UM_PER_MS).sub(distUm);
-    const pulse = select(past.greaterThanEqual(0), exp(past.negate().div(TAIL_UM)), exp(past.div(LEAD_UM)));
-    const after = select(past.greaterThanEqual(0), exp(age.negate().div(AFTERGLOW_MS)), float(0));
-    const level = float(REST).add(pulse.mul(PULSE)).add(after.mul(AFTERGLOW));
-    mat.colorNode = mix(tint, vec3(1), core.add(pulse.mul(0.5)).min(1)).mul(level);
-    mat.opacityNode = glow.mul(fade).mul(depthDim).mul(float(GAIN)).mul(reveal);
-  }
-
-  const mesh = new Mesh(geo, mat);
-  mesh.name = 'neurons';
-  mesh.frustumCulled = false;
-  mesh.renderOrder = 1;
-  return {
-    mesh,
-    simTime,
-    lastSpike,
-    commit: () => {
-      spikeTex.needsUpdate = true;
-    },
-  };
+  const position = vec4(c.x.add(offset.x), c.y.add(offset.y), c.z, c.w);
+  return { segA, segB, segC, c, px, position };
 }
 
 /** Distinct hue per integer code (id, region); negative = unknown → grey. */
