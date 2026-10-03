@@ -219,11 +219,10 @@ export function neuronsLayer(
   const ctx = oneMinus(select(role.greaterThan(0.5), float(1), float(0)))
     .mul(focus)
     .mul(oneMinus(isProbe));
-  // lit like a partner: role partners while focused, electrodes always
-  const partner = max(oneMinus(ctx.add(oneMinus(focus)).min(1)), isProbe);
-  // the selected neuron is lit like the hovered one; `emph` = either
+  const partner = oneMinus(ctx.add(oneMinus(focus)).min(1));
+  // the selected neuron and electrodes are lit like the hovered one; `emph` = any
   const sel = select(abs(role.sub(1)).lessThan(0.5), focus, float(0));
-  const emph = max(isHover, sel);
+  const emph = max(max(isHover, sel), isProbe);
   const fade = varying(min(px.div(MIN_PX), 1));
   // c.w = view depth
   const behind = c.w.sub(orbitDistance).div(DEPTH_RANGE);
