@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { NTS } from '@fly/data';
 import { describe, expect, it } from 'vitest';
 import { MAX_PROBES } from '../state/experiment';
-import { contrast, hexToLinear, MALE, NT_COLORS, PROBES, TEXT } from './palette';
+import { ACCENT, contrast, hexToLinear, MALE, NT_COLORS, PROBES, TEXT } from './palette';
 
 const css = readFileSync(new URL('./theme.css', import.meta.url), 'utf8');
 const cssVar = (name: string) =>
@@ -17,6 +17,7 @@ describe('palette', () => {
     for (const nt of NTS) expect(cssVar(`color-nt-${nt}`), nt).toBe(NT_COLORS[nt].hex);
     expect(cssVar('color-male')).toBe(MALE.hex);
     for (const [k, v] of Object.entries(TEXT)) expect(cssVar(`color-${k}`), k).toBe(v);
+    for (const [k, v] of Object.entries(ACCENT)) expect(cssVar(`color-${k}`), k).toBe(v);
   });
 
   it('converts sRGB hex to linear floats', () => {

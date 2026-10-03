@@ -6,6 +6,7 @@ import { Inspector } from '@/ui/Inspector';
 import { IntroHint } from '@/ui/IntroHint';
 import { NeuronTooltip } from '@/ui/NeuronTooltip';
 import { Stats } from '@/ui/Stats';
+import { Timeline } from '@/ui/Timeline';
 import { Toolbar } from '@/ui/Toolbar';
 
 const SCENARIO_TITLES: Record<string, string> = {
@@ -24,7 +25,11 @@ export const App = observer(function App() {
       <IntroHint />
       <NeuronTooltip />
       <Inspector />
-      <Toolbar />
+      {/* phone = viewer without tools (PRODUCT.md); above the attribution row */}
+      <div className="pointer-events-none absolute inset-x-2 bottom-16 z-10 hidden flex-col items-center gap-1 md:flex">
+        <Toolbar />
+        <Timeline />
+      </div>
 
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-4 md:p-8">
         <div className="flex flex-col items-end gap-1 font-mono text-caption tabular-nums">

@@ -46,12 +46,7 @@ export const Toolbar = observer(function Toolbar() {
 
   const active = TOOLS.find((t) => t.tool === experiment.tool) ?? TOOLS[0];
   return (
-    <div
-      className={cn(
-        // phone = viewer without tools (PRODUCT.md); above the attribution row until it clears the centre
-        'pointer-events-none absolute inset-x-2 bottom-16 z-10 hidden flex-col-reverse items-center gap-1 md:flex xl:bottom-8',
-      )}
-    >
+    <div className="flex w-full flex-col-reverse items-center gap-1">
       <div
         role="toolbar"
         aria-label="Tools"

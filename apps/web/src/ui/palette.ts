@@ -59,3 +59,6 @@ export const MALE = swatch('#ff2fb3');
 
 /** Typographic colours (must stay readable over the darkest scene). */
 export const TEXT = { bone: '#ffffff', mist: '#bdbdbd', ash: '#9a9a9a' } as const;
+
+/** Accent colours used outside CSS (canvas): mirror `--color-*` in theme.css. */
+export const ACCENT = { saffron: '#ffb829', void: '#000000' } as const;
