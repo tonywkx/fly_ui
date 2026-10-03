@@ -1,6 +1,7 @@
 import { COLOR_BY, type ColorBy, isColorBy } from '../data/colorBy';
 import { isQuality, QUALITIES, type Quality } from '../scene/quality';
 import { MAX_PROBES } from './experiment';
+import { decodeExperiment, type SharedExperiment } from './share';
 
 /** Colour modes (2.6) + layer isolation: `cloud` / `shells` show only that background layer. */
 export const DEBUG_MODES = ['soma-dist', 'id', 'nt', 'region', 'cloud', 'shells', 'neurons'] as const;
@@ -37,6 +38,8 @@ export interface Params {
   probes?: number[];
   /** Signal tracer ends `FROM>TO`, optionally `>i` (path index) — snaps of the trace look. */
   trace?: { from: string; to: string; path: number };
+  /** Shared experiment (stimuli, silencing, drive) — `?x=<base64url>`, see `state/share.ts`. */
+  experiment?: SharedExperiment;
 }
 
 const flag = (v: string | null) => v !== null && v !== '0' && v !== 'false';
@@ -123,6 +126,13 @@ export function parseParams(search: string): { params: Params; warnings: string[
     const [from, to, i = '0', ...rest] = trace.split('>').map((v) => v.trim());
     if (from && to && rest.length === 0 && /^\d$/.test(i)) params.trace = { from, to, path: Number(i) };
     else warnings.push(`trace: expected "FROM>TO[>i]", got "${trace}"`);
+  }
+
+  const x = q.get('x');
+  if (x !== null) {
+    const e = decodeExperiment(x);
+    if (e) params.experiment = e;
+    else warnings.push(`x: not a shared experiment code "${x}"`);
   }
 
   return { params, warnings };

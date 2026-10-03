@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseParams } from './params';
+import { encodeExperiment } from './share';
 
 describe('parseParams', () => {
   it('defaults to nothing set', () => {
@@ -116,6 +117,17 @@ describe('parseParams', () => {
     const { params, warnings } = parseParams('?sim=fast');
     expect(params.sim).toBeUndefined();
     expect(warnings).toEqual(['sim: expected "baked" | "live", got "fast"']);
+  });
+
+  it('reads a shared experiment code', () => {
+    const e = { stimulated: [7], silenced: [10001], stim: { hz: 200, gain: 1.5 } };
+    expect(parseParams(`?x=${encodeExperiment(e)}`)).toEqual({
+      params: { stats: false, snap: false, experiment: e },
+      warnings: [],
+    });
+    const { params, warnings } = parseParams('?x=zz');
+    expect(params.experiment).toBeUndefined();
+    expect(warnings).toHaveLength(1);
   });
 
   it('ignores unknown keys silently', () => {
