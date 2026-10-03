@@ -40,4 +40,13 @@ describe('ExperimentStore', () => {
     expect(x.touched).toBe(false);
     expect(x.selected).toBe(4);
   });
+
+  it('issues a fresh fly request every time', () => {
+    const x = new ExperimentStore();
+    x.flyTo(2);
+    const first = x.fly;
+    x.flyTo(2);
+    expect(x.fly).toEqual({ row: 2 });
+    expect(x.fly).not.toBe(first);
+  });
 });

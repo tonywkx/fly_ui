@@ -40,6 +40,17 @@ export const NT_COLORS: Record<Nt, Swatch> = {
   unclear: swatch('#6e6e6e'),
 };
 
+/** Focus roles around the selected neuron (replace the transmitter tint while focused). */
+export const FOCUS = {
+  selected: swatch('#ffffff'),
+  input: swatch('#4fc3ff'),
+  output: swatch('#ffb829'),
+  both: swatch('#c7a6ff'),
+} as const;
+
+/** Silenced neurons: grey, no waves. */
+export const SILENCED = swatch('#6e6e6e');
+
 /** Male-specific highlight colour mode. */
 export const MALE = swatch('#ff2fb3');
 

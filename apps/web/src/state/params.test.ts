@@ -36,6 +36,15 @@ describe('parseParams', () => {
     }
   });
 
+  it('reads a selected bodyId', () => {
+    expect(parseParams('?select=10293').params.select).toBe(10293);
+    for (const bad of ['', 'x', '-3', '1.5']) {
+      const { params, warnings } = parseParams(`?select=${bad}`);
+      expect(params.select).toBeUndefined();
+      expect(warnings).toHaveLength(1);
+    }
+  });
+
   it('treats bare / truthy flags as on, 0/false as off', () => {
     expect(parseParams('?stats').params.stats).toBe(true);
     expect(parseParams('?stats=true').params.stats).toBe(true);

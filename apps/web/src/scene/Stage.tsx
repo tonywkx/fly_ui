@@ -6,7 +6,9 @@ import { type Node, Vector3 } from 'three/webgpu';
 import { data } from '@/data/store';
 import { LiveClient } from '@/sim/client';
 import { app } from '@/state/app';
+import { experiment } from '@/state/experiment';
 import { Engine } from './engine';
+import { startFocus } from './focus';
 import { onFrameSample } from './frameStats';
 import { INTRO, type IntroPhase, introTimeline, lerpPose, type Pose } from './intro';
 import { CloudLayer } from './layers/cloud';
@@ -15,7 +17,7 @@ import { shellsLayer } from './layers/shells';
 import { Picker } from './pick';
 import { bakedSource, play } from './playback';
 import { FpsGuard, QUALITY } from './quality';
-import { buildSegments } from './segments';
+import { buildSegments, rowBounds } from './segments';
 
 /** First-frame dust chunk the intro assembles. */
 const DUST = 'cloud-lod0';
@@ -29,6 +31,8 @@ const SETTLE_FRAMES = 2;
 /** Playback speed (sim ms per real s) and the pause after a baked run before it loops (sim ms). */
 const SIM_MS_PER_S = 40;
 const TAIL_MS = 60;
+/** Pointer travel (px) up to which a press + release still counts as a click, not an orbit. */
+const CLICK_PX = 4;
 
 /** Mount point for the renderer. The engine owns the canvas; React only creates and disposes it. */
 export function Stage() {
@@ -237,17 +241,14 @@ function populate(engine: Engine, intro: Intro, stops: (() => void)[]) {
   const skeletons = data.get(`${data.scenario}-skeletons`, 'skeletons');
   const meta = data.get(`${data.scenario}-meta`, 'meta');
   if (skeletons && meta) {
-    const neurons = neuronsLayer(
-      buildSegments(skeletons, meta),
-      meta.n,
-      engine.world.scale.x,
-      colorMode,
-      intro.reveal,
-    );
+    const seg = buildSegments(skeletons, meta);
+    const neurons = neuronsLayer(seg, meta.n, engine.world.scale.x, colorMode, intro.reveal);
     neurons.mesh.visible = !only || only === 'neurons';
     engine.world.add(neurons.mesh);
     if (!colorMode) startActivity(engine, neurons, meta, stops);
     if (neurons.mesh.visible) stops.push(...startPicking(engine, neurons));
+    const graph = data.get(`${data.scenario}-graph`, 'graph');
+    stops.push(...startFocus(engine, neurons, meta, graph, rowBounds(seg, meta.n)));
   }
 
   intro.ready();
@@ -273,6 +274,8 @@ function startPicking(engine: Engine, layer: NeuronsLayer): (() => void)[] {
     if (pick) app.markReady('pick');
   });
   let dragging = false;
+  // click = press and release within CLICK_PX without orbiting; selects the row under the press
+  let press: { x: number; y: number; row: number | null } | null = null;
   const at = (e: PointerEvent): [number, number] | null => {
     const r = canvas.getBoundingClientRect();
     const x = e.clientX - r.left;
@@ -282,13 +285,18 @@ function startPicking(engine: Engine, layer: NeuronsLayer): (() => void)[] {
   const move = (e: PointerEvent) => {
     if (!dragging) picker.setPointer(at(e));
   };
-  const down = () => {
+  const down = (e: PointerEvent) => {
+    press =
+      e.button === 0 && e.pointerType !== 'touch' ? { x: e.clientX, y: e.clientY, row: app.hover } : null;
     dragging = true;
     picker.setPointer(null);
   };
   const up = (e: PointerEvent) => {
     dragging = false;
     picker.setPointer(at(e));
+    if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) <= CLICK_PX)
+      experiment.select(press.row);
+    press = null;
   };
   const leave = () => picker.setPointer(null);
   canvas.addEventListener('pointermove', move);
@@ -318,8 +326,9 @@ function startPicking(engine: Engine, layer: NeuronsLayer): (() => void)[] {
 }
 
 /**
- * Baked spike train on a loop; with `?sim=live` the Worker sim takes over once the full graph has
- * loaded (baked keeps playing meanwhile). A live snap at `?t=` waits for the sim to reach it.
+ * Baked spike train on a loop; the Worker sim takes over once the full graph has loaded (baked keeps
+ * playing meanwhile) — from the start with `?sim=live`, else on the first stimulus / silencing.
+ * A live snap at `?t=` waits for the sim to reach it.
  */
 function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, stops: (() => void)[]) {
   const train = data.get(`${data.scenario}-spikes`, 'spikes');
@@ -333,50 +342,80 @@ function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, s
     stop();
     client?.dispose();
   });
-  if (sim !== 'live') return;
 
-  const chunk = (id: string) => data.manifest?.chunks.find((c) => c.id === id);
-  const graph = chunk('graph-full');
-  const full = chunk('meta-full');
-  if (!graph || !full) {
-    console.warn('[sim] graph-full / meta-full missing from the manifest, staying on baked');
-    return;
-  }
-  if (fixed !== undefined) app.waitFor('sim');
-  LiveClient.start({
-    graphUrl: data.url(graph),
-    metaUrl: data.url(full),
-    scenarioBodyIds: meta.bodyIds,
-    stim: [...train.stim],
-    seed: train.seed,
-  })
-    .then((c) => {
-      if (disposed) return c.dispose();
-      client = c;
-      const start = () => {
-        stop();
-        stop = play(
-          engine,
-          layer,
-          { feed: c.feed, pump: (t) => c.pump(t) },
-          { rate: SIM_MS_PER_S, fixed, onReached: () => app.markReady('sim') },
-        );
-      };
-      start();
-      if (import.meta.env.DEV && (!app.params.snap || app.params.ui === 'tune')) {
-        import('@/dev/tuning').then(({ mountTuning }) => {
-          if (disposed) return;
-          stops.push(
-            mountTuning({
-              apply: (t) => void c.tune(t).then(() => !disposed && start()),
-              speed: () => c.speed,
-            }),
-          );
-        });
-      }
+  const goLive = () => {
+    if (experiment.live !== 'off') return;
+    const chunk = (id: string) => data.manifest?.chunks.find((c) => c.id === id);
+    const graph = chunk('graph-full');
+    const full = chunk('meta-full');
+    if (!graph || !full) {
+      console.warn('[sim] graph-full / meta-full missing from the manifest, staying on baked');
+      experiment.setLive('failed');
+      return;
+    }
+    experiment.setLive('loading');
+    if (fixed !== undefined) app.waitFor('sim');
+    LiveClient.start({
+      graphUrl: data.url(graph),
+      metaUrl: data.url(full),
+      scenarioBodyIds: meta.bodyIds,
+      stim: [...train.stim],
+      seed: train.seed,
     })
-    .catch((e) => {
-      console.error('[sim] live mode failed, staying on baked', e);
-      app.markReady('sim');
-    });
+      .then((c) => {
+        if (disposed) return c.dispose();
+        client = c;
+        // the experiment's stimulus / silencing, applied as diffs; a restart clears them in the Worker
+        const applied = { stim: new Set<number>(), silent: new Set<number>() };
+        const sync = () => {
+          const ops: Promise<void>[] = [];
+          for (const r of experiment.stimulated) if (!applied.stim.has(r)) ops.push(c.stimulate(r));
+          for (const r of applied.stim) if (!experiment.stimulated.has(r)) ops.push(c.stimulate(r, 0));
+          for (const r of experiment.silenced) if (!applied.silent.has(r)) ops.push(c.silence(r, true));
+          for (const r of applied.silent) if (!experiment.silenced.has(r)) ops.push(c.silence(r, false));
+          applied.stim = new Set(experiment.stimulated);
+          applied.silent = new Set(experiment.silenced);
+          Promise.all(ops).catch((e) => console.error('[sim]', e));
+        };
+        const start = () => {
+          stop();
+          stop = play(
+            engine,
+            layer,
+            { feed: c.feed, pump: (t) => c.pump(t) },
+            { rate: SIM_MS_PER_S, fixed, onReached: () => app.markReady('sim') },
+          );
+        };
+        sync();
+        start();
+        experiment.setLive('on');
+        stops.push(reaction(() => [...experiment.stimulated, -1, ...experiment.silenced], sync));
+        if (import.meta.env.DEV && (!app.params.snap || app.params.ui === 'tune')) {
+          import('@/dev/tuning').then(({ mountTuning }) => {
+            if (disposed) return;
+            stops.push(
+              mountTuning({
+                apply: (t) =>
+                  void c.tune(t).then(() => {
+                    if (disposed) return;
+                    applied.stim.clear();
+                    applied.silent.clear();
+                    sync();
+                    start();
+                  }),
+                speed: () => c.speed,
+              }),
+            );
+          });
+        }
+      })
+      .catch((e) => {
+        console.error('[sim] live mode failed, staying on baked', e);
+        experiment.setLive('failed');
+        app.markReady('sim');
+      });
+  };
+
+  if (sim === 'live') goLive();
+  else stops.push(when(() => experiment.touched, goLive));
 }

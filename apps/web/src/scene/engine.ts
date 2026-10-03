@@ -154,9 +154,9 @@ export class Engine {
 
   /**
    * Orbit around `center` (world) at a distance framing a sphere of `radius`, keeping the view
-   * direction. Animated (strong ease-in-out) unless reduced motion; user input cancels it.
+   * direction. Animated (strong ease-in-out) unless reduced motion or `instant`; user input cancels it.
    */
-  flyTo(center: Vector3, radius: number) {
+  flyTo(center: Vector3, radius: number, instant = false) {
     const toDist = Math.min(
       this.controls.maxDistance,
       Math.max(
@@ -169,7 +169,7 @@ export class Engine {
     const fromDist = offset.length();
     this.flight = {
       t0: performance.now(),
-      ms: this.reducedMotion ? 0 : FLY_MS,
+      ms: this.reducedMotion || instant ? 0 : FLY_MS,
       fromTarget,
       toTarget: center.clone(),
       fromDist,

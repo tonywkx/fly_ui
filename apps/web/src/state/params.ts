@@ -27,6 +27,8 @@ export interface Params {
   sim?: 'baked' | 'live';
   /** Hover-pick at this viewport point (fractions 0..1, x right, y down) — snaps of the tooltip. */
   pick?: [number, number];
+  /** Open the inspector on this bodyId (scenario neuron) — snaps of the focus look. */
+  select?: number;
 }
 
 const flag = (v: string | null) => v !== null && v !== '0' && v !== 'false';
@@ -85,6 +87,13 @@ export function parseParams(search: string): { params: Params; warnings: string[
     const xy = pick.split(',').map((v) => (v.trim() === '' ? Number.NaN : Number(v)));
     if (xy.length === 2 && xy.every((n) => n >= 0 && n <= 1)) params.pick = xy as [number, number];
     else warnings.push(`pick: expected "x,y" in 0..1, got "${pick}"`);
+  }
+
+  const select = q.get('select');
+  if (select !== null) {
+    const id = Number(select);
+    if (/^\d+$/.test(select) && Number.isSafeInteger(id)) params.select = id;
+    else warnings.push(`select: expected a bodyId, got "${select}"`);
   }
 
   return { params, warnings };

@@ -66,6 +66,15 @@ export class LiveClient {
       });
   }
 
+  /** Poisson drive at `hz` on a scenario row (omitted: the default rate; 0 removes it). */
+  stimulate(row: number, hz?: number): Promise<void> {
+    return this.api.stimulate(row, hz);
+  }
+
+  silence(row: number, on: boolean): Promise<void> {
+    return this.api.silence(row, on);
+  }
+
   /** Restarts the scenario at t = 0; a batch still in flight is dropped. */
   async reset(): Promise<void> {
     this.gen++;

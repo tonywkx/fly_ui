@@ -41,10 +41,11 @@ import {
   MeshBasicNodeMaterial,
   type Node,
   RedFormat,
+  RGFormat,
 } from 'three/webgpu';
 import { NEVER } from '@/sim/feed';
 import type { DebugMode } from '@/state/params';
-import { hexToLinear, NT_COLORS } from '@/ui/palette';
+import { FOCUS, hexToLinear, NT_COLORS, SILENCED } from '@/ui/palette';
 import { orbitDistance } from '../orbit';
 import { SEG_STRIDE } from '../segments';
 
@@ -79,6 +80,14 @@ const HOVER_LEVEL = 1.4;
 const HOVER_ALPHA = 0.8;
 /** Hovered neuron in colour modes: tint pushed this far towards white. */
 const HOVER_WHITEN = 0.5;
+/** Focus (a selected neuron): unrelated neurons dim to this brightness and opacity. */
+const CONTEXT_LEVEL = 0.12;
+const CONTEXT_ALPHA = 0.3;
+/** Focus: inputs/outputs stay at least this bright (× tint) with this opacity. */
+const PARTNER_LEVEL = 0.7;
+const PARTNER_ALPHA = 0.45;
+/** Silenced: resting brightness, no wave. */
+const SILENCED_LEVEL = 0.35;
 /** Width of the per-row spike texture. */
 const TEX_W = 256;
 
@@ -107,6 +116,11 @@ export interface NeuronsLayer {
   commit(): void;
   /** Graph row drawn highlighted (−1 = none). */
   hovered: { value: number };
+  /** Per row `role, silenced` (see `ROLE`; silenced 0/1); call `commitState` after writing. */
+  rowState: Float32Array;
+  commitState(): void;
+  /** 0..1: how far the focus look (roles coloured, the rest dimmed) is applied. */
+  focus: { value: number };
   /** Same ribbons, opaque, writing `row + 1` (0 = no neuron) packed into rgb — for an RGBA8 id target. */
   pickMesh: Mesh;
 }
@@ -151,6 +165,20 @@ export function neuronsLayer(
     float(NEVER),
   );
   const age = varying(simTime.sub(spike));
+  // focus role + silenced per row (rows without meta: context, not silenced)
+  const rowState = new Float32Array(TEX_W * texH * 2);
+  const stateTex = new DataTexture(rowState, TEX_W, texH, RGFormat, FloatType);
+  stateTex.needsUpdate = true;
+  const state = select(
+    row.greaterThanEqual(0),
+    textureLoad(stateTex, ivec2(row.mod(TEX_W), row.div(TEX_W))).xy,
+    vec2(0, 0),
+  );
+  const hovered = uniform(-1);
+  const isHover = varying(select(segC.x.equal(hovered), float(1), float(0)));
+  const focus = uniform(0);
+  const role = varying(state.x);
+  const silenced = varying(state.y);
   const distUm = varying(mix(segA.w, segB.w, positionGeometry.x).mul(worldScale));
 
   const mat = mode
@@ -164,10 +192,23 @@ export function neuronsLayer(
   );
   // typings lose the element type of a uniform array
   const ntTint = palette.element(int(segC.y)) as unknown as Node<'vec3'>;
-  const tint = varying(mode === 'id' ? codeColor(segC.x) : mode === 'region' ? codeColor(segC.w) : ntTint);
+  const roleColors = uniformArray(
+    [SILENCED, FOCUS.selected, FOCUS.input, FOCUS.output, FOCUS.both].map((c) => new Color(...c.rgb)),
+    'color',
+  );
+  const roleTint = roleColors.element(int(state.x)) as unknown as Node<'vec3'>;
+  const baseTint = mode === 'id' ? codeColor(segC.x) : mode === 'region' ? codeColor(segC.w) : ntTint;
+  // focused: partners take their role colour; silenced always grey
+  const isPartner = select(state.x.greaterThan(0.5), float(1), float(0));
+  const focusTint = mix(baseTint, roleTint, isPartner.mul(focus));
+  const tint = varying(mix(focusTint, roleColors.element(0) as unknown as Node<'vec3'>, state.y));
+  // 1 = unrelated neuron while focused
+  const ctx = oneMinus(select(role.greaterThan(0.5), float(1), float(0))).mul(focus);
+  const partner = oneMinus(ctx.add(oneMinus(focus)).min(1));
+  // the selected neuron is lit like the hovered one; `emph` = either
+  const sel = select(abs(role.sub(1)).lessThan(0.5), focus, float(0));
+  const emph = max(isHover, sel);
   const fade = varying(min(px.div(MIN_PX), 1));
-  const hovered = uniform(-1);
-  const isHover = varying(select(segC.x.equal(hovered), float(1), float(0)));
   // c.w = view depth
   const behind = c.w.sub(orbitDistance).div(DEPTH_RANGE);
   const depthDim = varying(mix(1, FAR_DIM, smoothstep(-1, 1, behind)));
@@ -179,17 +220,31 @@ export function neuronsLayer(
   if (mode === 'soma-dist') {
     const tick = mix(0.35, 1, smoothstep(0, 0.12, fract(distUm.div(DIST_TICK_UM))));
     const dist = ramp(distUm.div(DIST_SPAN_UM).min(1)).mul(tick);
-    mat.colorNode = mix(dist, vec3(1), isHover.mul(HOVER_WHITEN)).mul(shade);
+    mat.colorNode = mix(dist, vec3(1), emph.mul(HOVER_WHITEN))
+      .mul(shade)
+      .mul(mix(1, CONTEXT_LEVEL, ctx));
   } else if (mode) {
-    mat.colorNode = mix(tint, vec3(1), isHover.mul(HOVER_WHITEN)).mul(shade);
+    mat.colorNode = mix(tint, vec3(1), emph.mul(HOVER_WHITEN))
+      .mul(shade)
+      .mul(mix(1, CONTEXT_LEVEL, ctx));
   } else {
     // distance the front has run past this point (µm); < 0 = not reached yet
     const past = age.mul(WAVE_UM_PER_MS).sub(distUm);
-    const pulse = select(past.greaterThanEqual(0), exp(past.negate().div(TAIL_UM)), exp(past.div(LEAD_UM)));
-    const after = select(past.greaterThanEqual(0), exp(age.negate().div(AFTERGLOW_MS)), float(0));
-    const level = max(float(REST).add(pulse.mul(PULSE)).add(after.mul(AFTERGLOW)), isHover.mul(HOVER_LEVEL));
+    // silenced: no wave (the baked train still lists its spikes)
+    const live = oneMinus(silenced);
+    const pulse = select(
+      past.greaterThanEqual(0),
+      exp(past.negate().div(TAIL_UM)),
+      exp(past.div(LEAD_UM)),
+    ).mul(live);
+    const after = select(past.greaterThanEqual(0), exp(age.negate().div(AFTERGLOW_MS)), float(0)).mul(live);
+    const rest = mix(float(REST), float(SILENCED_LEVEL), silenced);
+    const active = rest.add(pulse.mul(PULSE)).add(after.mul(AFTERGLOW));
+    const focused = max(active, partner.mul(PARTNER_LEVEL)).mul(mix(1, CONTEXT_LEVEL, ctx));
+    const level = max(focused, emph.mul(HOVER_LEVEL));
     mat.colorNode = mix(tint, vec3(1), core.add(pulse.mul(0.5)).min(1)).mul(level);
-    const gain = mix(float(GAIN), float(HOVER_ALPHA), isHover);
+    const base = mix(mix(float(GAIN), float(PARTNER_ALPHA), partner), float(GAIN * CONTEXT_ALPHA), ctx);
+    const gain = mix(base, float(HOVER_ALPHA), emph);
     mat.opacityNode = glow.mul(fade).mul(depthDim).mul(gain).mul(reveal);
   }
 
@@ -216,6 +271,11 @@ export function neuronsLayer(
       spikeTex.needsUpdate = true;
     },
     hovered,
+    rowState,
+    commitState: () => {
+      stateTex.needsUpdate = true;
+    },
+    focus,
     pickMesh,
   };
 }

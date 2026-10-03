@@ -1,4 +1,4 @@
-import { makeAutoObservable, observable } from 'mobx';
+import { makeAutoObservable, observable, observableRef } from 'mobx';
 
 /** Live sim as the inspector sees it: not started, loading the full graph, or running. */
 export type LiveStatus = 'off' | 'loading' | 'on' | 'failed';
@@ -10,9 +10,11 @@ export class ExperimentStore {
   readonly stimulated = observable.set<number>();
   readonly silenced = observable.set<number>();
   live: LiveStatus = 'off';
+  /** Latest fly-to request (the scene reacts to a new object, even for the same row). */
+  fly: { row: number } | null = null;
 
   constructor() {
-    makeAutoObservable(this, { stimulated: false, silenced: false });
+    makeAutoObservable(this, { stimulated: false, silenced: false, fly: observableRef });
   }
 
   /** Stimulus or silencing present (needs the live sim). */
@@ -35,6 +37,10 @@ export class ExperimentStore {
   clear() {
     this.stimulated.clear();
     this.silenced.clear();
+  }
+
+  flyTo(row: number) {
+    this.fly = { row };
   }
 
   setLive(s: LiveStatus) {
