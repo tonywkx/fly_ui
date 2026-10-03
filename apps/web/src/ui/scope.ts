@@ -1,26 +1,26 @@
 import { LIF_DEFAULTS } from '@fly/sim';
 import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
+import { SCOPE_GUIDE } from '@/ui/palette';
 
 /**
  * Sub-threshold range, mV: PSPs are a few mV, so the view is zoomed around rest / threshold and spikes
  * (drawn at `SPIKE_MV`) run off the top like a clipped scope trace.
  */
 const Y_RANGE: [number, number] = [-64, -40];
-const GUIDE = 'rgba(255,255,255,0.18)';
 
 /** Bare uPlot trace (no axes / legend / cursor) with dashed threshold and rest guides. Lazy-loaded with uPlot. */
 export function createScope(el: HTMLElement, color: string): uPlot {
   const guides = (u: uPlot) => {
     const { ctx, bbox } = u;
     ctx.save();
-    ctx.strokeStyle = GUIDE;
     ctx.lineWidth = devicePixelRatio;
-    for (const [mV, dash] of [
-      [LIF_DEFAULTS.vThreshold, [3, 3]],
-      [LIF_DEFAULTS.vRest, [1, 3]],
+    for (const [mV, dash, stroke] of [
+      [LIF_DEFAULTS.vThreshold, [3, 3], SCOPE_GUIDE.threshold],
+      [LIF_DEFAULTS.vRest, [1, 3], SCOPE_GUIDE.rest],
     ] as const) {
       const y = Math.round(u.valToPos(mV, 'y', true)) + 0.5;
+      ctx.strokeStyle = stroke;
       ctx.setLineDash(dash.map((d) => d * devicePixelRatio));
       ctx.beginPath();
       ctx.moveTo(bbox.left, y);

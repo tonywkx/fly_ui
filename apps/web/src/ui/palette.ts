@@ -54,6 +54,9 @@ export const SILENCED = swatch('#6e6e6e');
 /** Electrode slots (scene tint, chip, oscilloscope trace): apart from the transmitter hues. */
 export const PROBES: readonly Swatch[] = ['#c6ff3d', '#ff6b4a', '#5cf2ff', '#fff2a8'].map(swatch);
 
+/** Oscilloscope guides: dashed threshold, dotted rest. */
+export const SCOPE_GUIDE = { threshold: 'rgba(255,255,255,0.32)', rest: 'rgba(255,255,255,0.2)' } as const;
+
 /** Male-specific highlight colour mode. */
 export const MALE = swatch('#ff2fb3');
 

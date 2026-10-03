@@ -8,7 +8,7 @@ import type { SpikeLog } from '@/sim/feed';
 import { probe, scenarioNet, voltage } from '@/sim/trace';
 import { experiment } from '@/state/experiment';
 import { playback } from '@/state/playback';
-import { PROBES } from '@/ui/palette';
+import { PROBES, TEXT } from '@/ui/palette';
 
 /** Sim ms shown per scope (2.5 s of wall time at 1×). */
 const SCOPE_MS = 100;
@@ -64,7 +64,7 @@ interface ScopeProps {
 /** Redrawn in its own rAF from `playback.clock`, only when the time or the log horizon moved. */
 function Scope({ slot, row, name, log, net }: ScopeProps) {
   const box = useRef<HTMLDivElement>(null);
-  const color = PROBES[slot]?.hex ?? '#fff';
+  const color = PROBES[slot]?.hex ?? TEXT.bone;
 
   useEffect(() => {
     const el = box.current;
@@ -106,7 +106,9 @@ function Scope({ slot, row, name, log, net }: ScopeProps) {
 
   return (
     <figure
+      role="img"
       aria-label={`Electrode ${slot + 1}: ${name} membrane potential`}
+      title={`${name}: −64…−40 mV, spikes clipped · dashed threshold, dotted rest`}
       className="flex min-w-0 flex-col gap-0.5 rounded-panel bg-card px-3 pt-1.5 pb-2 backdrop-blur-md"
       style={{ gridColumnStart: slot + 1 }}
     >
