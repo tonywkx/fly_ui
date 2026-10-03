@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-04 — 4.3b Signal tracer
+Done: `data/paths.ts` (`preparePaths`, `kBestPaths`: Yen over hop-bounded layered Bellman–Ford, cost −log input fraction; tested), `data/trace.worker.ts` (fetches `typegraph-full` on first query), `state/trace.ts` (`TraceStore`, `pathHops`; tested), Trace tool `T` (`experiment.tracePick`), `scene/trace.ts` (row-state w = hop+1, fade / hop-by-hop reveal / looping pulse), neurons shader `trace*` uniforms + per-hop `traceGain`, `ui/Tracer.tsx` (From/To datalist fields, swap, ≤5 paths), `?trace=FROM>TO[>i]` + `trace` ready flag.
+State: 306 tests, typecheck, lint green. Snaps `--ui=trace "--trace=LPLC2>TTMn"` (+ `--select=10001` to see the VNC end) → LPLC2 blue → GF white → TTMn saffron, rest dimmed; same on webgl2. One-off Playwright: T, type ends, pick 2nd path, swap, Esc, T restores. Search ≈6 ms in-scenario (160 ms whole CNS).
+Next: 4.4 Timeline (canvas raster by region, scrub/pause/slow-mo).
+Gotchas: hop types range from 1 neuron (GF) to ~80 (LPLC2) — flat emphasis either hides the GF or blooms LPLC2, hence gain ∝ min(1, 3/count). Type names hold commas/spaces ("DLMn a, b") → `>` separator in the URL; snap needs `"--trace=A>B"` as one quoted arg. Trace look shows only while the Trace tool is active (Esc hides, T restores). Fractions are tiny (TTMn has huge input) — UI shows 2 significant digits.
+
 ## 2026-10-03 — 4.3 Tools, hotkeys, brush, electrodes
 Done: `packages/sim` `stimulate(i, hz, gain)` (per-neuron kick gain, tested) → Live/worker/client; `state/experiment.ts` tool / stim {hz, gain} / probes (4 fixed slots) / `apply` / `paint` / `escape` + `keyAction` (tested); `Stage.tsx` click applies the tool, brush stroke (Stimulate/Silence, drag starting on a neuron, orbit off via `engine.setOrbit`), live sync re-applies all stimuli on drive change; row-state texture RGBA (z = probe slot, `PROBES` palette); `ui/Toolbar.tsx` (rail + per-tool panel, owns V/S/X/E/Esc), `components/ui/slider.tsx`.
 State: 293 tests, typecheck, lint green. Snaps `--ui=stimulate|electrode` (tool preset), 1024 px no overlap, hidden < md (PRODUCT: phone = viewer). One-off Playwright: E+click → DNpe042 lime + chip; S+stroke → camera still, live starts; slider keys; Esc → Select.
@@ -23,9 +29,3 @@ Done: `apps/pipeline/src/process/drive.ts` (`inputDrive` = per-pre Σ spikes·w 
 State: Phase 3 done. Without GF, TTMn 30–62 Hz, 1st spike 16–19 ms (intact ≈225 Hz, 8 ms). Route is distributed: DNp02+DNp06+DNp103 → AN19B001 → IN07B055/GFC2 → TTMn, plus weak direct DNp06/DNp02. No single knockout kills it; DN group → 5 Hz, relays → 7 Hz, all → 0.
 Next: Phase 4.1 GPU picking (id buffer), hover highlight whole neuron + tooltip.
 Gotchas: several single ablations *raise* TTMn (GFC2 → 105 Hz, DNp04 → 67) — they also feed TTMn's inhibitory INs (IN13A022, IN13B008). GF silencing changes no other DN rate (sign 0 → only NET_OVERRIDES outputs). GFC2 is chemically driven here, in vivo GF-coupled → residual route likely overstated.
-
-## 2026-10-02 — 3.6 biology checks as tests
-Done: `packages/sim/src/overrides.ts` (`applyOverrides`, `NET_OVERRIDES`: GF→TTMn/PSI 40 mV) used by pipeline `buildNet` (`process/spikes.ts`, also `RunConfig.silence`) and `sim.worker.ts`; sugar stim BM_Taste → LB3a–d (added to `data/scout/sugar.json`, skeletons pulled); `process/scenarios.bio.ts` + `vitest.bio.config.ts` → `pnpm test:bio` (6 tests, ~20 s).
-State: all green (257 unit + 6 bio), rebaked. Hz @300 ms: escape GF 415, TTMn 230 (GF silenced → ≈35, first spike 8.5 → 21 ms), PSI 120; sugar MN9 227, MN8 62, DNge062 203; song pIP10 68, hg1 128, hg3 197. Bio tests run on the whole graph as one "scenario" (all rows), not the scout subset.
-Next: 3.7 exploratory — GF silenced, TTMn still ≈35 Hz with ≈21 ms latency: trace which DNs (DNp02/DNp11 at 350/275 Hz?) carry it; document, no assert.
-Gotchas: DNp01 NT conf 0.53 → sign 0, so GF drives nothing chemically; overrides only touch existing edges. TTMn has heavy inhibitory input (IN13A022 987 syn) — 10 mV overrides gave only 90 Hz. Snap sugar t=40: SEZ blob saturated white (bloom/gain, like song) — visual tuning still open. Scout JSON files are minified one-liners; keep them that way.
