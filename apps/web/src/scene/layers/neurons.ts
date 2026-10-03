@@ -2,7 +2,6 @@ import { NTS } from '@fly/data';
 import {
   abs,
   attribute,
-  cameraPosition,
   cameraProjectionMatrix,
   clamp,
   exp,
@@ -46,6 +45,7 @@ import {
 import { NEVER } from '@/sim/feed';
 import type { DebugMode } from '@/state/params';
 import { hexToLinear, NT_COLORS } from '@/ui/palette';
+import { orbitDistance } from '../orbit';
 import { SEG_STRIDE } from '../segments';
 
 /** Ribbon width = node diameter × gain, clamped (µm): stylised, giant fibres must not swamp the view. */
@@ -168,8 +168,8 @@ export function neuronsLayer(
   const fade = varying(min(px.div(MIN_PX), 1));
   const hovered = uniform(-1);
   const isHover = varying(select(segC.x.equal(hovered), float(1), float(0)));
-  // c.w = view depth; the orbit target is the origin
-  const behind = c.w.sub(length(cameraPosition)).div(DEPTH_RANGE);
+  // c.w = view depth
+  const behind = c.w.sub(orbitDistance).div(DEPTH_RANGE);
   const depthDim = varying(mix(1, FAR_DIM, smoothstep(-1, 1, behind)));
   const across = abs(varying(positionGeometry.y));
   const glow = oneMinus(across).pow(1.5);

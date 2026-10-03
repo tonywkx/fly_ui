@@ -14,13 +14,28 @@ import {
 } from 'three/webgpu';
 import { frameDistance } from './frame';
 import { sampleFrame } from './frameStats';
-import { type Pose, posePosition } from './intro';
+import { EASE_IN_OUT, type Pose, posePosition } from './intro';
+import { orbitDistance } from './orbit';
 import type { Preset } from './quality';
 
 /** Breathing room around the CNS front face in the initial framing. */
 const FRAME_MARGIN = 1.0;
 /** Bloom picks up only the HDR spike fronts; the resting glow stays below the threshold. */
 const BLOOM = { strength: 0.5, radius: 0.4, threshold: 1.0 };
+/** Fly-to: duration and framing margin around the neuron's bounding sphere. */
+const FLY_MS = 900;
+const FLY_MARGIN = 1.6;
+
+interface Flight {
+  t0: number;
+  ms: number;
+  fromTarget: Vector3;
+  toTarget: Vector3;
+  fromDist: number;
+  toDist: number;
+  /** Unit vector target → camera, kept for the whole flight. */
+  dir: Vector3;
+}
 
 export type Backend = 'webgpu' | 'webgl2';
 
@@ -48,6 +63,8 @@ export class Engine {
   private readonly resize = new ResizeObserver(() => this.fit());
   private readonly hooks = new Set<(now: number) => void>();
   private initialized?: Promise<unknown>;
+  private flight: Flight | null = null;
+  private readonly reducedMotion: boolean;
 
   constructor(
     private readonly host: HTMLElement,
@@ -62,6 +79,11 @@ export class Engine {
     host.appendChild(this.renderer.domElement);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = !opts.reducedMotion;
+    this.reducedMotion = opts.reducedMotion;
+    // the user takes over: drop a flight in progress
+    this.controls.addEventListener('start', () => {
+      this.flight = null;
+    });
     this.scene.add(this.world);
     const scenePass = pass(this.scene, this.camera);
     const color = scenePass.getTextureNode('output');
@@ -124,10 +146,36 @@ export class Engine {
     this.controls.update();
   }
 
-  /** Camera on its orbit around the target (the origin). */
+  /** Camera on its orbit around the origin (intro poses). */
   setPose(p: Pose) {
     this.camera.position.fromArray(posePosition(p));
     this.camera.lookAt(this.controls.target);
+  }
+
+  /**
+   * Orbit around `center` (world) at a distance framing a sphere of `radius`, keeping the view
+   * direction. Animated (strong ease-in-out) unless reduced motion; user input cancels it.
+   */
+  flyTo(center: Vector3, radius: number) {
+    const toDist = Math.min(
+      this.controls.maxDistance,
+      Math.max(
+        this.controls.minDistance,
+        frameDistance([radius, radius, radius], this.camera.fov, this.camera.aspect, FLY_MARGIN),
+      ),
+    );
+    const fromTarget = this.controls.target.clone();
+    const offset = this.camera.position.clone().sub(fromTarget);
+    const fromDist = offset.length();
+    this.flight = {
+      t0: performance.now(),
+      ms: this.reducedMotion ? 0 : FLY_MS,
+      fromTarget,
+      toTarget: center.clone(),
+      fromDist,
+      toDist,
+      dir: offset.divideScalar(fromDist || 1),
+    };
   }
 
   /** User starts orbiting / zooming; returns an unsubscribe. */
@@ -159,11 +207,24 @@ export class Engine {
   }
 
   private frame(now: number) {
+    this.fly(now);
     this.controls.update();
+    orbitDistance.value = this.camera.position.distanceTo(this.controls.target);
     for (const fn of this.hooks) fn(now);
     const t0 = performance.now();
     this.pipeline.render();
     sampleFrame(now, performance.now() - t0);
+  }
+
+  private fly(now: number) {
+    const f = this.flight;
+    if (!f) return;
+    const k = f.ms > 0 ? Math.min(1, (now - f.t0) / f.ms) : 1;
+    const e = EASE_IN_OUT(k);
+    this.controls.target.lerpVectors(f.fromTarget, f.toTarget, e);
+    const d = f.fromDist + (f.toDist - f.fromDist) * e;
+    this.camera.position.copy(f.dir).multiplyScalar(d).add(this.controls.target);
+    if (k >= 1) this.flight = null;
   }
 
   private fit() {

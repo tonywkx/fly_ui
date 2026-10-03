@@ -1,5 +1,4 @@
 import {
-  cameraPosition,
   clamp,
   color,
   cos,
@@ -34,6 +33,7 @@ import {
   SpriteNodeMaterial,
 } from 'three/webgpu';
 import { bezierLut, EASE_IN_OUT, INTRO } from '../intro';
+import { orbitDistance } from '../orbit';
 
 const DUST_COLOR = 0xb4bccc;
 /** Sprite diameter in µm (world units after `Engine.setFrame`). */
@@ -89,8 +89,8 @@ export class CloudLayer {
     mat.positionNode = flight?.position ?? target;
     mat.scaleNode = uniform(POINT_SIZE / this.worldScale);
     mat.colorNode = color(DUST_COLOR);
-    // positionView.z < 0 in front of the camera; orbit target is the origin
-    const behind = positionView.z.negate().sub(length(cameraPosition)).div(DEPTH_RANGE);
+    // positionView.z < 0 in front of the camera
+    const behind = positionView.z.negate().sub(orbitDistance).div(DEPTH_RANGE);
     const depthDim = mix(1, FAR_DIM, smoothstep(-1, 1, behind));
     const disc = oneMinus(smoothstep(0.15, 0.5, length(uv().sub(0.5))));
     mat.opacityNode = disc
