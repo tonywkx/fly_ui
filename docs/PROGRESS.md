@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-03 — 4.1 GPU picking, hover highlight + tooltip
+Done: `apps/web/src/scene/pick.ts` (`Picker`: RGBA8 id target = drawing-buffer size, 9×9 readback, `nearestHit`/`decodeIds` tested); `neuronsLayer` → shared `ribbon()` vertex, `pickMesh` (id = row+1 as 24-bit rgb) + `hovered` uniform (whole-neuron boost, colour modes whiten); `startPicking` in `Stage.tsx` → `app.hover`; `ui/NeuronTooltip.tsx` (position imperative, content via MobX); `?pick=x,y` param + `pick` ready flag.
+State: 72 web tests, typecheck, lint green. Snap `--scenario=escape --t=40 --pick=0.39,0.37` → DNpe042 highlighted + tooltip, identical on `--gl=webgl2`; `--debug=id --pick=0.766,0.405` → LPLC2. Picks only on pointer/camera move, off while dragging, mouse/pen only (no touch).
+Next: 4.2 Inspector (type, NT, inputs/outputs, fly-to / stimulate / silence); focus dimming, inputs vs outputs colours.
+Gotchas: R32F `readPixels(RED, FLOAT)` returns nothing on WebGL2 → RGBA8 packing. WebGL readback is bottom-up (Picker flips window + centre). `fragmentNode` bypasses tone mapping/colour space, so ids are exact. Tailwind v4 drops unused `@theme` vars (`--color-nt-*` empty in inline styles) → use `NT_COLORS[nt].hex`. Snaps fire right after the pick → tooltip fade disabled under `snap`.
+
 ## 2026-10-02 — 3.7 GF-silenced residual TTMn route
 Done: `apps/pipeline/src/process/drive.ts` (`inputDrive` = per-pre Σ spikes·w onto targets, `firstSpike`; tested); `apps/pipeline/src/explore/gfRoute.ts` (`pnpm --filter pipeline explore:gf`, ~1 min, prints markdown); findings in `data/scout/escape.md` §GF silenced.
 State: Phase 3 done. Without GF, TTMn 30–62 Hz, 1st spike 16–19 ms (intact ≈225 Hz, 8 ms). Route is distributed: DNp02+DNp06+DNp103 → AN19B001 → IN07B055/GFC2 → TTMn, plus weak direct DNp06/DNp02. No single knockout kills it; DN group → 5 Hz, relays → 7 Hz, all → 0.
@@ -23,9 +29,3 @@ Done: `packages/sim` `clearSpikes()`; `apps/web/src/sim/` — `feed.ts` (`SpikeF
 State: 251 tests, typecheck, lint green. Snaps escape t=40 baked ≈ live (same engine/seed); live loads 176k/6.3M in ~0.2 s locally, runs ≈54 sim ms/s in headless Chromium (needs 40 → 1.35× headroom; clock slows, never desyncs). No UI yet for stimulate/silence (phase 4).
 Next: 3.5 Tweakpane dev-only param panel (thresholds, weights, gain) — live mode needs `Live` params reset path (currently only seed/params at construction).
 Gotchas: visual-qa: escape t=40 lights mostly optic-lobe patches (GF etc. not distinct); song t=60 is a near-saturated blob in SEZ — gain/bloom or tuning (3.6). Live stim order = sorted scenario rows vs baked full-row order → RNG stream differs, so live ≠ baked bit-exactly. Speed only logged after 20 batches (`[sim] N sim ms/s`).
-
-## 2026-10-02 — 3.3 full-graph run → baked spike trains
-Done: `packages/data/src/spikes.ts` (`spikes` chunk, FORMAT_VERSION 3, `spikeTrainFrom`/`encodeSpikes`/`decodeSpikes`, web `decode.ts` case); `apps/pipeline/src/process/spikes.ts` (`runScenario`, `scenarioRows`, `typeRates`) + `scenarios.ts` (`SCENARIO_RUNS`); `bake.ts` runs each scenario on the full graph → `<id>-spikes.bin` first-frame.
-State: bake green, first-frame 11.32/15 MB, spikes chunks 0.02–0.06 MB; tests/typecheck/lint clean; escape snap unchanged. Scene does not play spikes yet (still fake BFS wave).
-Next: 3.4 Worker live mode via comlink + ring buffer to the scene's last-spike R32F texture (baked `spikes` can drive the same texture as a playback fallback).
-Gotchas: 300 ms runs (Hz): escape GF 415 (near max), TTMn 35, DLMn c-f 345; song pIP10 68 → dPR1 102 → hg1 MN 128; **sugar MN9/MN8 0** (GNG015 252, DNge055 153) → 3.6. Peak active set ≈95k/176k (subthreshold included), ≈3.5 s/run in Node. No overrides (GF→TTMn electrical) yet. `stats.spikes` == Σtotal only because run(duration) ends exactly on the last binned step.

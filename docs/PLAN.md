@@ -58,7 +58,7 @@ Phase exit = its "Done when" is true and demoable.
 **Risk:** parameter tuning (dies out vs. seizure-like explosion) is the least predictable part of the project — budget +1 week here. Validate against published Shiu et al. results, not by running Brian2.
 
 ## Phase 4 — Interaction layer (≈2 weeks)
-- [ ] 4.1 GPU picking (id buffer), hover highlight whole neuron + tooltip. **[V]**
+- [x] 4.1 GPU picking (id buffer), hover highlight whole neuron + tooltip. **[V]**
 - [ ] 4.2 Inspector (type, NT, inputs/outputs, fly-to / stimulate / silence); focus dimming, inputs vs outputs colors. **[UI]**
 - [ ] 4.3 Tools + hotkeys: Stimulate (click/brush), Silence, Electrode (≤4 probes); sliders for stimulus strength/frequency. **[UI]**
 - [ ] 4.3b Signal tracer "eye to leg": pick input type + output type → strongest paths (type graph, k-best by summed weight) → highlighted hop by hop in 3D. **[T]** path search **[V]**
