@@ -89,6 +89,15 @@ const PARTNER_LEVEL = 0.3;
 const PARTNER_ALPHA = GAIN;
 /** Silenced: resting brightness, no wave. */
 const SILENCED_LEVEL = 0.35;
+/** Traced path: a populous hop type (dozens of LPLC2 stack additively) is drawn at least this bright
+ *  (× tint) and opaque; a hop of a few neurons (the GF) goes up to the hovered level (`traceGain`). */
+const TRACE_LEVEL = 0.45;
+const TRACE_ALPHA = 0.25;
+/** Hop slots in `traceGain` (index = hop + 1; ≥ path types + 1). */
+export const TRACE_SLOTS = 8;
+/** Travelling pulse along the path: extra brightness at its peak, width in hops. */
+const TRACE_PULSE = 1.2;
+const TRACE_PULSE_HOPS = 0.6;
 /** Width of the per-row spike texture. */
 const TEX_W = 256;
 
@@ -118,13 +127,23 @@ export interface NeuronsLayer {
   /** Graph row drawn highlighted (−1 = none). */
   hovered: { value: number };
   /**
-   * Per row `role, silenced, probe, 0` (see `ROLE`; silenced 0/1; probe = electrode slot + 1, 0 = none);
+   * Per row `role, silenced, probe, hop` (see `ROLE`; silenced 0/1; probe = electrode slot + 1, 0 = none;
+   * hop = 1 + index on the traced path, 0 = off it);
    * call `commitState` after writing.
    */
   rowState: Float32Array;
   commitState(): void;
   /** 0..1: how far the focus look (roles coloured, the rest dimmed) is applied. */
   focus: { value: number };
+  /** 0..1: how far the trace look (path hops coloured input → output, the rest dimmed) is applied. */
+  trace: { value: number };
+  /** Per hop slot (1 + hop index) 0..1: emphasis from `TRACE_LEVEL` up to the hovered look; read every frame. */
+  traceGain: number[];
+  /** Hops on the traced path (ramp length). */
+  traceHops: { value: number };
+  /** Hops revealed so far (fractional: the reveal front), and the travelling pulse position (hops). */
+  traceReveal: { value: number };
+  tracePulse: { value: number };
   /** Same ribbons, opaque, writing `row + 1` (0 = no neuron) packed into rgb — for an RGBA8 id target. */
   pickMesh: Mesh;
 }
@@ -175,12 +194,31 @@ export function neuronsLayer(
   stateTex.needsUpdate = true;
   const state = select(
     row.greaterThanEqual(0),
-    textureLoad(stateTex, ivec2(row.mod(TEX_W), row.div(TEX_W))).xyz,
-    vec3(0, 0, 0),
+    textureLoad(stateTex, ivec2(row.mod(TEX_W), row.div(TEX_W))),
+    vec4(0, 0, 0, 0),
   );
   const hovered = uniform(-1);
   const isHover = varying(select(segC.x.equal(hovered), float(1), float(0)));
-  const focus = uniform(0);
+  const focusIn = uniform(0);
+  const trace = uniform(0);
+  const traceHops = uniform(1);
+  const traceReveal = uniform(0);
+  const tracePulse = uniform(-10);
+  // the trace look replaces the focus look while it is on
+  const focus = focusIn.mul(oneMinus(trace));
+  const hop = varying(state.w);
+  const shownHop = varying(select(hop.greaterThan(0.5), clamp(traceReveal.sub(hop.sub(1)), 0, 1), float(0)));
+  const onPath = varying(shownHop.mul(trace));
+  const hopPulse = varying(
+    exp(tracePulse.sub(hop).div(TRACE_PULSE_HOPS).pow(2).negate()).mul(onPath).mul(TRACE_PULSE),
+  );
+  const traceGain = uniformArray(Array<number>(TRACE_SLOTS).fill(0), 'float');
+  const hopGain = varying(traceGain.element(int(hop.min(TRACE_SLOTS - 1))) as unknown as Node<'float'>);
+  const pathTint = mix(
+    vec3(...FOCUS.input.rgb),
+    vec3(...FOCUS.output.rgb),
+    hop.sub(1).div(traceHops.sub(1).max(1)).clamp(0, 1),
+  );
   const role = varying(state.x);
   const silenced = varying(state.y);
   const isProbe = varying(select(state.z.greaterThan(0.5), float(1), float(0)));
@@ -205,7 +243,7 @@ export function neuronsLayer(
   const baseTint = mode === 'id' ? codeColor(segC.x) : mode === 'region' ? codeColor(segC.w) : ntTint;
   // focused: partners take their role colour; silenced always grey
   const isPartner = select(state.x.greaterThan(0.5), float(1), float(0));
-  const focusTint = mix(baseTint, roleTint, isPartner.mul(focus));
+  const focusTint = mix(mix(baseTint, roleTint, isPartner.mul(focus)), pathTint, onPath);
   const probeColors = uniformArray(
     PROBES.map((c) => new Color(...c.rgb)),
     'color',
@@ -216,9 +254,11 @@ export function neuronsLayer(
     mix(mix(focusTint, roleColors.element(0) as unknown as Node<'vec3'>, state.y), probeTint, isProbe),
   );
   // 1 = unrelated neuron while focused (electrodes never dim)
-  const ctx = oneMinus(select(role.greaterThan(0.5), float(1), float(0)))
-    .mul(focus)
-    .mul(oneMinus(isProbe));
+  const ctx = mix(
+    oneMinus(select(role.greaterThan(0.5), float(1), float(0))).mul(focus),
+    oneMinus(shownHop),
+    trace,
+  ).mul(oneMinus(isProbe));
   const partner = oneMinus(ctx.add(oneMinus(focus)).min(1));
   // the selected neuron and electrodes are lit like the hovered one; `emph` = any
   const sel = select(abs(role.sub(1)).lessThan(0.5), focus, float(0));
@@ -241,7 +281,8 @@ export function neuronsLayer(
   } else if (mode) {
     mat.colorNode = mix(tint, vec3(1), emph.mul(HOVER_WHITEN))
       .mul(shade)
-      .mul(mix(1, CONTEXT_LEVEL, ctx));
+      .mul(mix(1, CONTEXT_LEVEL, ctx))
+      .add(hopPulse.mul(0.3));
   } else {
     // distance the front has run past this point (µm); < 0 = not reached yet
     const past = age.mul(WAVE_UM_PER_MS).sub(distUm);
@@ -255,11 +296,18 @@ export function neuronsLayer(
     const after = select(past.greaterThanEqual(0), exp(age.negate().div(AFTERGLOW_MS)), float(0)).mul(live);
     const rest = mix(float(REST), float(SILENCED_LEVEL), silenced);
     const active = rest.add(pulse.mul(PULSE)).add(after.mul(AFTERGLOW));
-    const focused = max(active, partner.mul(PARTNER_LEVEL)).mul(mix(1, CONTEXT_LEVEL, ctx));
-    const level = max(focused, emph.mul(HOVER_LEVEL));
+    const focused = max(
+      active,
+      max(partner.mul(PARTNER_LEVEL), onPath.mul(mix(TRACE_LEVEL, HOVER_LEVEL, hopGain))),
+    ).mul(mix(1, CONTEXT_LEVEL, ctx));
+    const level = max(focused, emph.mul(HOVER_LEVEL)).add(hopPulse);
     mat.colorNode = mix(tint, vec3(1), core.add(pulse.mul(0.5)).min(1)).mul(level);
     const base = mix(mix(float(GAIN), float(PARTNER_ALPHA), partner), float(GAIN * CONTEXT_ALPHA), ctx);
-    const gain = mix(base, float(HOVER_ALPHA), emph);
+    const gain = mix(
+      mix(base, mix(float(TRACE_ALPHA), float(HOVER_ALPHA), hopGain), onPath),
+      float(HOVER_ALPHA),
+      emph,
+    );
     mat.opacityNode = glow.mul(fade).mul(depthDim).mul(gain).mul(reveal);
   }
 
@@ -290,7 +338,12 @@ export function neuronsLayer(
     commitState: () => {
       stateTex.needsUpdate = true;
     },
-    focus,
+    focus: focusIn,
+    trace,
+    traceGain: traceGain.array as number[],
+    traceHops,
+    traceReveal,
+    tracePulse,
     pickMesh,
   };
 }

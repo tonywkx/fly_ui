@@ -18,6 +18,7 @@ import { Picker } from './pick';
 import { bakedSource, play } from './playback';
 import { FpsGuard, QUALITY } from './quality';
 import { buildSegments, rowBounds } from './segments';
+import { startTrace } from './trace';
 
 /** First-frame dust chunk the intro assembles. */
 const DUST = 'cloud-lod0';
@@ -249,6 +250,8 @@ function populate(engine: Engine, intro: Intro, stops: (() => void)[]) {
     if (neurons.mesh.visible) stops.push(...startPicking(engine, neurons));
     const graph = data.get(`${data.scenario}-graph`, 'graph');
     stops.push(...startFocus(engine, neurons, meta, graph, rowBounds(seg, meta.n)));
+    const types = data.manifest?.chunks.find((c) => c.id === 'typegraph-full');
+    stops.push(...startTrace(engine, neurons, meta, types && data.url(types)));
   }
 
   intro.ready();
