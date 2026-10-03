@@ -8,12 +8,14 @@ import { cn } from '@/lib/utils';
 import { app } from '@/state/app';
 import { experiment, keyAction, MAX_PROBES, STIM_RANGE, TOOL_KEYS, type Tool } from '@/state/experiment';
 import { PROBES } from '@/ui/palette';
+import { Tracer } from '@/ui/Tracer';
 
 const TOOLS: { tool: Tool; label: string; hint: string }[] = [
   { tool: 'select', label: 'Select', hint: 'Click a neuron to inspect it.' },
   { tool: 'stimulate', label: 'Stimulate', hint: 'Click or drag across neurons to drive them.' },
   { tool: 'silence', label: 'Silence', hint: 'Click or drag across neurons to silence them.' },
   { tool: 'electrode', label: 'Electrode', hint: 'Click a neuron to place an electrode.' },
+  { tool: 'trace', label: 'Trace', hint: 'Click a neuron for From, another for To, or type a cell type.' },
 ];
 
 /** Keys typed into a field are not hotkeys. */
@@ -21,8 +23,8 @@ const typing = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
 
 /**
- * Tool rail (Select / Stimulate / Silence / Electrode) with the active tool's options above it:
- * stimulus rate and strength, electrode slots. Owns the global hotkeys (V S X E, Esc).
+ * Tool rail (Select / Stimulate / Silence / Electrode / Trace) with the active tool's options above it:
+ * stimulus rate and strength, electrode slots, tracer ends and paths. Owns the global hotkeys (V S X E T, Esc).
  * `?ui=<tool>` (snaps) starts with that tool.
  */
 export const Toolbar = observer(function Toolbar() {
@@ -69,9 +71,16 @@ export const Toolbar = observer(function Toolbar() {
         ))}
       </div>
       {active && active.tool !== 'select' && (
-        <div className="pointer-events-auto flex w-50 max-w-full flex-col gap-1 rounded-xl bg-card p-2 backdrop-blur-md">
+        <div
+          className={cn(
+            'pointer-events-auto flex max-w-full flex-col gap-1 rounded-xl p-2 backdrop-blur-md',
+            // the trace panel sits over the lit specimen: denser backing keeps its text legible
+            active.tool === 'trace' ? 'w-60 bg-popover' : 'w-50 bg-card',
+          )}
+        >
           {active.tool === 'stimulate' && <StimControls />}
           {active.tool === 'electrode' && <Probes />}
+          {active.tool === 'trace' && <Tracer />}
           <p className="text-caption text-ash">{active.hint}</p>
           <p aria-live="polite" className="text-caption text-mist empty:hidden">
             {active.tool === 'electrode' && experiment.probesFull
