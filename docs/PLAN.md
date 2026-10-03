@@ -63,7 +63,7 @@ Phase exit = its "Done when" is true and demoable.
 - [x] 4.3 Tools + hotkeys: Stimulate (click/brush), Silence, Electrode (≤4 probes); sliders for stimulus strength/frequency. **[UI]**
 - [x] 4.3b Signal tracer "eye to leg": pick input type + output type → strongest paths (type graph, k-best by input-fraction product, see DECISIONS) → highlighted hop by hop in 3D. **[T]** path search **[V]**
 - [x] 4.4 Timeline: canvas raster by region, scrub/pause/slow-mo. **[V]** **[UI]**
-- [ ] 4.5 Oscilloscopes (uPlot) for electrodes. Bklit UI only for non-realtime stats (firing-rate bars etc.).
+- [x] 4.5 Oscilloscopes (uPlot) for electrodes. Bklit UI only for non-realtime stats (firing-rate bars etc.).
 - [ ] 4.6 ⌘K (cmdk) cell-type search, color modes (region/NT/class/male-specific) with legend. **[UI]**
 - [ ] 4.7 Experiment URL encoding (stimuli + silenced ids, compact base64url) + "Share experiment". **[T]**
 - [ ] 4.8 Motion pass over the whole HUD. **[S]** find-animation-opportunities → animate → review-animations
