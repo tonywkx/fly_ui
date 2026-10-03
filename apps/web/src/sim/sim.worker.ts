@@ -59,8 +59,8 @@ const api = {
     return transfer(b, [b.t.buffer, b.row.buffer]);
   },
 
-  stimulate(row: number, hz?: number) {
-    need().stimulate(row, hz);
+  stimulate(row: number, hz?: number, gain?: number) {
+    need().stimulate(row, hz, gain);
   },
 
   silence(row: number, on = true) {

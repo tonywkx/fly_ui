@@ -66,9 +66,9 @@ export class LiveClient {
       });
   }
 
-  /** Poisson drive at `hz` on a scenario row (omitted: the default rate; 0 removes it). */
-  stimulate(row: number, hz?: number): Promise<void> {
-    return this.api.stimulate(row, hz);
+  /** Poisson drive at `hz` on a scenario row (omitted: the default rate; 0 removes it), kicks × `gain`. */
+  stimulate(row: number, hz?: number, gain?: number): Promise<void> {
+    return this.api.stimulate(row, hz, gain);
   }
 
   silence(row: number, on: boolean): Promise<void> {

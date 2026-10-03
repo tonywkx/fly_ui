@@ -63,10 +63,10 @@ export class Live {
     return out;
   }
 
-  /** Poisson drive at `hz` on a scenario row (0 removes it). */
-  stimulate(row: number, hz?: number): void {
+  /** Poisson drive at `hz` on a scenario row (0 removes it), kicks scaled by `gain`. */
+  stimulate(row: number, hz?: number, gain?: number): void {
     const i = this.full(row);
-    if (i >= 0) this.sim.stimulate(i, hz);
+    if (i >= 0) this.sim.stimulate(i, hz, gain);
   }
 
   silence(row: number, on = true): void {

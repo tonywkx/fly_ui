@@ -37,6 +37,7 @@ export class Sim {
   private nActive = 0;
   private readonly rng: Rng;
   private readonly stimP: Float64Array; // Poisson kick probability per step
+  private readonly stimK: Float32Array; // Poisson kick gain per neuron
   private stimIds: number[] = [];
   private readonly silenced: Uint8Array;
   // delay FIFO (uniform delay → due steps are monotone): ring of (due step, pre id)
@@ -64,6 +65,7 @@ export class Sim {
     this.isActive = new Uint8Array(n);
     this.rng = rng;
     this.stimP = new Float64Array(n);
+    this.stimK = new Float32Array(n);
     this.silenced = new Uint8Array(n);
     this.decayM = Math.exp(-dt / tm);
     this.decayS = Math.exp(-dt / ts);
@@ -88,10 +90,11 @@ export class Sim {
     this.activate(i);
   }
 
-  /** Poisson drive on neuron i at `hz` (0 removes it). */
-  stimulate(i: number, hz: number = this.p.poissonRate): void {
+  /** Poisson drive on neuron i at `hz` (0 removes it), kicks scaled by `gain`. */
+  stimulate(i: number, hz: number = this.p.poissonRate, gain = 1): void {
     const had = (this.stimP[i] as number) > 0;
     this.stimP[i] = (hz * this.p.dt) / 1000;
+    this.stimK[i] = gain;
     if (hz > 0 && !had) this.stimIds.push(i);
     else if (hz <= 0 && had) this.stimIds = this.stimIds.filter((j) => j !== i);
   }
@@ -151,12 +154,12 @@ export class Sim {
   }
 
   private poisson(): void {
-    const { stimIds, stimP, silenced, v, rng } = this;
+    const { stimIds, stimP, stimK, silenced, v, rng } = this;
     const kick = this.p.wSyn * this.p.poissonScale;
     for (let k = 0; k < stimIds.length; k++) {
       const i = stimIds[k] as number;
       if (rng() >= (stimP[i] as number) || silenced[i]) continue; // draw first: rng use is state-independent
-      v[i] = (v[i] as number) + kick;
+      v[i] = (v[i] as number) + kick * (stimK[i] as number);
       this.activate(i);
     }
   }

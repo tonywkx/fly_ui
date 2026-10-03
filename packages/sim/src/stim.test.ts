@@ -37,6 +37,32 @@ describe('poisson stimulus', () => {
     expect(sim.spikes.t[0]).toBeCloseTo(dt, 6);
   });
 
+  it('scales the kick by gain (default 1)', () => {
+    const kickOf = (gain?: number) => {
+      const sim = createSim(netFromEdges(1, []), {}, mulberry32(3));
+      sim.stimulate(0, 1e5, gain);
+      sim.step();
+      return (sim.v[0] as number) - LIF_DEFAULTS.vRest;
+    };
+    const small = kickOf(0.05); // 3.4 mV: below threshold
+    expect(small).toBeGreaterThan(0);
+    expect(kickOf(0.1)).toBeCloseTo(small * 2, 9);
+    // gain 1 fires: back at reset, one spike
+    const sim = createSim(netFromEdges(1, []), {}, mulberry32(3));
+    sim.stimulate(0, 1e5);
+    sim.step();
+    expect(sim.spikes.count).toBe(1);
+  });
+
+  it('updates rate and gain of a stimulated neuron in place', () => {
+    const sim = createSim(netFromEdges(1, []), {}, mulberry32(3));
+    sim.stimulate(0, 1e5);
+    sim.stimulate(0, 1e5, 0.05);
+    sim.step();
+    expect(sim.spikes.count).toBe(0);
+    expect(sim.v[0]).toBeGreaterThan(LIF_DEFAULTS.vRest);
+  });
+
   it('stops when the rate is set to 0', () => {
     const sim = createSim(netFromEdges(1, []), {}, mulberry32(1));
     sim.stimulate(0);
