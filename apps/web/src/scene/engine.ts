@@ -178,6 +178,11 @@ export class Engine {
     };
   }
 
+  /** Orbit / zoom input on or off (off during a brush stroke). */
+  setOrbit(on: boolean): void {
+    this.controls.enabled = on;
+  }
+
   /** User starts orbiting / zooming; returns an unsubscribe. */
   onUserInput(fn: () => void): () => void {
     this.controls.addEventListener('start', fn);

@@ -41,11 +41,11 @@ import {
   MeshBasicNodeMaterial,
   type Node,
   RedFormat,
-  RGFormat,
+  RGBAFormat,
 } from 'three/webgpu';
 import { NEVER } from '@/sim/feed';
 import type { DebugMode } from '@/state/params';
-import { FOCUS, hexToLinear, NT_COLORS, SILENCED } from '@/ui/palette';
+import { FOCUS, hexToLinear, NT_COLORS, PROBES, SILENCED } from '@/ui/palette';
 import { orbitDistance } from '../orbit';
 import { SEG_STRIDE } from '../segments';
 
@@ -117,7 +117,10 @@ export interface NeuronsLayer {
   commit(): void;
   /** Graph row drawn highlighted (−1 = none). */
   hovered: { value: number };
-  /** Per row `role, silenced` (see `ROLE`; silenced 0/1); call `commitState` after writing. */
+  /**
+   * Per row `role, silenced, probe, 0` (see `ROLE`; silenced 0/1; probe = electrode slot + 1, 0 = none);
+   * call `commitState` after writing.
+   */
   rowState: Float32Array;
   commitState(): void;
   /** 0..1: how far the focus look (roles coloured, the rest dimmed) is applied. */
@@ -166,20 +169,21 @@ export function neuronsLayer(
     float(NEVER),
   );
   const age = varying(simTime.sub(spike));
-  // focus role + silenced per row (rows without meta: context, not silenced)
-  const rowState = new Float32Array(TEX_W * texH * 2);
-  const stateTex = new DataTexture(rowState, TEX_W, texH, RGFormat, FloatType);
+  // focus role, silenced, probe slot per row (rows without meta: context, not silenced, no probe)
+  const rowState = new Float32Array(TEX_W * texH * 4);
+  const stateTex = new DataTexture(rowState, TEX_W, texH, RGBAFormat, FloatType);
   stateTex.needsUpdate = true;
   const state = select(
     row.greaterThanEqual(0),
-    textureLoad(stateTex, ivec2(row.mod(TEX_W), row.div(TEX_W))).xy,
-    vec2(0, 0),
+    textureLoad(stateTex, ivec2(row.mod(TEX_W), row.div(TEX_W))).xyz,
+    vec3(0, 0, 0),
   );
   const hovered = uniform(-1);
   const isHover = varying(select(segC.x.equal(hovered), float(1), float(0)));
   const focus = uniform(0);
   const role = varying(state.x);
   const silenced = varying(state.y);
+  const isProbe = varying(select(state.z.greaterThan(0.5), float(1), float(0)));
   const distUm = varying(mix(segA.w, segB.w, positionGeometry.x).mul(worldScale));
 
   const mat = mode
@@ -202,10 +206,21 @@ export function neuronsLayer(
   // focused: partners take their role colour; silenced always grey
   const isPartner = select(state.x.greaterThan(0.5), float(1), float(0));
   const focusTint = mix(baseTint, roleTint, isPartner.mul(focus));
-  const tint = varying(mix(focusTint, roleColors.element(0) as unknown as Node<'vec3'>, state.y));
-  // 1 = unrelated neuron while focused
-  const ctx = oneMinus(select(role.greaterThan(0.5), float(1), float(0))).mul(focus);
-  const partner = oneMinus(ctx.add(oneMinus(focus)).min(1));
+  const probeColors = uniformArray(
+    PROBES.map((c) => new Color(...c.rgb)),
+    'color',
+  );
+  const probeTint = probeColors.element(int(state.z.sub(1).max(0))) as unknown as Node<'vec3'>;
+  // electrodes keep their slot colour over everything (also silenced)
+  const tint = varying(
+    mix(mix(focusTint, roleColors.element(0) as unknown as Node<'vec3'>, state.y), probeTint, isProbe),
+  );
+  // 1 = unrelated neuron while focused (electrodes never dim)
+  const ctx = oneMinus(select(role.greaterThan(0.5), float(1), float(0)))
+    .mul(focus)
+    .mul(oneMinus(isProbe));
+  // lit like a partner: role partners while focused, electrodes always
+  const partner = max(oneMinus(ctx.add(oneMinus(focus)).min(1)), isProbe);
   // the selected neuron is lit like the hovered one; `emph` = either
   const sel = select(abs(role.sub(1)).lessThan(0.5), focus, float(0));
   const emph = max(isHover, sel);

@@ -51,6 +51,9 @@ export const FOCUS = {
 /** Silenced neurons: grey, no waves. */
 export const SILENCED = swatch('#6e6e6e');
 
+/** Electrode slots (scene tint, chip, oscilloscope trace): apart from the transmitter hues. */
+export const PROBES: readonly Swatch[] = ['#c6ff3d', '#ff6b4a', '#5cf2ff', '#fff2a8'].map(swatch);
+
 /** Male-specific highlight colour mode. */
 export const MALE = swatch('#ff2fb3');
 

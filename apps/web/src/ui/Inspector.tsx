@@ -24,7 +24,7 @@ interface Shown {
 
 /**
  * Selected neuron: identity, actions (stimulate / silence / fly to) and its inputs and outputs within
- * the scenario circuit. Stays mounted (fades out with the last neuron); Esc closes.
+ * the scenario circuit. Stays mounted (fades out with the last neuron); Esc closes (`Toolbar` hotkeys).
  */
 export const Inspector = observer(function Inspector() {
   const meta = data.scenario ? data.get(`${data.scenario}-meta`, 'meta') : undefined;
@@ -36,15 +36,6 @@ export const Inspector = observer(function Inspector() {
     last.current = { row, n: neuronAt(meta, row), p: graph ? partners(graph, meta, row) : null };
   }
   const s = last.current;
-
-  useEffect(() => {
-    if (!open) return;
-    const esc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !e.defaultPrevented) experiment.select(null);
-    };
-    window.addEventListener('keydown', esc);
-    return () => window.removeEventListener('keydown', esc);
-  }, [open]);
 
   return (
     <aside

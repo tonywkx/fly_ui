@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { NTS } from '@fly/data';
 import { describe, expect, it } from 'vitest';
-import { contrast, hexToLinear, MALE, NT_COLORS, TEXT } from './palette';
+import { MAX_PROBES } from '@/state/experiment';
+import { contrast, hexToLinear, MALE, NT_COLORS, PROBES, TEXT } from './palette';
 
 const css = readFileSync(new URL('./theme.css', import.meta.url), 'utf8');
 const cssVar = (name: string) =>
@@ -28,5 +29,11 @@ describe('palette', () => {
 
   it('text tokens reach 4.5:1 on black', () => {
     for (const [k, v] of Object.entries(TEXT)) expect(contrast(v, '#000000'), k).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('has a distinct, readable colour per electrode slot', () => {
+    expect(PROBES).toHaveLength(MAX_PROBES);
+    expect(new Set(PROBES.map((p) => p.hex)).size).toBe(MAX_PROBES);
+    for (const p of PROBES) expect(contrast(p.hex, '#000000'), p.hex).toBeGreaterThanOrEqual(4.5);
   });
 });

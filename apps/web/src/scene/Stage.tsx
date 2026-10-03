@@ -1,5 +1,5 @@
 import type { NeuronTable } from '@fly/data';
-import { reaction, when } from 'mobx';
+import { autorun, reaction, when } from 'mobx';
 import { useEffect, useRef } from 'react';
 import { uniform } from 'three/tsl';
 import { type Node, Vector3 } from 'three/webgpu';
@@ -263,44 +263,62 @@ function populate(engine: Engine, intro: Intro, stops: (() => void)[]) {
 
 /**
  * Hover: GPU-picks the neuron under a mouse/pen pointer (not while dragging the orbit) into
- * `app.hover`, which highlights it. `?pick=x,y` picks once at that viewport point (snaps).
+ * `app.hover`, which highlights it; a click applies the active tool. With Stimulate / Silence a drag
+ * that starts on a neuron is a brush stroke (orbit off meanwhile), elsewhere it orbits.
+ * `?pick=x,y` picks once at that viewport point (snaps).
  */
 function startPicking(engine: Engine, layer: NeuronsLayer): (() => void)[] {
   const canvas = engine.renderer.domElement;
   const { pick } = app.params;
   if (pick) app.waitFor('pick');
+  // click = press and release within CLICK_PX without orbiting; applies the tool to the row under the press
+  let press: { x: number; y: number; row: number | null; stroke: boolean; moved: boolean } | null = null;
   const picker = new Picker(engine, layer.pickMesh, (row) => {
     if (row !== app.hover) app.setHover(row);
+    if (press?.moved && row !== null) experiment.paint(row);
     if (pick) app.markReady('pick');
   });
   let dragging = false;
-  // click = press and release within CLICK_PX without orbiting; selects the row under the press
-  let press: { x: number; y: number; row: number | null } | null = null;
   const at = (e: PointerEvent): [number, number] | null => {
     const r = canvas.getBoundingClientRect();
     const x = e.clientX - r.left;
     const y = e.clientY - r.top;
     return e.pointerType === 'touch' || x < 0 || y < 0 || x >= r.width || y >= r.height ? null : [x, y];
   };
+  const far = (e: PointerEvent, p: { x: number; y: number }) =>
+    Math.hypot(e.clientX - p.x, e.clientY - p.y) > CLICK_PX;
   const move = (e: PointerEvent) => {
+    if (press?.stroke && !press.moved && far(e, press)) {
+      press.moved = true;
+      experiment.paint(press.row as number);
+    }
     if (!dragging) picker.setPointer(at(e));
   };
+  // capture phase: runs before OrbitControls' own pointerdown on the canvas, so a stroke can switch it off
   const down = (e: PointerEvent) => {
-    press =
-      e.button === 0 && e.pointerType !== 'touch' ? { x: e.clientX, y: e.clientY, row: app.hover } : null;
+    const primary = e.button === 0 && e.pointerType !== 'touch';
+    const row = app.hover;
+    const stroke =
+      primary && row !== null && (experiment.tool === 'stimulate' || experiment.tool === 'silence');
+    press = primary ? { x: e.clientX, y: e.clientY, row, stroke, moved: false } : null;
+    if (stroke) {
+      engine.setOrbit(false);
+      canvas.setPointerCapture(e.pointerId);
+      return;
+    }
     dragging = true;
     picker.setPointer(null);
   };
   const up = (e: PointerEvent) => {
     dragging = false;
     picker.setPointer(at(e));
-    if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) <= CLICK_PX)
-      experiment.select(press.row);
+    if (press?.stroke) engine.setOrbit(true);
+    if (press && !press.moved && !far(e, press)) experiment.apply(press.row);
     press = null;
   };
   const leave = () => picker.setPointer(null);
   canvas.addEventListener('pointermove', move);
-  canvas.addEventListener('pointerdown', down);
+  canvas.addEventListener('pointerdown', down, { capture: true });
   canvas.addEventListener('pointerup', up);
   canvas.addEventListener('pointerleave', leave);
   if (pick) picker.setPointer([pick[0] * canvas.clientWidth, pick[1] * canvas.clientHeight]);
@@ -311,12 +329,14 @@ function startPicking(engine: Engine, layer: NeuronsLayer): (() => void)[] {
       () => app.hover,
       (row) => {
         layer.hovered.value = row ?? -1;
-        canvas.style.cursor = row === null ? '' : 'pointer';
       },
     ),
+    autorun(() => {
+      canvas.style.cursor = experiment.tool !== 'select' ? 'crosshair' : app.hover === null ? '' : 'pointer';
+    }),
     () => {
       canvas.removeEventListener('pointermove', move);
-      canvas.removeEventListener('pointerdown', down);
+      canvas.removeEventListener('pointerdown', down, { capture: true });
       canvas.removeEventListener('pointerup', up);
       canvas.removeEventListener('pointerleave', leave);
       picker.dispose();
@@ -365,16 +385,21 @@ function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, s
       .then((c) => {
         if (disposed) return c.dispose();
         client = c;
-        // the experiment's stimulus / silencing, applied as diffs; a restart clears them in the Worker
-        const applied = { stim: new Set<number>(), silent: new Set<number>() };
+        // the experiment's stimulus / silencing, applied as diffs (all stimuli again when the drive
+        // changes); a restart clears them in the Worker
+        const applied = { stim: new Set<number>(), silent: new Set<number>(), drive: experiment.stim };
         const sync = () => {
           const ops: Promise<void>[] = [];
-          for (const r of experiment.stimulated) if (!applied.stim.has(r)) ops.push(c.stimulate(r));
+          const { hz, gain } = experiment.stim;
+          const redo = applied.drive !== experiment.stim;
+          for (const r of experiment.stimulated)
+            if (redo || !applied.stim.has(r)) ops.push(c.stimulate(r, hz, gain));
           for (const r of applied.stim) if (!experiment.stimulated.has(r)) ops.push(c.stimulate(r, 0));
           for (const r of experiment.silenced) if (!applied.silent.has(r)) ops.push(c.silence(r, true));
           for (const r of applied.silent) if (!experiment.silenced.has(r)) ops.push(c.silence(r, false));
           applied.stim = new Set(experiment.stimulated);
           applied.silent = new Set(experiment.silenced);
+          applied.drive = experiment.stim;
           Promise.all(ops).catch((e) => console.error('[sim]', e));
         };
         const start = () => {
@@ -389,7 +414,9 @@ function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, s
         sync();
         start();
         experiment.setLive('on');
-        stops.push(reaction(() => [...experiment.stimulated, -1, ...experiment.silenced], sync));
+        stops.push(
+          reaction(() => [experiment.stim, ...experiment.stimulated, -1, ...experiment.silenced], sync),
+        );
         if (import.meta.env.DEV && (!app.params.snap || app.params.ui === 'tune')) {
           import('@/dev/tuning').then(({ mountTuning }) => {
             if (disposed) return;

@@ -11,8 +11,8 @@ import type { NeuronsLayer } from './layers/neurons';
 const FOCUS_MS = 200;
 
 /**
- * Selection → scene: roles of the selected neuron's partners and silenced rows go into the layer's
- * row-state texture, the focus look fades with the selection, fly-to requests move the camera.
+ * Selection → scene: roles of the selected neuron's partners, silenced rows and electrode slots go
+ * into the layer's row-state texture, the focus look fades with the selection, fly-to requests move the camera.
  * `?select=<bodyId>` selects (and frames) that neuron once.
  */
 export function startFocus(
@@ -54,7 +54,7 @@ export function startFocus(
         // deselecting keeps the roles: focus fading to 0 makes them inert
         if (row === null || !graph) return;
         const roles = focusRoles(graph, row);
-        for (let i = 0; i < meta.n; i++) rowState[i * 2] = roles[i] as number;
+        for (let i = 0; i < meta.n; i++) rowState[i * 4] = roles[i] as number;
         layer.commitState();
       },
       { fireImmediately: true },
@@ -62,11 +62,21 @@ export function startFocus(
     reaction(
       () => [...experiment.silenced],
       (rows) => {
-        for (let i = 0; i < meta.n; i++) rowState[i * 2 + 1] = 0;
-        for (const r of rows) rowState[r * 2 + 1] = 1;
+        for (let i = 0; i < meta.n; i++) rowState[i * 4 + 1] = 0;
+        for (const r of rows) rowState[r * 4 + 1] = 1;
         layer.commitState();
       },
       { fireImmediately: true },
+    ),
+    reaction(
+      () => [...experiment.probes],
+      (slots) => {
+        for (let i = 0; i < meta.n; i++) rowState[i * 4 + 2] = 0;
+        slots.forEach((r, k) => {
+          if (r !== null) rowState[r * 4 + 2] = k + 1;
+        });
+        layer.commitState();
+      },
     ),
     reaction(
       () => experiment.fly,
