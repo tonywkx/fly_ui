@@ -2,8 +2,10 @@ import { observer } from 'mobx-react-lite';
 import { Button } from '@/components/ui/button';
 import { Stage } from '@/scene/Stage';
 import { app } from '@/state/app';
+import { CommandPalette } from '@/ui/CommandPalette';
 import { Inspector } from '@/ui/Inspector';
 import { IntroHint } from '@/ui/IntroHint';
+import { Legend } from '@/ui/Legend';
 import { NeuronTooltip } from '@/ui/NeuronTooltip';
 import { Scopes } from '@/ui/Scopes';
 import { Stats } from '@/ui/Stats';
@@ -26,6 +28,8 @@ export const App = observer(function App() {
       <IntroHint />
       <NeuronTooltip />
       <Inspector />
+      <Legend />
+      <CommandPalette />
       {/* phone = viewer without tools (PRODUCT.md); above the attribution row */}
       <div className="pointer-events-none absolute inset-x-2 bottom-16 z-10 hidden flex-col items-center gap-1 md:flex">
         <Toolbar />
