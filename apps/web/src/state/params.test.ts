@@ -36,6 +36,13 @@ describe('parseParams', () => {
     }
   });
 
+  it('reads a colour mode', () => {
+    expect(parseParams('?color=region').params.color).toBe('region');
+    const { params, warnings } = parseParams('?color=rainbow');
+    expect(params.color).toBeUndefined();
+    expect(warnings).toHaveLength(1);
+  });
+
   it('reads a selected bodyId', () => {
     expect(parseParams('?select=10293').params.select).toBe(10293);
     for (const bad of ['', 'x', '-3', '1.5']) {

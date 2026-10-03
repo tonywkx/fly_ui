@@ -137,7 +137,8 @@ export class ExperimentStore {
   }
 }
 
-export type KeyAction = Tool | 'escape';
+/** C cycles the colour mode. */
+export type KeyAction = Tool | 'escape' | 'color';
 
 const BY_KEY = Object.fromEntries(
   Object.entries(TOOL_KEYS).map(([t, k]) => [k.toLowerCase(), t as Tool]),
@@ -147,7 +148,13 @@ const BY_KEY = Object.fromEntries(
 export function keyAction(e: KeyboardEvent): KeyAction | null {
   if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return null;
   if (e.key === 'Escape') return 'escape';
+  if (e.key.toLowerCase() === 'c') return 'color';
   return BY_KEY[e.key.toLowerCase()] ?? null;
+}
+
+/** ⌘K / Ctrl+K: the command palette (works while typing too). */
+export function paletteKey(e: KeyboardEvent): boolean {
+  return !!(e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'k';
 }
 
 function toggle(set: Set<number>, row: number) {

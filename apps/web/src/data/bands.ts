@@ -4,17 +4,21 @@ import { type NeuronTable, NONE8, NONE16 } from '@fly/data';
 export const BANDS = ['Optic lobes', 'Central brain', 'Descending', 'VNC'] as const;
 export const BAND = { optic: 0, central: 1, descending: 2, vnc: 3 } as const;
 
-const OPTIC = new Set(['LA', 'ME', 'AME', 'LO', 'LOP']);
+export const OPTIC = new Set(['LA', 'ME', 'AME', 'LO', 'LOP']);
 /** VNC neuropils besides the tectula (`*Tct`). */
 const VNC = new Set(['LegNp', 'ANm', 'Ov', 'DMetaN', 'mVAC', 'PDMNp', 'ProNm', 'VProN', 'MesoAN', 'MetaAN']);
+
+/** ROI name without hemisphere / segment suffixes: `LegNp(T1)(L)` → `LegNp`. */
+export const roiBase = (region: string) => region.split('(')[0] as string;
+export const isVnc = (base: string) => VNC.has(base) || base.endsWith('Tct');
 
 /** Band of a neuron by its primary ROI; descending neurons by superclass whatever their ROI. */
 export function bandOf(region: string | null, superclass: string | null): number {
   if (superclass === 'descending_neuron') return BAND.descending;
   if (!region) return BAND.central;
-  const base = region.split('(')[0] as string;
+  const base = roiBase(region);
   if (OPTIC.has(base)) return BAND.optic;
-  if (VNC.has(base) || base.endsWith('Tct')) return BAND.vnc;
+  if (isVnc(base)) return BAND.vnc;
   return BAND.central;
 }
 

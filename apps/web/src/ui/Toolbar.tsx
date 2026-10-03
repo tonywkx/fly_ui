@@ -24,7 +24,7 @@ const typing = (t: EventTarget | null) =>
 
 /**
  * Tool rail (Select / Stimulate / Silence / Electrode / Trace) with the active tool's options above it:
- * stimulus rate and strength, electrode slots, tracer ends and paths. Owns the global hotkeys (V S X E T, Esc).
+ * stimulus rate and strength, electrode slots, tracer ends and paths. Owns the global hotkeys (V S X E T, C colour mode, Esc).
  * `?ui=<tool>` (snaps) starts with that tool.
  */
 export const Toolbar = observer(function Toolbar() {
@@ -38,7 +38,8 @@ export const Toolbar = observer(function Toolbar() {
       if (!a) return;
       if (a === 'escape') {
         if (experiment.escape()) e.preventDefault();
-      } else experiment.setTool(a);
+      } else if (a === 'color') app.cycleColorBy();
+      else experiment.setTool(a);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

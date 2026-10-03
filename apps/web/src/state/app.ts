@@ -1,4 +1,5 @@
 import { makeAutoObservable, observable } from 'mobx';
+import { type ColorBy, nextColorBy } from '@/data/colorBy';
 import type { Backend } from '@/scene/engine';
 import type { IntroPhase } from '@/scene/intro';
 import { type Device, defaultQuality, type Quality } from '@/scene/quality';
@@ -25,12 +26,15 @@ export class AppStore {
   readonly pending = observable.set<ReadyFlag>();
   /** Scenario graph row under the pointer (set on change only). */
   hover: number | null = null;
+  /** What the neurons are tinted by. */
+  colorBy: ColorBy;
 
   constructor(search: string) {
     ({ params: this.params, warnings: this.warnings } = parseParams(search));
     this.qualityPinned = !!this.params.quality || this.params.snap;
     // before init the backend is a guess: WebGPU if exposed and not forced off
     const guess = this.params.gl || !('gpu' in navigator) ? 'webgl2' : 'webgpu';
+    this.colorBy = this.params.color ?? 'nt';
     this.quality = this.params.quality ?? (this.params.snap ? 'high' : defaultQuality(device(guess)));
     makeAutoObservable(this, { params: false, warnings: false, pending: false });
   }
@@ -76,6 +80,14 @@ export class AppStore {
 
   setHover(row: number | null) {
     this.hover = row;
+  }
+
+  setColorBy(m: ColorBy) {
+    this.colorBy = m;
+  }
+
+  cycleColorBy() {
+    this.colorBy = nextColorBy(this.colorBy);
   }
 }
 

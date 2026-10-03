@@ -133,6 +133,9 @@ export interface NeuronsLayer {
    */
   rowState: Float32Array;
   commitState(): void;
+  /** Per row linear `r, g, b, _`: the colour-mode tint (`fillTints`); call `commitTints` after writing. */
+  tints: Float32Array;
+  commitTints(): void;
   /** 0..1: how far the focus look (roles coloured, the rest dimmed) is applied. */
   focus: { value: number };
   /** 0..1: how far the trace look (path hops coloured input → output, the rest dimmed) is applied. */
@@ -150,7 +153,7 @@ export interface NeuronsLayer {
 
 /**
  * Hero neurons: every skeleton segment is one instanced screen-facing quad (WebGPU lines are 1 px).
- * Additive glow over the background layers; colour by transmitter.
+ * Additive glow over the background layers; tinted per row by the colour mode (`tints`).
  */
 export function neuronsLayer(
   seg: Float32Array,
@@ -197,6 +200,10 @@ export function neuronsLayer(
     textureLoad(stateTex, ivec2(row.mod(TEX_W), row.div(TEX_W))),
     vec4(0, 0, 0, 0),
   );
+  // colour-mode tint per row (rows without meta: transmitter of the segment, i.e. unclear)
+  const tints = new Float32Array(TEX_W * texH * 4);
+  const tintTex = new DataTexture(tints, TEX_W, texH, RGBAFormat, FloatType);
+  tintTex.needsUpdate = true;
   const hovered = uniform(-1);
   const isHover = varying(select(segC.x.equal(hovered), float(1), float(0)));
   const focusIn = uniform(0);
@@ -240,7 +247,19 @@ export function neuronsLayer(
     'color',
   );
   const roleTint = roleColors.element(int(state.x)) as unknown as Node<'vec3'>;
-  const baseTint = mode === 'id' ? codeColor(segC.x) : mode === 'region' ? codeColor(segC.w) : ntTint;
+  const rowTint = select(
+    row.greaterThanEqual(0),
+    textureLoad(tintTex, ivec2(row.mod(TEX_W), row.div(TEX_W))).xyz,
+    ntTint,
+  );
+  const baseTint =
+    mode === 'id'
+      ? codeColor(segC.x)
+      : mode === 'region'
+        ? codeColor(segC.w)
+        : mode === 'nt'
+          ? ntTint
+          : rowTint;
   // focused: partners take their role colour; silenced always grey
   const isPartner = select(state.x.greaterThan(0.5), float(1), float(0));
   const focusTint = mix(mix(baseTint, roleTint, isPartner.mul(focus)), pathTint, onPath);
@@ -337,6 +356,10 @@ export function neuronsLayer(
     rowState,
     commitState: () => {
       stateTex.needsUpdate = true;
+    },
+    tints,
+    commitTints: () => {
+      tintTex.needsUpdate = true;
     },
     focus: focusIn,
     trace,

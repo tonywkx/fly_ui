@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ExperimentStore, keyAction, STIM_RANGE } from './experiment';
+import { ExperimentStore, keyAction, paletteKey, STIM_RANGE } from './experiment';
 
 describe('ExperimentStore', () => {
   it('selects and clears a neuron', () => {
@@ -132,6 +132,7 @@ describe('keyAction', () => {
     expect(key('x')).toBe('silence');
     expect(key('e')).toBe('electrode');
     expect(key('Escape')).toBe('escape');
+    expect(key('c')).toBe('color');
     expect(key('q')).toBeNull();
   });
 
@@ -140,5 +141,18 @@ describe('keyAction', () => {
     expect(key('s', { ctrlKey: true })).toBeNull();
     expect(key('s', { altKey: true })).toBeNull();
     expect(key('s', { repeat: true })).toBeNull();
+  });
+});
+
+describe('paletteKey', () => {
+  const key = (k: string, mods: Partial<KeyboardEvent> = {}) =>
+    paletteKey({ key: k, ...mods } as KeyboardEvent);
+
+  it('is ⌘K or Ctrl+K only', () => {
+    expect(key('k', { metaKey: true })).toBe(true);
+    expect(key('K', { ctrlKey: true })).toBe(true);
+    expect(key('k')).toBe(false);
+    expect(key('k', { metaKey: true, altKey: true })).toBe(false);
+    expect(key('j', { metaKey: true })).toBe(false);
   });
 });

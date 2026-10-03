@@ -3,6 +3,7 @@ import { autorun, reaction, when } from 'mobx';
 import { useEffect, useRef } from 'react';
 import { uniform } from 'three/tsl';
 import { type Node, Vector3 } from 'three/webgpu';
+import { colorGroups, fillTints } from '@/data/colorBy';
 import { data } from '@/data/store';
 import { LiveClient } from '@/sim/client';
 import { app } from '@/state/app';
@@ -246,6 +247,16 @@ function populate(engine: Engine, intro: Intro, stops: (() => void)[]) {
     const neurons = neuronsLayer(seg, meta.n, engine.world.scale.x, colorMode, intro.reveal);
     neurons.mesh.visible = !only || only === 'neurons';
     engine.world.add(neurons.mesh);
+    stops.push(
+      reaction(
+        () => app.colorBy,
+        (mode) => {
+          fillTints(neurons.tints, colorGroups(meta, mode));
+          neurons.commitTints();
+        },
+        { fireImmediately: true },
+      ),
+    );
     if (!colorMode) startActivity(engine, neurons, meta, stops);
     if (neurons.mesh.visible) stops.push(...startPicking(engine, neurons));
     const graph = data.get(`${data.scenario}-graph`, 'graph');

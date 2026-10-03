@@ -1,3 +1,4 @@
+import { COLOR_BY, type ColorBy, isColorBy } from '../data/colorBy';
 import { isQuality, QUALITIES, type Quality } from '../scene/quality';
 import { MAX_PROBES } from './experiment';
 
@@ -12,6 +13,8 @@ export interface Params {
   /** Simulation time to show, ms. */
   t?: number;
   debug?: DebugMode;
+  /** Neuron tint (colour mode); transmitter when absent. */
+  color?: ColorBy;
   /** Show the fps/ms overlay. */
   stats: boolean;
   /** Set by scripts/snap.ts: skip intro motion, report readiness via `window.__snapReady`. */
@@ -64,6 +67,12 @@ export function parseParams(search: string): { params: Params; warnings: string[
   if (debug !== null) {
     if ((DEBUG_MODES as readonly string[]).includes(debug)) params.debug = debug as DebugMode;
     else warnings.push(`debug: unknown mode "${debug}" (${DEBUG_MODES.join(' | ')})`);
+  }
+
+  const color = q.get('color');
+  if (color !== null) {
+    if (isColorBy(color)) params.color = color;
+    else warnings.push(`color: unknown mode "${color}" (${COLOR_BY.join(' | ')})`);
   }
 
   const ui = q.get('ui');

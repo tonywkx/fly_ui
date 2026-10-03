@@ -60,6 +60,34 @@ export const SCOPE_GUIDE = { threshold: 'rgba(255,255,255,0.32)', rest: 'rgba(25
 /** Male-specific highlight colour mode. */
 export const MALE = swatch('#ff2fb3');
 
+/** Unknown group (no ROI / superclass), as an unclear transmitter. */
+export const UNKNOWN = NT_COLORS.unclear;
+/** Everything that is not highlighted (male mode): recedes behind the highlight. */
+export const OTHER = swatch('#454545');
+
+/** Region colour mode, in `REGION_GROUPS` order (signal flow: eye → brain → VNC); unknown = `UNKNOWN`. */
+export const REGION_COLORS: readonly Swatch[] = [
+  '#5b8cff', // optic lobe
+  '#b07cff', // central brain
+  '#ff5ca8', // subesophageal zone
+  '#ffb829', // upper tectulum
+  '#ff7a3d', // lower tectulum
+  '#3fd68f', // leg neuropils
+  '#2fd3e0', // abdominal
+  '#d8e35a', // other VNC
+].map(swatch);
+
+/** Class (superclass) colour mode, in `CLASS_GROUPS` order; unknown = `UNKNOWN`. */
+export const CLASS_COLORS: readonly Swatch[] = [
+  '#3fd68f', // sensory
+  '#5b8cff', // visual
+  '#b07cff', // central intrinsic
+  '#ff4d6d', // descending
+  '#ffb829', // VNC intrinsic
+  '#2fd3e0', // ascending
+  '#ff7a3d', // motor & efferent
+].map(swatch);
+
 /** Typographic colours (must stay readable over the darkest scene). */
 export const TEXT = { bone: '#ffffff', mist: '#bdbdbd', ash: '#9a9a9a' } as const;
 
