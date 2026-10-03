@@ -1,6 +1,6 @@
 import { type NeuronRecord, neuronAt } from '@fly/data';
 import { observer } from 'mobx-react-lite';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { type PartnerGroup, type Partners, partners } from '@/data/partners';
 import { data } from '@/data/store';
@@ -40,7 +40,7 @@ export const Inspector = observer(function Inspector() {
   useEffect(() => {
     if (!open) return;
     const esc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') experiment.select(null);
+      if (e.key === 'Escape' && !e.defaultPrevented) experiment.select(null);
     };
     window.addEventListener('keydown', esc);
     return () => window.removeEventListener('keydown', esc);
@@ -62,7 +62,7 @@ export const Inspector = observer(function Inspector() {
           : 'pointer-events-none translate-y-1 opacity-0 md:translate-x-1 md:translate-y-0',
       )}
     >
-      {s && <Body s={s} />}
+      {s && <Body key={s.row} s={s} />}
     </aside>
   );
 });
@@ -71,12 +71,21 @@ const Body = observer(function Body({ s: { row, n, p } }: { s: Shown }) {
   const stimulated = experiment.stimulated.has(row);
   const silenced = experiment.silenced.has(row);
   const cls = [words(n.superclass), words(n.class)].filter(Boolean).join(' · ');
+  // keyboard users land in the panel when it opens or switches neuron
+  const title = useRef<HTMLHeadingElement>(null);
+  useEffect(() => title.current?.focus({ preventScroll: true }), []);
 
   return (
     <>
       <header className="flex items-start justify-between gap-1">
         <div className="min-w-0">
-          <h2 className="truncate text-body leading-tight font-normal text-bone">{n.type ?? 'untyped'}</h2>
+          <h2
+            ref={title}
+            tabIndex={-1}
+            className="truncate text-body leading-tight font-normal text-bone outline-none"
+          >
+            {n.type ?? 'untyped'}
+          </h2>
           <p className="font-mono text-caption text-ash tabular-nums">{n.bodyId}</p>
         </div>
         <Button
@@ -126,7 +135,7 @@ const Body = observer(function Body({ s: { row, n, p } }: { s: Shown }) {
         </Button>
         <Button
           aria-pressed={silenced}
-          className={cn(silenced && 'text-bone')}
+          className="aria-pressed:bg-accent aria-pressed:text-bone"
           onClick={() => experiment.toggleSilence(row)}
         >
           {silenced ? 'Unsilence' : 'Silence'}
@@ -156,9 +165,9 @@ const LiveNote = observer(function LiveNote() {
         ? 'Live simulation unavailable — showing the recorded run.'
         : null;
   return (
-    <p aria-live="polite" className="mt-1 min-h-[1lh] text-caption text-ash">
-      {text}
-    </p>
+    <div aria-live="polite" className="text-caption text-ash">
+      {text && <p className="mt-1">{text}</p>}
+    </div>
   );
 });
 
@@ -177,15 +186,17 @@ function Dot({ color }: { color: string }) {
 
 function PartnerList({ title, color, groups }: { title: string; color: string; groups: PartnerGroup[] }) {
   const syn = groups.reduce((a, g) => a + g.synapses, 0);
-  const rest = groups.length - TOP_TYPES;
+  const [all, setAll] = useState(false);
+  const shown = all ? groups : groups.slice(0, TOP_TYPES);
+  const rest = groups.length - shown.length;
   return (
     <section className="mt-3">
-      <h3 className="flex items-baseline gap-1 text-caption text-mist">
+      <h3 className="flex items-baseline gap-1 text-label text-mist">
         <span className="flex items-center gap-1 self-center text-bone">
           <Dot color={color} />
           {title}
         </span>
-        <span className="ml-auto font-mono text-ash tabular-nums">
+        <span className="ml-auto font-mono text-caption text-ash tabular-nums">
           {groups.length} types · {fmt.format(syn)} syn
         </span>
       </h3>
@@ -193,12 +204,12 @@ function PartnerList({ title, color, groups }: { title: string; color: string; g
         <p className="mt-1 text-caption text-ash">None in this circuit.</p>
       ) : (
         <ul className="mt-1 flex flex-col">
-          {groups.slice(0, TOP_TYPES).map((g) => (
+          {shown.map((g) => (
             <li key={`${g.type}-${g.top}`}>
               <button
                 type="button"
                 onClick={() => experiment.select(g.top)}
-                title={`Inspect the strongest ${g.type ?? 'untyped'} partner`}
+                aria-label={`${g.type ?? 'untyped'}: ${g.count} ${g.count > 1 ? 'neurons' : 'neuron'}, ${g.synapses} synapses — inspect the strongest`}
                 className="-mx-1 flex w-[calc(100%+--spacing(2))] cursor-pointer items-center gap-1 rounded-md px-1 py-0.5 text-left text-caption text-mist outline-none transition-colors duration-150 hover:bg-accent hover:text-bone focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Dot color={NT_COLORS[g.nt ?? 'unclear'].hex} />
@@ -208,7 +219,13 @@ function PartnerList({ title, color, groups }: { title: string; color: string; g
               </button>
             </li>
           ))}
-          {rest > 0 && <li className="px-0 py-0.5 text-caption text-ash">+{rest} more types</li>}
+          {rest > 0 && (
+            <li>
+              <Button className="-mx-1 h-auto py-0.5 text-caption" onClick={() => setAll(true)}>
+                +{rest} more types
+              </Button>
+            </li>
+          )}
         </ul>
       )}
     </section>
