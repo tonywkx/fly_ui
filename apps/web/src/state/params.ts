@@ -1,4 +1,5 @@
 import { isQuality, QUALITIES, type Quality } from '../scene/quality';
+import { MAX_PROBES } from './experiment';
 
 /** Colour modes (2.6) + layer isolation: `cloud` / `shells` show only that background layer. */
 export const DEBUG_MODES = ['soma-dist', 'id', 'nt', 'region', 'cloud', 'shells', 'neurons'] as const;
@@ -29,6 +30,8 @@ export interface Params {
   pick?: [number, number];
   /** Open the inspector on this bodyId (scenario neuron) — snaps of the focus look. */
   select?: number;
+  /** Electrodes on these bodyIds (≤ 4, slot order) — snaps of the oscilloscopes. */
+  probes?: number[];
   /** Signal tracer ends `FROM>TO`, optionally `>i` (path index) — snaps of the trace look. */
   trace?: { from: string; to: string; path: number };
 }
@@ -96,6 +99,14 @@ export function parseParams(search: string): { params: Params; warnings: string[
     const id = Number(select);
     if (/^\d+$/.test(select) && Number.isSafeInteger(id)) params.select = id;
     else warnings.push(`select: expected a bodyId, got "${select}"`);
+  }
+
+  const probes = q.get('probes');
+  if (probes !== null) {
+    const ids = probes.split(',').map((v) => v.trim());
+    if (ids.length <= MAX_PROBES && ids.every((v) => /^\d+$/.test(v) && Number.isSafeInteger(Number(v))))
+      params.probes = ids.map(Number);
+    else warnings.push(`probes: expected up to ${MAX_PROBES} comma-separated bodyIds, got "${probes}"`);
   }
 
   const trace = q.get('trace');

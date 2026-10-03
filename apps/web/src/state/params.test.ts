@@ -45,6 +45,15 @@ describe('parseParams', () => {
     }
   });
 
+  it('reads electrode bodyIds', () => {
+    expect(parseParams('?probes=10293,7').params.probes).toEqual([10293, 7]);
+    for (const bad of ['', 'x', '1,,2', '1,2,3,4,5']) {
+      const { params, warnings } = parseParams(`?probes=${bad}`);
+      expect(params.probes).toBeUndefined();
+      expect(warnings).toHaveLength(1);
+    }
+  });
+
   it('reads tracer ends (type names may hold commas and spaces)', () => {
     expect(parseParams('?trace=LPLC2>TTMn').params.trace).toEqual({ from: 'LPLC2', to: 'TTMn', path: 0 });
     expect(parseParams(`?trace=${encodeURIComponent('LC4>DLMn a, b>2')}`).params.trace).toEqual({

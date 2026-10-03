@@ -36,7 +36,12 @@ export function startFocus(
     engine.flyTo(engine.world.localToWorld(c), r * engine.world.scale.x, now);
   };
 
-  const { select } = app.params;
+  const { select, probes } = app.params;
+  for (const id of probes ?? []) {
+    const row = meta.bodyIds.indexOf(id);
+    if (row < 0) console.warn(`[scene] probes: bodyId ${id} not in this scenario`);
+    else experiment.toggleProbe(row);
+  }
   if (select !== undefined) {
     const row = meta.bodyIds.indexOf(select);
     if (row < 0) console.warn(`[scene] select: bodyId ${select} not in this scenario`);
