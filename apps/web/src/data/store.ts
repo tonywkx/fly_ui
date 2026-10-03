@@ -35,7 +35,9 @@ export class DataStore {
     });
   }
 
+  /** Reactive: an observer re-runs once the chunk arrives (`loaded` is read first). */
   get<K extends keyof Payloads>(id: string, kind: K): Payloads[K] | undefined {
+    if (!this.loaded.has(id)) return undefined;
     const d = this.payloads.get(id);
     return d?.kind === kind ? (d.data as Payloads[K]) : undefined;
   }
