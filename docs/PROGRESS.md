@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-03 — 4.2 Inspector, focus dimming, stimulate/silence
+Done: `data/partners.ts` (`partners` by type, `focusRoles`; tested), `state/experiment.ts` (selected / stimulated / silenced / live status / fly request), `scene/focus.ts` (roles + silenced → RG row-state texture, `focus` uniform fade, fly-to, `?select=<bodyId>`), `segments.ts` `rowBounds`, `engine.flyTo` + `scene/orbit.ts` (`orbitDistance` uniform: depth dim around the target, not the origin), `ui/Inspector.tsx`.
+State: 283 tests, typecheck, lint green. Snap `--scenario=escape --t=40 --select=10001` → GF white, inputs blue, outputs saffron, rest dim; same on webgl2. One-off Playwright run: click selects, Stimulate starts live sim on demand (graph-full ~0.5 s), Silence, Esc. Click-select is mouse/pen only. Partners = scenario graph only (labelled).
+Next: 4.3 tools + hotkeys (Stimulate brush, Silence, Electrode), stimulus strength/frequency sliders.
+Gotchas: partner glow must stay at normal additive gain — GF has ~140 LC4/LPLC2 inputs, brighter partners bloom into a white blob. Fly-to frames the bbox half-diagonal (long neurons like GF ≈ whole CNS). Silenced rows grey + no wave even on baked. Live sim re-applies experiment diffs after tune/reset (applied sets cleared). Panel covers the right edge of the view; centring the target in the free area (camera view offset) left for 4.8.
+
 ## 2026-10-03 — 4.1 GPU picking, hover highlight + tooltip
 Done: `apps/web/src/scene/pick.ts` (`Picker`: RGBA8 id target = drawing-buffer size, 9×9 readback, `nearestHit`/`decodeIds` tested); `neuronsLayer` → shared `ribbon()` vertex, `pickMesh` (id = row+1 as 24-bit rgb) + `hovered` uniform (whole-neuron boost, colour modes whiten); `startPicking` in `Stage.tsx` → `app.hover`; `ui/NeuronTooltip.tsx` (position imperative, content via MobX); `?pick=x,y` param + `pick` ready flag.
 State: 72 web tests, typecheck, lint green. Snap `--scenario=escape --t=40 --pick=0.39,0.37` → DNpe042 highlighted + tooltip, identical on `--gl=webgl2`; `--debug=id --pick=0.766,0.405` → LPLC2. Picks only on pointer/camera move, off while dragging, mouse/pen only (no touch).
@@ -23,9 +29,3 @@ Done: `Live.retune(params, net?)` (`apps/web/src/sim/live.ts`, tests); worker `t
 State: 253 tests, typecheck, lint green; `pnpm snap --scenario=escape --t=40 --sim=live --ui=tune` shows panel top-right. Released slider → scenario restarts at t = 0 (same seed); "copy JSON" = diff from defaults. Prod-bundle exclusion of tweakpane not inspected (dist reads denied).
 Next: 3.6 biology checks as tests (GF fires on shadow, MN9 on sugar — currently 0 Hz, pIP10/wing MNs on song, GF silencing kills TTMn); use the panel to find params first.
 Gotchas: Tweakpane v4 types need `@tweakpane/core` devDep. A readonly monitor binding emits `change` on every poll → listen on folders, not the root pane (otherwise endless restarts). `gain` scales synapses only; `wSyn` also scales the Poisson kick.
-
-## 2026-10-02 — 3.4 worker live mode + real spikes in scene
-Done: `packages/sim` `clearSpikes()`; `apps/web/src/sim/` — `feed.ts` (`SpikeFeed` ring buffer, `bakedEvents`, `nextSimTime`, `NEVER`), `live.ts` (`Live`, `rowMap`), `sim.worker.ts` (comlink: init/advance/stimulate/silence/reset), `client.ts` (`LiveClient` pump); `scene/playback.ts` (`bakedSource`, `play`); Stage plays baked by default, `?sim=live` swaps to Worker; fake BFS (`scene/activity.ts`) deleted; `?sim=baked|live` param, ready flag `'sim'`, `data.url(chunk)`.
-State: 251 tests, typecheck, lint green. Snaps escape t=40 baked ≈ live (same engine/seed); live loads 176k/6.3M in ~0.2 s locally, runs ≈54 sim ms/s in headless Chromium (needs 40 → 1.35× headroom; clock slows, never desyncs). No UI yet for stimulate/silence (phase 4).
-Next: 3.5 Tweakpane dev-only param panel (thresholds, weights, gain) — live mode needs `Live` params reset path (currently only seed/params at construction).
-Gotchas: visual-qa: escape t=40 lights mostly optic-lobe patches (GF etc. not distinct); song t=60 is a near-saturated blob in SEZ — gain/bloom or tuning (3.6). Live stim order = sorted scenario rows vs baked full-row order → RNG stream differs, so live ≠ baked bit-exactly. Speed only logged after 20 batches (`[sim] N sim ms/s`).

@@ -59,7 +59,7 @@ Phase exit = its "Done when" is true and demoable.
 
 ## Phase 4 — Interaction layer (≈2 weeks)
 - [x] 4.1 GPU picking (id buffer), hover highlight whole neuron + tooltip. **[V]**
-- [ ] 4.2 Inspector (type, NT, inputs/outputs, fly-to / stimulate / silence); focus dimming, inputs vs outputs colors. **[UI]**
+- [x] 4.2 Inspector (type, NT, inputs/outputs, fly-to / stimulate / silence); focus dimming, inputs vs outputs colors. **[UI]**
 - [ ] 4.3 Tools + hotkeys: Stimulate (click/brush), Silence, Electrode (≤4 probes); sliders for stimulus strength/frequency. **[UI]**
 - [ ] 4.3b Signal tracer "eye to leg": pick input type + output type → strongest paths (type graph, k-best by summed weight) → highlighted hop by hop in 3D. **[T]** path search **[V]**
 - [ ] 4.4 Timeline: canvas raster by region, scrub/pause/slow-mo. **[V]** **[UI]**
