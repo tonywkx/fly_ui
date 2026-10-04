@@ -6,11 +6,11 @@ export const EFFECTOR = { none: 0, jump: 1, proboscis: 2, wing: 3 } as const;
 export type Effector = (typeof EFFECTOR)[keyof typeof EFFECTOR];
 
 /** Tergotrochanteral MN: the jump muscle (escape). */
-const JUMP = /^TTMn$/;
+export const JUMP = /^TTMn$/;
 /** Proboscis extension (sugar, Shiu 2024). */
-const PROBOSCIS = /^MN9$/;
+export const PROBOSCIS = /^MN9$/;
 /** Direct wing steering MNs that pIP10 drives during song (hg1–4, ps1, b1–3, i1–2, iii1–3, tp1–2). */
-const WING = /^(hg\d|ps\d|b\d|i\d|iii\d|tp\d) MN$/;
+export const WING = /^(hg\d|ps\d|b\d|i\d|iii\d|tp\d) MN$/;
 
 /** Kernel time constants (sim ms) of the per-effector rate estimates. */
 const TAU = { jump: 20, proboscis: 40, wing: 50 };
@@ -29,6 +29,9 @@ const PROBOSCIS_HZ = 80;
 const WING_HZ = 8;
 /** Decay of one wing flick (a spike), sim ms. */
 const FLICK_MS = 3;
+
+/** Above this a part (proboscis, wing) counts as moving. */
+export const SHOWN = 0.2;
 
 export interface FlyPose {
   /** Sim time of takeoff, null while standing. */

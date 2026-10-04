@@ -2,13 +2,10 @@ import { observer } from 'mobx-react-lite';
 import { useEffect, useMemo, useRef } from 'react';
 import { data } from '@/data/store';
 import { cn } from '@/lib/utils';
-import { Behavior, effectorMask, type FlyPose } from '@/scene/behavior';
+import { Behavior, effectorMask, type FlyPose, SHOWN } from '@/scene/behavior';
 import { app } from '@/state/app';
 import { experiment } from '@/state/experiment';
 import { playback } from '@/state/playback';
-
-/** Above this a part counts as moving in the caption. */
-const SHOWN = 0.2;
 
 function caption(p: FlyPose): string {
   const parts: string[] = [];
