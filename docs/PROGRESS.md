@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-04 — 4.8 HUD motion pass
+Done: find-animation-opportunities → 4 survivors. `components/ui/button.tsx` press `active:scale-[0.97]` for all variants (`scale` added to the transition; before, primary snapped). `ui/Toolbar.tsx` Share/Copied/In URL labels crossfade (opacity + 2px blur, 150 ms). `ui/Scopes.tsx` first scope grows its row (`grid-rows` 0fr→1fr via `starting:`, 200 ms), so the bottom-anchored rail glides up instead of jumping ~108 px; cards fade in. `ui/Tracer.tsx` path list fades in (150 ms).
+State: 351 tests, typecheck, lint green. Playwright (live, electrode click): rail 0→108 px over ~170 ms. Snaps `--ui=electrode --probes=10001`, `--ui=trace` unchanged. ui-critic pass applied (card translate dropped: double motion).
+Next: Phase 5 — 5.1 Director camera following the activity front (GSAP).
+Gotchas: Wrapping a `w-[min(…,100%)]` element in a shrink-to-fit flex item collapses the `100%`. Put the width on the wrapper. Every entrance has `app.params.snap && 'transition-none'`, otherwise a snap catches it mid-fade. Headless picking needs the snap.ts GPU flags (`--enable-gpu --use-angle=metal --ignore-gpu-blocklist`); without them `copyTextureToBuffer` throws.
+
 ## 2026-10-04 — 4.7 Experiment URL + Share
 Done: `state/share.ts` (`?x=` codec: base64url of LEB128 varints `ver|hz|gain×100|stim Δ-ids|silenced Δ-ids`, sorted/deduped bodyIds, arithmetic varints for ids > 2³², strict decode → null; `shareSearch`; tested), `params.experiment` from `?x=`, `ExperimentStore.load` applied once in `scene/focus.ts` (bodyId → row like `probes`), `ui/share.ts` (`experimentLink` = scenario + x + probes + color≠nt; `shareExperiment` → replaceState + clipboard, `shareNote` 1.8 s), Share button at the end of the tool rail (grid-stacked labels: fixed width, sr-only status) + ⌘K "Share experiment".
 State: 351 tests, typecheck, lint green. Snaps `--x=AZYBZAABkU4` (GF silenced) → live; `--x=AawCyAEBkU4A --ui=stimulate` → 300 Hz / 2×. One-off Playwright: silence GF → Share → clipboard = address bar → reopened link has GF silenced + live, no warnings.
@@ -23,9 +29,3 @@ Done: `sim/feed.ts` `SpikeLog` (append-only, seek/apply/trim/span; replaces cons
 State: 320 tests, typecheck, lint green. Snaps escape t=40 (1600/1024), song t=200 @1280, webgl2 OK. One-off Playwright: Space pauses (3D + readout frozen), drag to 10% → 36 ms, `.`×3 → +3, `[` → ½× (Δ20 ms/s); live: pause holds the Worker, click back in history, resume.
 Next: 4.5 Oscilloscopes (uPlot) for electrodes.
 Gotchas: baked loop = 300 ms run + 60 ms silent tail → last 1/6 of the raster is empty lanes by design. Live window is 400 ms ([0, 400] until the run is longer); pause/scrub back needs no Worker control — pump only fills ≤100 ms ahead of the display. Space on a focused button presses it (hotkey skipped); on the raster slider it toggles. Starting live (first stimulus) unpauses. Snap readouts: `section[aria-label=Timeline] p span`.
-
-## 2026-10-04 — 4.3b Signal tracer
-Done: `data/paths.ts` (`preparePaths`, `kBestPaths`: Yen over hop-bounded layered Bellman–Ford, cost −log input fraction; tested), `data/trace.worker.ts` (fetches `typegraph-full` on first query), `state/trace.ts` (`TraceStore`, `pathHops`; tested), Trace tool `T` (`experiment.tracePick`), `scene/trace.ts` (row-state w = hop+1, fade / hop-by-hop reveal / looping pulse), neurons shader `trace*` uniforms + per-hop `traceGain`, `ui/Tracer.tsx` (From/To datalist fields, swap, ≤5 paths), `?trace=FROM>TO[>i]` + `trace` ready flag.
-State: 306 tests, typecheck, lint green. Snaps `--ui=trace "--trace=LPLC2>TTMn"` (+ `--select=10001` to see the VNC end) → LPLC2 blue → GF white → TTMn saffron, rest dimmed; same on webgl2. One-off Playwright: T, type ends, pick 2nd path, swap, Esc, T restores. Search ≈6 ms in-scenario (160 ms whole CNS).
-Next: 4.4 Timeline (canvas raster by region, scrub/pause/slow-mo).
-Gotchas: hop types range from 1 neuron (GF) to ~80 (LPLC2) — flat emphasis either hides the GF or blooms LPLC2, hence gain ∝ min(1, 3/count). Type names hold commas/spaces ("DLMn a, b") → `>` separator in the URL; snap needs `"--trace=A>B"` as one quoted arg. Trace look shows only while the Trace tool is active (Esc hides, T restores). Fractions are tiny (TTMn has huge input) — UI shows 2 significant digits.
