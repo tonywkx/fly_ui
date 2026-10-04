@@ -81,7 +81,13 @@ export const Toolbar = observer(function Toolbar() {
           {/* every label in one cell: the button keeps its width, the centred rail does not shift */}
           <span aria-hidden className="grid">
             {SHARE_KEYS.map((k) => (
-              <span key={k} className={cn('col-start-1 row-start-1 text-center', k !== note && 'invisible')}>
+              <span
+                key={k}
+                className={cn(
+                  'col-start-1 row-start-1 text-center transition-[opacity,filter] duration-150 ease-out motion-reduce:blur-none',
+                  k !== note && 'opacity-0 blur-[2px]',
+                )}
+              >
                 {SHARE_LABEL[k]}
               </span>
             ))}
