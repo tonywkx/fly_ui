@@ -1,0 +1,49 @@
+import { observer } from 'mobx-react-lite';
+import { Button } from '@/components/ui/button';
+import { data } from '@/data/store';
+import { playback } from '@/state/playback';
+import { SCENARIO_TITLES, scenarioHref } from './viewer';
+
+/**
+ * Phones: the viewer without tools (PRODUCT.md) — play/pause and the scenarios, nothing else.
+ * Switching reloads with `?scenario=` (each scenario is its own lazy chunk set).
+ */
+export const ViewerBar = observer(function ViewerBar() {
+  const scenarios = data.manifest?.scenarios ?? [];
+  const { paused } = playback;
+  if (scenarios.length === 0) return null;
+  return (
+    <nav aria-label="Scenarios" className="pointer-events-auto -mx-1 flex items-center gap-1 md:hidden">
+      <Button
+        aria-label={paused ? 'Play' : 'Pause'}
+        onClick={() => playback.toggle()}
+        className="size-11 shrink-0 rounded-full bg-card p-0 text-bone"
+      >
+        <svg viewBox="0 0 16 16" aria-hidden className="size-3 fill-current">
+          {paused ? <path d="M4 2.5v11l9.5-5.5z" /> : <path d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z" />}
+        </svg>
+      </Button>
+      <ul className="flex min-w-0 items-center overflow-x-auto">
+        {scenarios.map((s) => {
+          const current = s.id === data.scenario;
+          return (
+            <li key={s.id} className="shrink-0">
+              <Button
+                variant="ghost"
+                asChild
+                className="h-11 px-2.5 text-body font-extralight text-ash aria-[current=page]:text-bone"
+              >
+                <a
+                  href={scenarioHref(window.location.search, s.id)}
+                  aria-current={current ? 'page' : undefined}
+                >
+                  {SCENARIO_TITLES[s.id]?.[1] ?? s.title}
+                </a>
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+});

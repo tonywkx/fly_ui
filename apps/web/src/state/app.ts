@@ -52,8 +52,10 @@ export class AppStore {
     // before init the backend is a guess: WebGPU if exposed and not forced off
     const guess = this.params.gl || !('gpu' in navigator) ? 'webgl2' : 'webgpu';
     this.colorBy = this.params.color ?? 'nt';
-    this.director = !!this.params.director;
-    this.quality = this.params.quality ?? (this.params.snap ? 'high' : defaultQuality(device(guess)));
+    const d = device(guess);
+    // touch = the viewer without tools (PRODUCT.md): the camera tells the story until a drag takes it
+    this.director = !!this.params.director || (!this.params.snap && d.coarsePointer);
+    this.quality = this.params.quality ?? (this.params.snap ? 'high' : defaultQuality(d));
     makeAutoObservable(this, { params: false, warnings: false, pending: false });
   }
 

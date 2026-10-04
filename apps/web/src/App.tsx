@@ -17,16 +17,12 @@ import { Sound } from '@/ui/Sound';
 import { Stats } from '@/ui/Stats';
 import { Timeline } from '@/ui/Timeline';
 import { Toolbar } from '@/ui/Toolbar';
-
-const SCENARIO_TITLES: Record<string, string> = {
-  escape: 'Escape',
-  sugar: 'Sugar',
-  song: 'Courtship song',
-};
+import { ViewerBar } from '@/ui/ViewerBar';
+import { SCENARIO_TITLES } from '@/ui/viewer';
 
 export const App = observer(function App() {
   const { scenario, debug, stats } = app.params;
-  const title = scenario && (SCENARIO_TITLES[scenario] ?? scenario);
+  const title = scenario && (SCENARIO_TITLES[scenario]?.[0] ?? scenario);
   // nothing to drive: Fatal explains why
   const broken = app.rendererFailed || !!data.error;
 
@@ -69,8 +65,10 @@ export const App = observer(function App() {
             <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
               fly_ui
             </h1>
-            {title && <p className="mt-2 text-body font-extralight text-mist">{title}</p>}
+            {/* phones name the scenario in the ViewerBar */}
+            {title && <p className="mt-2 hidden text-body font-extralight text-mist md:block">{title}</p>}
           </div>
+          {!broken && <ViewerBar />}
           <p className="pointer-events-auto -mx-1 text-caption text-ash">
             <Button variant="ghost" asChild className="h-auto text-caption">
               <a href="https://neuprint.janelia.org/" target="_blank" rel="noreferrer">
