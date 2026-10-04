@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-04 — 5.3 Sound
+Done: `scene/sound.ts` (`clicks(log, t0, t1, rate, {max, rows})` → ticks at real-time offsets, evenly thinned to `max`/frame, gain `0.35·√k`; `continuous()` = play step vs pause/seek/wrap; tested), `scene/audio.ts` (lazy Tone: limiter + volume, native buffer-source ticks, looped pulse-song buffer 220 Hz / IPI 35 ms at natural speed, `song(level)` ramps), `ui/Sound.tsx` (own rAF; ticks only from electrode rows when probes exist, else population; song = `Behavior.wing`, gated by pause; `toggleSound()` creates/resumes the AudioContext inside the gesture), `app.sound` (off by default), speaker button after Follow in Timeline, M, ⌘K "Sound".
+State: 370 tests, typecheck, lint green. Playwright (temp script, deleted): tone not requested before the click; after it ctx `running`, ≈280 ticks/s in escape and song, song gain 0.6 in song (dips at loop wrap), 0 in escape; M toggles off. visual-qa snap song t=40: button in place. ui-critic fixes applied. Not listened to by a human yet.
+Next: 5.4 Scenario captions synced to the timeline.
+Gotchas: Tone runs on our own native AudioContext (`Tone.setContext(ctx)`), created synchronously in the gesture because `import('tone')` is async (Safari). Dev exposes `window.flySound` (`scheduled`, `songGain`). Song is gated by `playback.paused`, not by "clock moved this frame" — the two rAFs are out of phase and that stuttered. node_modules reads are denied: check Tone API by typecheck.
+
 ## 2026-10-04 — 5.2 Fly body (behaviour camera)
 Done: `scene/behavior.ts` (`effectorMask` by type: TTMn → jump, MN9 → proboscis, wing steering MNs `hg|ps|b|i|iii|tp<n> MN` → song; `Behavior.update(log, t)` = exp-kernel rates per effector, jump latch + re-arm, seek back replays the log; tested), `scene/flycam/{model,flycam}.ts` (procedural glass fly, `glassMaterial` shared with shells; own WebGL2 canvas), `ui/FlyCam.tsx` (bottom-right panel, own rAF, caption `takeoff 29.7 ms` / `proboscis out` / `wing song`, hides while Inspector open, `flycam` ready flag).
 State: 365 tests, typecheck, lint green. Snaps: escape t=5 rest, t=40 airborne; GF silenced (`--x=AZYBZAABkU4`, live) at rest; sugar t=60 proboscis; song t=60 far wing out. ui-critic fixes applied.
@@ -23,9 +29,3 @@ Done: `state/share.ts` (`?x=` codec: base64url of LEB128 varints `ver|hz|gain×1
 State: 351 tests, typecheck, lint green. Snaps `--x=AZYBZAABkU4` (GF silenced) → live; `--x=AawCyAEBkU4A --ui=stimulate` → 300 Hz / 2×. One-off Playwright: silence GF → Share → clipboard = address bar → reopened link has GF silenced + live, no warnings.
 Next: 4.8 Motion pass over the whole HUD (find-animation-opportunities → animate → review-animations).
 Gotchas: `x` only when `touched` (drive alone is not shared). Probes are re-packed into slots 1..n on load. Snap of a live link needs `t=` or `__snapReady` never fires; two WebGPU tabs in one Playwright run stall the second — close the first. Legend tabs (Male / C) look cramped at the panel edge (pre-existing, visual-qa).
-
-## 2026-10-04 — 4.6 ⌘K search, colour modes, legend
-Done: `data/colorBy.ts` (modes nt/region/class/male → per-row group + legend; region = coarse neuropil groups, hemispheres merged; class = superclass groups; tested), neurons shader reads a per-row `tints` texture (no recompile on switch), `app.colorBy` + `?color=` + C cycles, `ui/Legend.tsx` (top-left switch + names/counts), `ui/CommandPalette.tsx` (cmdk, ⌘K/Ctrl+K: colour modes, scenario types → select + fly-to, digits → bodyIds; `?ui=palette`), `data/typeIndex.ts` (tested).
-State: 342+ tests, typecheck, lint green. Snaps escape `--color=region|class`, song `--color=male` (+ webgl2), `--ui=palette`, 1024×700 legend fit. One-off Playwright: ⌘K → "GF" → Enter opens inspector; "10001" → Neurons group; C cycles; no console warnings.
-Next: 4.7 Experiment URL encoding (stimuli + silenced ids, base64url) + "Share experiment".
-Gotchas: `data.get` was not reactive (plain Map) — now reads `loaded.has(id)` first, so observers re-render on chunk arrival (before: UI reading meta stayed empty until another re-render). Type pick selects the type's first row only. `?debug=` colour modes still static/separate; Legend hides under any `?debug=`. Focus/trace/electrode tints still override the colour mode.
