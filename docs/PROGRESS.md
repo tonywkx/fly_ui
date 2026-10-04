@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-04 — 4.7 Experiment URL + Share
+Done: `state/share.ts` (`?x=` codec: base64url of LEB128 varints `ver|hz|gain×100|stim Δ-ids|silenced Δ-ids`, sorted/deduped bodyIds, arithmetic varints for ids > 2³², strict decode → null; `shareSearch`; tested), `params.experiment` from `?x=`, `ExperimentStore.load` applied once in `scene/focus.ts` (bodyId → row like `probes`), `ui/share.ts` (`experimentLink` = scenario + x + probes + color≠nt; `shareExperiment` → replaceState + clipboard, `shareNote` 1.8 s), Share button at the end of the tool rail (grid-stacked labels: fixed width, sr-only status) + ⌘K "Share experiment".
+State: 351 tests, typecheck, lint green. Snaps `--x=AZYBZAABkU4` (GF silenced) → live; `--x=AawCyAEBkU4A --ui=stimulate` → 300 Hz / 2×. One-off Playwright: silence GF → Share → clipboard = address bar → reopened link has GF silenced + live, no warnings.
+Next: 4.8 Motion pass over the whole HUD (find-animation-opportunities → animate → review-animations).
+Gotchas: `x` only when `touched` (drive alone is not shared). Probes are re-packed into slots 1..n on load. Snap of a live link needs `t=` or `__snapReady` never fires; two WebGPU tabs in one Playwright run stall the second — close the first. Legend tabs (Male / C) look cramped at the panel edge (pre-existing, visual-qa).
+
 ## 2026-10-04 — 4.6 ⌘K search, colour modes, legend
 Done: `data/colorBy.ts` (modes nt/region/class/male → per-row group + legend; region = coarse neuropil groups, hemispheres merged; class = superclass groups; tested), neurons shader reads a per-row `tints` texture (no recompile on switch), `app.colorBy` + `?color=` + C cycles, `ui/Legend.tsx` (top-left switch + names/counts), `ui/CommandPalette.tsx` (cmdk, ⌘K/Ctrl+K: colour modes, scenario types → select + fly-to, digits → bodyIds; `?ui=palette`), `data/typeIndex.ts` (tested).
 State: 342+ tests, typecheck, lint green. Snaps escape `--color=region|class`, song `--color=male` (+ webgl2), `--ui=palette`, 1024×700 legend fit. One-off Playwright: ⌘K → "GF" → Enter opens inspector; "10001" → Neurons group; C cycles; no console warnings.
@@ -23,9 +29,3 @@ Done: `data/paths.ts` (`preparePaths`, `kBestPaths`: Yen over hop-bounded layere
 State: 306 tests, typecheck, lint green. Snaps `--ui=trace "--trace=LPLC2>TTMn"` (+ `--select=10001` to see the VNC end) → LPLC2 blue → GF white → TTMn saffron, rest dimmed; same on webgl2. One-off Playwright: T, type ends, pick 2nd path, swap, Esc, T restores. Search ≈6 ms in-scenario (160 ms whole CNS).
 Next: 4.4 Timeline (canvas raster by region, scrub/pause/slow-mo).
 Gotchas: hop types range from 1 neuron (GF) to ~80 (LPLC2) — flat emphasis either hides the GF or blooms LPLC2, hence gain ∝ min(1, 3/count). Type names hold commas/spaces ("DLMn a, b") → `>` separator in the URL; snap needs `"--trace=A>B"` as one quoted arg. Trace look shows only while the Trace tool is active (Esc hides, T restores). Fractions are tiny (TTMn has huge input) — UI shows 2 significant digits.
-
-## 2026-10-03 — 4.3 Tools, hotkeys, brush, electrodes
-Done: `packages/sim` `stimulate(i, hz, gain)` (per-neuron kick gain, tested) → Live/worker/client; `state/experiment.ts` tool / stim {hz, gain} / probes (4 fixed slots) / `apply` / `paint` / `escape` + `keyAction` (tested); `Stage.tsx` click applies the tool, brush stroke (Stimulate/Silence, drag starting on a neuron, orbit off via `engine.setOrbit`), live sync re-applies all stimuli on drive change; row-state texture RGBA (z = probe slot, `PROBES` palette); `ui/Toolbar.tsx` (rail + per-tool panel, owns V/S/X/E/Esc), `components/ui/slider.tsx`.
-State: 293 tests, typecheck, lint green. Snaps `--ui=stimulate|electrode` (tool preset), 1024 px no overlap, hidden < md (PRODUCT: phone = viewer). One-off Playwright: E+click → DNpe042 lime + chip; S+stroke → camera still, live starts; slider keys; Esc → Select.
-Next: 4.3b signal tracer (type graph k-best paths, tests first).
-Gotchas: pointerdown listener is capture-phase so it runs before OrbitControls and can disable it for a stroke. Probes need hover-level emphasis — partner level drowns in the optic lobes. Root `pnpm test` does not resolve `@/` from `ui/*.test.ts` importing state → use relative import. Inspector Esc moved into Toolbar hotkeys (tool first, then selection).
