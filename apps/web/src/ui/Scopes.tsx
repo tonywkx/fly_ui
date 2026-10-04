@@ -4,8 +4,10 @@ import { observer } from 'mobx-react-lite';
 import { useEffect, useRef } from 'react';
 import type uPlot from 'uplot';
 import { data } from '@/data/store';
+import { cn } from '@/lib/utils';
 import type { SpikeLog } from '@/sim/feed';
 import { probe, scenarioNet, voltage } from '@/sim/trace';
+import { app } from '@/state/app';
 import { experiment } from '@/state/experiment';
 import { playback } from '@/state/playback';
 import { PROBES, TEXT } from '@/ui/palette';
@@ -38,18 +40,30 @@ export const Scopes = observer(function Scopes() {
   const net = netOf(graph, meta);
 
   return (
-    <section aria-label="Oscilloscopes" className="grid w-[min(44rem,100%,100vw-30rem)] grid-cols-4 gap-1">
-      {placed.map(({ row, slot }) => (
-        <Scope
-          key={slot}
-          slot={slot}
-          row={row}
-          name={row < meta.n ? (neuronAt(meta, row).type ?? 'untyped') : `#${row}`}
-          log={log}
-          net={net}
-        />
-      ))}
-    </section>
+    // the first scope grows its row: the bottom-anchored rail above glides up instead of jumping
+    <div
+      className={cn(
+        'grid grid-rows-[1fr] transition-[grid-template-rows,opacity] duration-200 ease-out starting:grid-rows-[0fr] starting:opacity-0',
+        'motion-reduce:transition-opacity',
+        app.params.snap && 'transition-none',
+      )}
+    >
+      <section
+        aria-label="Oscilloscopes"
+        className="grid min-h-0 w-[min(44rem,100%,100vw-30rem)] grid-cols-4 gap-1 overflow-hidden"
+      >
+        {placed.map(({ row, slot }) => (
+          <Scope
+            key={slot}
+            slot={slot}
+            row={row}
+            name={row < meta.n ? (neuronAt(meta, row).type ?? 'untyped') : `#${row}`}
+            log={log}
+            net={net}
+          />
+        ))}
+      </section>
+    </div>
   );
 });
 
@@ -109,7 +123,11 @@ function Scope({ slot, row, name, log, net }: ScopeProps) {
       role="img"
       aria-label={`Electrode ${slot + 1}: ${name} membrane potential`}
       title={`${name}: −64…−40 mV, spikes clipped · dashed threshold, dotted rest`}
-      className="flex min-w-0 flex-col gap-0.5 rounded-panel bg-card px-3 pt-1.5 pb-2 backdrop-blur-md"
+      className={cn(
+        'flex min-w-0 flex-col gap-0.5 rounded-panel bg-card px-3 pt-1.5 pb-2 backdrop-blur-md',
+        'transition-[opacity,translate] duration-200 ease-out starting:translate-y-1 starting:opacity-0 motion-reduce:starting:translate-y-0',
+        app.params.snap && 'transition-none',
+      )}
       style={{ gridColumnStart: slot + 1 }}
     >
       <figcaption className="flex items-center gap-1 text-caption">

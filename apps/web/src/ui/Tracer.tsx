@@ -3,6 +3,7 @@ import { useId, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { data } from '@/data/store';
 import { cn } from '@/lib/utils';
+import { app } from '@/state/app';
 import { TRACE_MAX_HOPS, trace } from '@/state/trace';
 
 /** Two significant digits: path fractions span orders of magnitude (0.22%, 0.011%); no exponents. */
@@ -63,7 +64,11 @@ export const Tracer = observer(function Tracer() {
       {status === 'done' && paths.length > 0 && (
         <ol
           aria-label="Strongest paths"
-          className="flex max-h-36 flex-col gap-0.5 overflow-y-auto overscroll-contain"
+          className={cn(
+            'flex max-h-36 flex-col gap-0.5 overflow-y-auto overscroll-contain',
+            'transition-opacity duration-150 ease-out starting:opacity-0',
+            app.params.snap && 'transition-none',
+          )}
         >
           {paths.map((p, i) => (
             <li key={p.types.join('>')}>
