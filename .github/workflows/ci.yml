@@ -1,0 +1,60 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+
+  # production build + Playwright smoke on it (SwiftShader WebGL2, no GPU on runners)
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      # baked data lives on the orphan `data` branch (pnpm data:push)
+      - uses: actions/checkout@v5
+        with: { ref: data, path: apps/web/public/data }
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm smoke # builds apps/web/dist first (playwright.config webServer)
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: playwright-report, path: playwright-report, retention-days: 7 }
+      - if: github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v4
+        with: { path: apps/web/dist }
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: [check, smoke]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4
