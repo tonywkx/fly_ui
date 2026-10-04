@@ -20,12 +20,15 @@
     "test": "vitest run",
     "test:bio": "vitest run -c vitest.bio.config.ts",
     "test:watch": "vitest",
-    "typecheck": "pnpm -r --parallel typecheck && tsc -p scripts",
+    "typecheck": "pnpm -r --parallel typecheck && tsc -p scripts && tsc -p e2e",
     "lint": "biome check .",
-    "fix": "biome check --write ."
+    "fix": "biome check --write .",
+    "smoke": "playwright test",
+    "data:push": "sh scripts/data-push.sh"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
+    "@playwright/test": "1.63.0",
     "@types/node": "^26.6.3",
     "playwright": "^1.63.0",
     "tsx": "^4.23.15",
