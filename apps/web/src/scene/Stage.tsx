@@ -81,6 +81,7 @@ export function Stage() {
       })
       .catch((e) => {
         console.error('[scene]', e);
+        app.setRendererFailed();
         app.markReady('frame');
       });
 

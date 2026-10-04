@@ -23,6 +23,8 @@ export class AppStore {
   reducedMotion = false;
   /** Renderer backend once initialized. */
   backend: Backend | null = null;
+  /** The renderer could not start (no WebGPU and no WebGL2); the scene stays empty. */
+  rendererFailed = false;
   /** Set by the scene at phase boundaries only (never per frame). */
   introPhase: IntroPhase = 'assemble';
   hint = false;
@@ -56,7 +58,8 @@ export class AppStore {
   }
 
   get ready() {
-    return this.pending.size === 0;
+    // nothing else will draw once the renderer failed
+    return this.rendererFailed || this.pending.size === 0;
   }
 
   /** Register a flag that must be marked ready before the app counts as rendered. */
@@ -83,6 +86,10 @@ export class AppStore {
 
   get hintVisible() {
     return this.hint && !this.hintDismissed;
+  }
+
+  setRendererFailed() {
+    this.rendererFailed = true;
   }
 
   setBackend(b: Backend) {

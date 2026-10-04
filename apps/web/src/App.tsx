@@ -1,10 +1,12 @@
 import { observer } from 'mobx-react-lite';
 import { Button } from '@/components/ui/button';
+import { data } from '@/data/store';
 import { QUALITY } from '@/scene/quality';
 import { Stage } from '@/scene/Stage';
 import { app } from '@/state/app';
 import { Captions } from '@/ui/Captions';
 import { CommandPalette } from '@/ui/CommandPalette';
+import { Fatal } from '@/ui/Fatal';
 import { FlyCam } from '@/ui/FlyCam';
 import { Inspector } from '@/ui/Inspector';
 import { IntroHint } from '@/ui/IntroHint';
@@ -25,6 +27,8 @@ const SCENARIO_TITLES: Record<string, string> = {
 export const App = observer(function App() {
   const { scenario, debug, stats } = app.params;
   const title = scenario && (SCENARIO_TITLES[scenario] ?? scenario);
+  // nothing to drive: Fatal explains why
+  const broken = app.rendererFailed || !!data.error;
 
   return (
     <div
@@ -32,6 +36,7 @@ export const App = observer(function App() {
       data-blur={QUALITY[app.quality].blur ? undefined : 'off'}
     >
       <Stage />
+      <Fatal />
       <IntroHint />
       <Captions />
       <NeuronTooltip />
@@ -41,11 +46,13 @@ export const App = observer(function App() {
       <Sound />
       <CommandPalette />
       {/* phone = viewer without tools (PRODUCT.md); above the attribution row */}
-      <div className="pointer-events-none absolute inset-x-2 bottom-16 z-10 hidden flex-col items-center gap-1 md:flex">
-        <Toolbar />
-        <Scopes />
-        <Timeline />
-      </div>
+      {!broken && (
+        <div className="pointer-events-none absolute inset-x-2 bottom-16 z-10 hidden flex-col items-center gap-1 md:flex">
+          <Toolbar />
+          <Scopes />
+          <Timeline />
+        </div>
+      )}
 
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-4 md:p-8">
         <div className="flex flex-col items-end gap-1 font-mono text-caption tabular-nums">
