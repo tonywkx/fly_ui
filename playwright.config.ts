@@ -15,7 +15,7 @@ export default defineConfig({
   workers: ci ? 1 : undefined,
   forbidOnly: ci,
   retries: ci ? 1 : 0,
-  reporter: ci ? [['list'], ['html', { open: 'never' }]] : 'list',
+  reporter: ci ? [['github'], ['list'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: `http://localhost:${PORT}/`,
     browserName: 'chromium',
