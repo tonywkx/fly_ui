@@ -40,6 +40,8 @@ export interface Params {
   trace?: { from: string; to: string; path: number };
   /** Shared experiment (stimuli, silencing, drive) — `?x=<base64url>`, see `state/share.ts`. */
   experiment?: SharedExperiment;
+  /** Start with the director camera following the activity front. */
+  director?: true;
 }
 
 const flag = (v: string | null) => v !== null && v !== '0' && v !== 'false';
@@ -49,6 +51,7 @@ export function parseParams(search: string): { params: Params; warnings: string[
   const q = new URLSearchParams(search);
   const params: Params = { stats: flag(q.get('stats')), snap: flag(q.get('snap')) };
   const warnings: string[] = [];
+  if (flag(q.get('director'))) params.director = true;
 
   const scenario = q.get('scenario');
   if (scenario !== null) {

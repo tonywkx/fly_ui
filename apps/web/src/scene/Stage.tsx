@@ -9,6 +9,7 @@ import { LiveClient } from '@/sim/client';
 import { app } from '@/state/app';
 import { experiment } from '@/state/experiment';
 import { playback } from '@/state/playback';
+import { startDirector } from './director';
 import { Engine } from './engine';
 import { startFocus } from './focus';
 import { onFrameSample } from './frameStats';
@@ -260,7 +261,9 @@ function populate(engine: Engine, intro: Intro, stops: (() => void)[]) {
     if (!colorMode) startActivity(engine, neurons, meta, stops);
     if (neurons.mesh.visible) stops.push(...startPicking(engine, neurons));
     const graph = data.get(`${data.scenario}-graph`, 'graph');
-    stops.push(...startFocus(engine, neurons, meta, graph, rowBounds(seg, meta.n)));
+    const bounds = rowBounds(seg, meta.n);
+    stops.push(...startFocus(engine, neurons, meta, graph, bounds));
+    if (!colorMode) stops.push(...startDirector(engine, bounds));
     const types = data.manifest?.chunks.find((c) => c.id === 'typegraph-full');
     stops.push(...startTrace(engine, neurons, meta, types && data.url(types)));
   }

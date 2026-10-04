@@ -157,13 +157,7 @@ export class Engine {
    * direction. Animated (strong ease-in-out) unless reduced motion or `instant`; user input cancels it.
    */
   flyTo(center: Vector3, radius: number, instant = false) {
-    const toDist = Math.min(
-      this.controls.maxDistance,
-      Math.max(
-        this.controls.minDistance,
-        frameDistance([radius, radius, 0], this.camera.fov, this.camera.aspect, FLY_MARGIN),
-      ),
-    );
+    const toDist = this.frameRadius(radius);
     const fromTarget = this.controls.target.clone();
     const offset = this.camera.position.clone().sub(fromTarget);
     const fromDist = offset.length();
@@ -176,6 +170,35 @@ export class Engine {
       toDist,
       dir: offset.divideScalar(fromDist || 1),
     };
+  }
+
+  /** Camera distance framing a sphere of `radius` (world), within the zoom limits. */
+  frameRadius(radius: number): number {
+    const d = frameDistance([radius, radius, 0], this.camera.fov, this.camera.aspect, FLY_MARGIN);
+    return Math.min(this.controls.maxDistance, Math.max(this.controls.minDistance, d));
+  }
+
+  /** Orbit target (world); read-only by convention. */
+  get target(): Vector3 {
+    return this.controls.target;
+  }
+
+  get distance(): number {
+    return this.camera.position.distanceTo(this.controls.target);
+  }
+
+  /** Orbit around `target` at `dist`, keeping the view direction (director, per frame). Drops a flight. */
+  aim(target: Vector3, dist: number): void {
+    this.flight = null;
+    const dir = this.camera.position.clone().sub(this.controls.target).normalize();
+    this.controls.target.copy(target);
+    this.camera.position.copy(dir).multiplyScalar(dist).add(target);
+  }
+
+  /** Slow turntable (director); never with reduced motion. */
+  setAutoRotate(on: boolean, speed = 0.3): void {
+    this.controls.autoRotate = on && !this.reducedMotion;
+    this.controls.autoRotateSpeed = speed;
   }
 
   /** Orbit / zoom input on or off (off during a brush stroke). */

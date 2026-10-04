@@ -81,6 +81,8 @@ describe('parseParams', () => {
     expect(parseParams('?stats=true').params.stats).toBe(true);
     expect(parseParams('?stats=0').params.stats).toBe(false);
     expect(parseParams('?stats=false').params.stats).toBe(false);
+    expect(parseParams('?director').params.director).toBe(true);
+    expect(parseParams('?director=0').params).not.toHaveProperty('director');
   });
 
   it('drops invalid values with a warning', () => {

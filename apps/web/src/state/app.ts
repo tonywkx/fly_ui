@@ -28,6 +28,8 @@ export class AppStore {
   hover: number | null = null;
   /** What the neurons are tinted by. */
   colorBy: ColorBy;
+  /** Director camera: follows the activity front until the user takes the camera. */
+  director: boolean;
 
   constructor(search: string) {
     ({ params: this.params, warnings: this.warnings } = parseParams(search));
@@ -35,6 +37,7 @@ export class AppStore {
     // before init the backend is a guess: WebGPU if exposed and not forced off
     const guess = this.params.gl || !('gpu' in navigator) ? 'webgl2' : 'webgpu';
     this.colorBy = this.params.color ?? 'nt';
+    this.director = !!this.params.director;
     this.quality = this.params.quality ?? (this.params.snap ? 'high' : defaultQuality(device(guess)));
     makeAutoObservable(this, { params: false, warnings: false, pending: false });
   }
@@ -84,6 +87,14 @@ export class AppStore {
 
   setColorBy(m: ColorBy) {
     this.colorBy = m;
+  }
+
+  setDirector(on: boolean) {
+    this.director = on;
+  }
+
+  toggleDirector() {
+    this.director = !this.director;
   }
 
   cycleColorBy() {
