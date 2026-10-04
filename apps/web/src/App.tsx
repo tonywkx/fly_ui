@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Stage } from '@/scene/Stage';
 import { app } from '@/state/app';
 import { CommandPalette } from '@/ui/CommandPalette';
+import { FlyCam } from '@/ui/FlyCam';
 import { Inspector } from '@/ui/Inspector';
 import { IntroHint } from '@/ui/IntroHint';
 import { Legend } from '@/ui/Legend';
@@ -29,6 +30,7 @@ export const App = observer(function App() {
       <NeuronTooltip />
       <Inspector />
       <Legend />
+      <FlyCam />
       <CommandPalette />
       {/* phone = viewer without tools (PRODUCT.md); above the attribution row */}
       <div className="pointer-events-none absolute inset-x-2 bottom-16 z-10 hidden flex-col items-center gap-1 md:flex">
