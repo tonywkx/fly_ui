@@ -80,7 +80,7 @@ export const Captions = observer(function Captions() {
       aria-hidden={hint}
       className={cn(
         // phones: top (the title stack owns the bottom); desktop: under the timeline, clear of the corners
-        'pointer-events-none absolute inset-x-4 top-[max(1rem,env(safe-area-inset-top))] z-10 mx-auto max-w-[32rem] text-center text-body font-light text-balance text-bone md:top-auto md:bottom-8',
+        'pointer-events-none absolute inset-x-4 top-[max(1rem,env(safe-area-inset-top))] z-10 mx-auto max-w-[32rem] text-center text-body font-light text-balance text-bone md:top-auto md:bottom-8 md:max-w-[max(16rem,min(32rem,100vw-44rem))]',
         'transition-opacity duration-200 ease-out motion-reduce:transition-none data-[empty=true]:opacity-0',
         hint && 'opacity-0',
       )}

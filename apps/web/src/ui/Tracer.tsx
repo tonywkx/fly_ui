@@ -49,7 +49,9 @@ export const Tracer = observer(function Tracer() {
           disabled={!from && !to}
           onClick={() => trace.swap()}
         >
-          ⇅
+          <svg viewBox="0 0 16 16" aria-hidden className="size-3 fill-none stroke-current" strokeWidth={1.5}>
+            <path d="M5 13V3M2.5 5.5L5 3l2.5 2.5M11 3v10M8.5 10.5L11 13l2.5-2.5" />
+          </svg>
         </Button>
       </div>
       <p aria-live="polite" className="text-caption text-mist empty:hidden">
