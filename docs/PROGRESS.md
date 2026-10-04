@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-04 — 6.3 impeccable audit + polish
+Done: audit (detector clean; snaps base-*/after-* at 1600/1280/1024/390). `ui/FlyCam.tsx` → top-right (overlapped the timeline below ~1470 px; enters from above); `App.tsx` stack shifts to `left-40 right-64` while the Inspector is open at 72–92rem; `--color-panel` 0.62→0.7 (contrast over glow); phone ViewerBar 66→48 px; Fatal Reload = primary pill; captions `max(16rem,min(32rem,100vw-44rem))`; Tracer swap = SVG.
+State: 384 tests, typecheck, lint, smoke (6/6, real GPU) green. visual-qa after-pass PASS except the known tablet overlap (Backlog). ui-critic fixes applied; captions stay viewport-centred while the stack is shifted (accepted).
+Next: 6.4 README (CC-BY attribution), 30–60 s video, article. Check the first GitHub Actions run if not yet done.
+Gotchas: `--spacing` is 6px — `size-11` = 66 px, not 44; 48 px targets are `size-8`/`h-8`. Translucent panels have no visible edge over black, so a "hard edge" in snaps is just the panel border over the bright brain. `trace=` only sets the ends; add `ui=trace` to see the panel in a snap. visual-qa claims ("clipped", "cut off") need a look — two were false this session.
+
 ## 2026-10-04 — 6.2 Smoke tests, CI → Pages
 Done: `e2e/smoke.spec.ts` + `playwright.config.ts` (`pnpm smoke`: fresh prod build → `vite preview` :5197; 3 scenarios ready with 0 console errors and ≤15 MB before first frame — 10.6/11.7/12.5 MB; play/pause moves the clock; phone `ViewerBar` switches scenario; manifest 500 → `Fatal`), `e2e/tsconfig.json` in `pnpm typecheck`; `scripts/data-push.sh` (`pnpm data:push [remote|url]`, orphan `data` branch, one force-pushed commit); `.github/workflows/ci.yml` (check → smoke with `data` checked out into `public/data` → deploy-pages from the smoke job's dist, main only).
 State: 384 tests, typecheck, lint green; smoke green on real GPU (4 s) and with `CI=1` (SwiftShader WebGL2, ≈6 min). data-push verified against a local bare repo. No remote yet: workflow never ran on GitHub, actionlint not installed.
@@ -23,9 +29,3 @@ Done: `scene/sound.ts` (`clicks(log, t0, t1, rate, {max, rows})` → ticks at re
 State: 370 tests, typecheck, lint green. Playwright (temp script, deleted): tone not requested before the click; after it ctx `running`, ≈280 ticks/s in escape and song, song gain 0.6 in song (dips at loop wrap), 0 in escape; M toggles off. visual-qa snap song t=40: button in place. ui-critic fixes applied. Not listened to by a human yet.
 Next: 5.4 Scenario captions synced to the timeline.
 Gotchas: Tone runs on our own native AudioContext (`Tone.setContext(ctx)`), created synchronously in the gesture because `import('tone')` is async (Safari). Dev exposes `window.flySound` (`scheduled`, `songGain`). Song is gated by `playback.paused`, not by "clock moved this frame" — the two rAFs are out of phase and that stuttered. node_modules reads are denied: check Tone API by typecheck.
-
-## 2026-10-04 — 5.2 Fly body (behaviour camera)
-Done: `scene/behavior.ts` (`effectorMask` by type: TTMn → jump, MN9 → proboscis, wing steering MNs `hg|ps|b|i|iii|tp<n> MN` → song; `Behavior.update(log, t)` = exp-kernel rates per effector, jump latch + re-arm, seek back replays the log; tested), `scene/flycam/{model,flycam}.ts` (procedural glass fly, `glassMaterial` shared with shells; own WebGL2 canvas), `ui/FlyCam.tsx` (bottom-right panel, own rAF, caption `takeoff 29.7 ms` / `proboscis out` / `wing song`, hides while Inspector open, `flycam` ready flag).
-State: 365 tests, typecheck, lint green. Snaps: escape t=5 rest, t=40 airborne; GF silenced (`--x=AZYBZAABkU4`, live) at rest; sugar t=60 proboscis; song t=60 far wing out. ui-critic fixes applied.
-Next: 5.3 Sound (Tone.js): spikes as clicks, courtship song synthesis, mute by default.
-Gotchas: Jump threshold is data-tuned (see DECISIONS); higher stim gain can make a GF-silenced fly jump (long-mode, acceptable). Biome `useExhaustiveDependencies` strips `log` from effect deps → keep the biome-ignore (live swaps the log). A renderer must own its canvas (re-creating one on the same canvas after dispose throws `reading '0'`). 1 px lines vanish in the small canvas — outlines are thin triangle rings. The formatter rewraps lines, so scripted string replaces can silently miss: re-read before patching.

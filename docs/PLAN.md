@@ -78,10 +78,11 @@ Phase exit = its "Done when" is true and demoable.
 ## Phase 6 — Polish & release (≈1 week)
 - [x] 6.1 Profiling, WebGL2 fallback check, mobile viewer mode.
 - [x] 6.2 Playwright smoke tests; GitHub Actions → Pages (optional RU mirror).
-- [ ] 6.3 `impeccable` audit + polish of every screen. **[S]** **[UI]**
+- [x] 6.3 `impeccable` audit + polish of every screen. **[S]** **[UI]**
 - [ ] 6.4 README (with CC-BY attribution), 30–60 s video, article.
 
 ## Backlog / spin-offs (not scheduled)
+- Tablet widths (768–1151 px): the open Inspector still overlaps the tool stack (the stack only shifts aside from 72rem). Make the Inspector a bottom sheet there, or show tools from `lg` up.
 - Dust close-up: sprites are sized in µm, so at deep zoom they become big discs that clutter the view (seen in a live recording). Clamp on-screen size and fade dust near the camera.
 - Cheap dense dust: lod1/lod2 (+900k sprites) halve fps on M4 whatever the pixel ratio (primitive-bound instanced quads). Try one triangle per sprite, native 1 px points, or a baked density volume; then raise `QUALITY.high.dustTiers` (`apps/web/src/scene/quality.ts`).
 - neuPrint MCP server (find_neurons, get_partners, shortest_path, neuroglancer_link) + eval set — reuse `apps/pipeline/src/neuprint` client; strong AI-portfolio piece. Check GitHub for an existing one first.
