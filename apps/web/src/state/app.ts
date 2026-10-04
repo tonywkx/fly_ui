@@ -30,6 +30,8 @@ export class AppStore {
   colorBy: ColorBy;
   /** Director camera: follows the activity front until the user takes the camera. */
   director: boolean;
+  /** Audio monitor (spike clicks + song); off until the user turns it on (autoplay policy). */
+  sound = false;
 
   constructor(search: string) {
     ({ params: this.params, warnings: this.warnings } = parseParams(search));
@@ -95,6 +97,10 @@ export class AppStore {
 
   toggleDirector() {
     this.director = !this.director;
+  }
+
+  setSound(on: boolean) {
+    this.sound = on;
   }
 
   cycleColorBy() {
