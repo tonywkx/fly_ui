@@ -77,7 +77,7 @@ Phase exit = its "Done when" is true and demoable.
 
 ## Phase 6 — Polish & release (≈1 week)
 - [x] 6.1 Profiling, WebGL2 fallback check, mobile viewer mode.
-- [ ] 6.2 Playwright smoke tests; GitHub Actions → Pages (optional RU mirror).
+- [x] 6.2 Playwright smoke tests; GitHub Actions → Pages (optional RU mirror).
 - [ ] 6.3 `impeccable` audit + polish of every screen. **[S]** **[UI]**
 - [ ] 6.4 README (with CC-BY attribution), 30–60 s video, article.
 

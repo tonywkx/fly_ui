@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-04 — 6.2 Smoke tests, CI → Pages
+Done: `e2e/smoke.spec.ts` + `playwright.config.ts` (`pnpm smoke`: fresh prod build → `vite preview` :5197; 3 scenarios ready with 0 console errors and ≤15 MB before first frame — 10.6/11.7/12.5 MB; play/pause moves the clock; phone `ViewerBar` switches scenario; manifest 500 → `Fatal`), `e2e/tsconfig.json` in `pnpm typecheck`; `scripts/data-push.sh` (`pnpm data:push [remote|url]`, orphan `data` branch, one force-pushed commit); `.github/workflows/ci.yml` (check → smoke with `data` checked out into `public/data` → deploy-pages from the smoke job's dist, main only).
+State: 384 tests, typecheck, lint green; smoke green on real GPU (4 s) and with `CI=1` (SwiftShader WebGL2, ≈6 min). data-push verified against a local bare repo. No remote yet: workflow never ran on GitHub, actionlint not installed.
+Next: user creates the GitHub repo → `git remote add origin`, `pnpm data:push`, push main, Pages Source = GitHub Actions; check the first run. Then 6.3 `impeccable` audit.
+Gotchas: `CI=1` switches pages to `?gl=webgl2` + SwiftShader flags; ≈50 s per load there regardless of viewport (not pixel-bound). Real clicks hang under SwiftShader (input ack waits on a frame commit) → smoke uses `dispatchEvent('click')`. `--reporter=json` stdout is polluted by pnpm/webServer output: use `PLAYWRIGHT_JSON_OUTPUT_NAME`.
+
 ## 2026-10-04 — 6.1 Profiling, WebGL2 fallback, phone viewer
 Done: `pnpm perf` prints bytes until drawn + `--profile` (CDP self-time top 15), stats read via `data-stat`; `data/plan.ts` loads only shared + chosen scenario chunks (song 23.4 → 13.7 MB); `Preset.blur` (off on low, `[data-blur=off]` in theme.css = denser panels) + `FpsGuard` < 54 fps; `ui/Fatal.tsx` (`app.rendererFailed` / `data.error`, tools hidden, `ready` true on renderer failure); phone `ui/ViewerBar.tsx` (play/pause + scenario links via `ui/viewer.ts` `scenarioHref`, `SCENARIO_TITLES` moved there), director on for coarse pointers.
 State: 384+ tests, typecheck, lint green. visual-qa: WebGL2 ≡ WebGPU on all scenarios/tools/low; phone snaps 390×844 ok; ui-critic fixes applied. Song at high still 48 fps headless (guard steps it to low); not checked on a real phone.
@@ -23,9 +29,3 @@ Done: `scene/behavior.ts` (`effectorMask` by type: TTMn → jump, MN9 → probos
 State: 365 tests, typecheck, lint green. Snaps: escape t=5 rest, t=40 airborne; GF silenced (`--x=AZYBZAABkU4`, live) at rest; sugar t=60 proboscis; song t=60 far wing out. ui-critic fixes applied.
 Next: 5.3 Sound (Tone.js): spikes as clicks, courtship song synthesis, mute by default.
 Gotchas: Jump threshold is data-tuned (see DECISIONS); higher stim gain can make a GF-silenced fly jump (long-mode, acceptable). Biome `useExhaustiveDependencies` strips `log` from effect deps → keep the biome-ignore (live swaps the log). A renderer must own its canvas (re-creating one on the same canvas after dispose throws `reading '0'`). 1 px lines vanish in the small canvas — outlines are thin triangle rings. The formatter rewraps lines, so scripted string replaces can silently miss: re-read before patching.
-
-## 2026-10-04 — 5.1 Director camera
-Done: `scene/front.ts` (`activityFront`: exp-weighted centroid + RMS spread of recently spiking rows' `rowBounds`; tested), `scene/director.ts` (GSAP `quickTo` per frame on a `{x,y,z,d}` shot → `engine.aim`, slow `autoRotate`, back to the whole CNS when activity fades; snaps aim instantly; reduced motion = cuts ≥1.5 s apart), engine `aim / frameRadius / setAutoRotate / target / distance`, `app.director` + `?director=1`, Follow toggle at the Timeline's right end + D + ⌘K "Follow the activity".
-State: 357 tests, typecheck, lint green. visual-qa snaps escape t=10/25/40, song t=40 with `--director=1`: activity framed and centred, nothing cut off; escape barely tighter (bilateral optic-lobe activity centroids at the middle), song ≈2.5× closer. Drag-cancels-follow not checked in a browser (same `start` event as flight cancel).
-Next: 5.2 Fly body: jump / proboscis / wing vibration.
-Gotchas: Director waits for `introPhase === 'done'`; user orbit/zoom or any fly-to turns it off. Framing ignores the HUD dock: the subject can sit low, near the toolbar (candidate: `camera.setViewOffset`, check picking). `--k=v` snap args must be separate argv entries.
