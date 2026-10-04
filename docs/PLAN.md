@@ -76,7 +76,7 @@ Phase exit = its "Done when" is true and demoable.
 - [x] 5.4 Scenario captions ("signal descends into the thorax…") synced to the timeline. **[UI]**
 
 ## Phase 6 — Polish & release (≈1 week)
-- [ ] 6.1 Profiling, WebGL2 fallback check, mobile viewer mode.
+- [x] 6.1 Profiling, WebGL2 fallback check, mobile viewer mode.
 - [ ] 6.2 Playwright smoke tests; GitHub Actions → Pages (optional RU mirror).
 - [ ] 6.3 `impeccable` audit + polish of every screen. **[S]** **[UI]**
 - [ ] 6.4 README (with CC-BY attribution), 30–60 s video, article.

@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-04 — 6.1 Profiling, WebGL2 fallback, phone viewer
+Done: `pnpm perf` prints bytes until drawn + `--profile` (CDP self-time top 15), stats read via `data-stat`; `data/plan.ts` loads only shared + chosen scenario chunks (song 23.4 → 13.7 MB); `Preset.blur` (off on low, `[data-blur=off]` in theme.css = denser panels) + `FpsGuard` < 54 fps; `ui/Fatal.tsx` (`app.rendererFailed` / `data.error`, tools hidden, `ready` true on renderer failure); phone `ui/ViewerBar.tsx` (play/pause + scenario links via `ui/viewer.ts` `scenarioHref`, `SCENARIO_TITLES` moved there), director on for coarse pointers.
+State: 384+ tests, typecheck, lint green. visual-qa: WebGL2 ≡ WebGPU on all scenarios/tools/low; phone snaps 390×844 ok; ui-critic fixes applied. Song at high still 48 fps headless (guard steps it to low); not checked on a real phone.
+Next: 6.2 Playwright smoke tests; GitHub Actions → Pages.
+Gotchas: zsh doesn't word-split `$a` — use `${=a}` when looping perf/snap args. Debug modes hide the HUD, so they also hide blur cost. Pick ties among overlapping ribbons differ by backend (same spot, different neuron) — not a flip bug. Snap pins quality to high, so FpsGuard can't be exercised by perf.
+
 ## 2026-10-04 — 5.4 Scenario captions
 Done: `scene/captions.ts` (`SCRIPTS` per scenario, `beatMask`, `Narrator` = beats at first spike of their types or when the body moves — steps the injected `Behavior` at 0.5 ms through seeks so rate beats get their onset; `missing.byMs` after the onset → "Giant Fiber silent" / "No takeoff"; `Dwell` holds each line ≥1.6 s real while playing, jumps to `t` on pause/seek/wrap; tested), `ui/Captions.tsx` (own rAF, DOM via refs, bottom-centre desktop / top phone, hidden while the intro hint shows via `hintShown()` from IntroHint), `app.captions` (on) + ⌘K "Captions", `captions` ready flag. `SHOWN` + motor regexes now exported from `behavior.ts`.
 State: 381 tests, typecheck, lint green. visual-qa: escape t=2/5/40, sugar/song t=60 (onsets 22.5 / 12.0 ms, not the playhead), GF silenced → "No takeoff", phone at top. ui-critic fixes applied (copy tightened, WAAPI transform-only, hint bug on sugar/song); final copy not re-snapped.
@@ -23,9 +29,3 @@ Done: `scene/front.ts` (`activityFront`: exp-weighted centroid + RMS spread of r
 State: 357 tests, typecheck, lint green. visual-qa snaps escape t=10/25/40, song t=40 with `--director=1`: activity framed and centred, nothing cut off; escape barely tighter (bilateral optic-lobe activity centroids at the middle), song ≈2.5× closer. Drag-cancels-follow not checked in a browser (same `start` event as flight cancel).
 Next: 5.2 Fly body: jump / proboscis / wing vibration.
 Gotchas: Director waits for `introPhase === 'done'`; user orbit/zoom or any fly-to turns it off. Framing ignores the HUD dock: the subject can sit low, near the toolbar (candidate: `camera.setViewOffset`, check picking). `--k=v` snap args must be separate argv entries.
-
-## 2026-10-04 — 4.8 HUD motion pass
-Done: find-animation-opportunities → 4 survivors. `components/ui/button.tsx` press `active:scale-[0.97]` for all variants (`scale` added to the transition; before, primary snapped). `ui/Toolbar.tsx` Share/Copied/In URL labels crossfade (opacity + 2px blur, 150 ms). `ui/Scopes.tsx` first scope grows its row (`grid-rows` 0fr→1fr via `starting:`, 200 ms), so the bottom-anchored rail glides up instead of jumping ~108 px; cards fade in. `ui/Tracer.tsx` path list fades in (150 ms).
-State: 351 tests, typecheck, lint green. Playwright (live, electrode click): rail 0→108 px over ~170 ms. Snaps `--ui=electrode --probes=10001`, `--ui=trace` unchanged. ui-critic pass applied (card translate dropped: double motion).
-Next: Phase 5 — 5.1 Director camera following the activity front (GSAP).
-Gotchas: Wrapping a `w-[min(…,100%)]` element in a shrink-to-fit flex item collapses the `100%`. Put the width on the wrapper. Every entrance has `app.params.snap && 'transition-none'`, otherwise a snap catches it mid-fade. Headless picking needs the snap.ts GPU flags (`--enable-gpu --use-angle=metal --ignore-gpu-blocklist`); without them `copyTextureToBuffer` throws.
