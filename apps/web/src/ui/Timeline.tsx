@@ -282,18 +282,14 @@ export const Timeline = observer(function Timeline() {
         aria-label="Sound"
         aria-pressed={app.sound}
         aria-keyshortcuts="M"
-        title={app.sound ? 'Mute (M)' : 'Sound on (M)'}
+        title="Sound (M)"
         onClick={toggleSound}
         className="size-6 shrink-0 rounded-full p-0 aria-pressed:bg-accent aria-pressed:text-bone"
       >
         {/* speaker; waves when on */}
         <svg viewBox="0 0 16 16" aria-hidden className="size-3 fill-none stroke-current" strokeWidth={1.5}>
           <path d="M2 6h2.5L8 3v10L4.5 10H2z" className="fill-current stroke-none" />
-          {app.sound ? (
-            <path d="M10.5 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6.5 6.5 0 0 1 0 9" />
-          ) : (
-            <path d="M10.5 6l4 4M14.5 6l-4 4" />
-          )}
+          {app.sound ? <path d="M10.5 5.5a3.5 3.5 0 0 1 0 5" /> : <path d="M11 6.5l3 3M14 6.5l-3 3" />}
         </svg>
       </Button>
     </section>
