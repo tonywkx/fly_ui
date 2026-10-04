@@ -43,15 +43,12 @@ export const Scopes = observer(function Scopes() {
     // the first scope grows its row: the bottom-anchored rail above glides up instead of jumping
     <div
       className={cn(
-        'grid grid-rows-[1fr] transition-[grid-template-rows,opacity] duration-200 ease-out starting:grid-rows-[0fr] starting:opacity-0',
+        'grid w-[min(44rem,100%,100vw-30rem)] grid-rows-[1fr] transition-[grid-template-rows,opacity] duration-200 ease-out starting:grid-rows-[0fr] starting:opacity-0',
         'motion-reduce:transition-opacity',
         app.params.snap && 'transition-none',
       )}
     >
-      <section
-        aria-label="Oscilloscopes"
-        className="grid min-h-0 w-[min(44rem,100%,100vw-30rem)] grid-cols-4 gap-1 overflow-hidden"
-      >
+      <section aria-label="Oscilloscopes" className="grid min-h-0 grid-cols-4 gap-1 overflow-hidden">
         {placed.map(({ row, slot }) => (
           <Scope
             key={slot}
@@ -125,7 +122,7 @@ function Scope({ slot, row, name, log, net }: ScopeProps) {
       title={`${name}: −64…−40 mV, spikes clipped · dashed threshold, dotted rest`}
       className={cn(
         'flex min-w-0 flex-col gap-0.5 rounded-panel bg-card px-3 pt-1.5 pb-2 backdrop-blur-md',
-        'transition-[opacity,translate] duration-200 ease-out starting:translate-y-1 starting:opacity-0 motion-reduce:starting:translate-y-0',
+        'transition-opacity duration-200 ease-out starting:opacity-0',
         app.params.snap && 'transition-none',
       )}
       style={{ gridColumnStart: slot + 1 }}
