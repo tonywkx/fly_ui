@@ -79,7 +79,7 @@ Phase exit = its "Done when" is true and demoable.
 - [x] 6.1 Profiling, WebGL2 fallback check, mobile viewer mode.
 - [x] 6.2 Playwright smoke tests; GitHub Actions → Pages (optional RU mirror).
 - [x] 6.3 `impeccable` audit + polish of every screen. **[S]** **[UI]**
-- [ ] 6.4 README (with CC-BY attribution), 30–60 s video, article.
+- [x] 6.4 README (with CC-BY attribution), 30–60 s video, article.
 
 ## Backlog / spin-offs (not scheduled)
 - Tablet widths (768–1151 px): the open Inspector still overlaps the tool stack (the stack only shifts aside from 72rem). Make the Inspector a bottom sheet there, or show tools from `lg` up.

@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-04 — 6.4 README, video, article
+Done: `README.md` (live link, scenarios/tools/hotkeys, architecture, dev, data & attribution: Berg et al. bioRxiv 2025 doi:10.1101/2025.10.09.680999 + Shiu 2024, CC BY 4.0) + `LICENSE` (MIT) + `docs/media/*.jpg`; `docs/article.ru.md` (Habr draft, ~2.1k words); `scripts/film.ts` (`pnpm film [--shot --sec --fps --join]`) → `snaps/fly_ui.mp4` master (43 s 1080p60, 194 MB) + `snaps/fly_ui.web.mp4` (30 fps, 9.6 MB); snap/perf/film share `scripts/lib.ts` (ports 5199/5198/5196).
+State: typecheck, lint green; snap re-verified after the refactor. Video not uploaded; README has a placeholder comment for it. 9 local commits ahead of origin/main (6.3 polish + this), not pushed.
+Next: user uploads `snaps/fly_ui.web.mp4` via the GitHub editor → paste URL into README; push main; publish the article (upload images). Phase 6 done → pick from Backlog.
+Gotchas: film = Playwright `page.clock` (install with a time, then `pauseAt` later — earlier throws) + `runFor(1/fps)` + screenshot; WebGPU presents fine under the fake rAF. Loading is real time, so the ready loop must keep ticking. ~4 frames/s at 1080p (≈12 min for all shots). The escape cascade is ≈30 sim ms = <1 s at 1× — a slow-mo pass (`[` twice after Play) would read better if re-filmed.
+
 ## 2026-10-04 — 6.3 impeccable audit + polish
 Done: audit (detector clean; snaps base-*/after-* at 1600/1280/1024/390). `ui/FlyCam.tsx` → top-right (overlapped the timeline below ~1470 px; enters from above); `App.tsx` stack shifts to `left-40 right-64` while the Inspector is open at 72–92rem; `--color-panel` 0.62→0.7 (contrast over glow); phone ViewerBar 66→48 px; Fatal Reload = primary pill; captions `max(16rem,min(32rem,100vw-44rem))`; Tracer swap = SVG.
 State: 384 tests, typecheck, lint, smoke (6/6, real GPU) green. visual-qa after-pass PASS except the known tablet overlap (Backlog). ui-critic fixes applied; captions stay viewport-centred while the stack is shifted (accepted).
@@ -23,9 +29,3 @@ Done: `scene/captions.ts` (`SCRIPTS` per scenario, `beatMask`, `Narrator` = beat
 State: 381 tests, typecheck, lint green. visual-qa: escape t=2/5/40, sugar/song t=60 (onsets 22.5 / 12.0 ms, not the playhead), GF silenced → "No takeoff", phone at top. ui-critic fixes applied (copy tightened, WAAPI transform-only, hint bug on sugar/song); final copy not re-snapped.
 Next: 6.1 Profiling, WebGL2 fallback check, mobile viewer mode.
 Gotchas: Spike times are float32 — tests must use exactly representable values (0.25, 2.75…). `app.hintVisible` is true on scenarios without a hint: use `hintShown()`. No scrim/text-shadow behind captions on purpose (HUD has no shadows).
-
-## 2026-10-04 — 5.3 Sound
-Done: `scene/sound.ts` (`clicks(log, t0, t1, rate, {max, rows})` → ticks at real-time offsets, evenly thinned to `max`/frame, gain `0.35·√k`; `continuous()` = play step vs pause/seek/wrap; tested), `scene/audio.ts` (lazy Tone: limiter + volume, native buffer-source ticks, looped pulse-song buffer 220 Hz / IPI 35 ms at natural speed, `song(level)` ramps), `ui/Sound.tsx` (own rAF; ticks only from electrode rows when probes exist, else population; song = `Behavior.wing`, gated by pause; `toggleSound()` creates/resumes the AudioContext inside the gesture), `app.sound` (off by default), speaker button after Follow in Timeline, M, ⌘K "Sound".
-State: 370 tests, typecheck, lint green. Playwright (temp script, deleted): tone not requested before the click; after it ctx `running`, ≈280 ticks/s in escape and song, song gain 0.6 in song (dips at loop wrap), 0 in escape; M toggles off. visual-qa snap song t=40: button in place. ui-critic fixes applied. Not listened to by a human yet.
-Next: 5.4 Scenario captions synced to the timeline.
-Gotchas: Tone runs on our own native AudioContext (`Tone.setContext(ctx)`), created synchronously in the gesture because `import('tone')` is async (Safari). Dev exposes `window.flySound` (`scheduled`, `songGain`). Song is gated by `playback.paused`, not by "clock moved this frame" — the two rAFs are out of phase and that stuttered. node_modules reads are denied: check Tone API by typecheck.
