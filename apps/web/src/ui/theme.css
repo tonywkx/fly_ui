@@ -110,3 +110,13 @@ body,
 :focus-visible {
   outline-color: var(--color-iris);
 }
+
+/* quality presets without blur (scene/quality.ts): denser panels instead of re-filtering the canvas */
+[data-blur="off"] {
+  --card: rgb(0 0 0 / 0.84);
+  --color-card: var(--card);
+}
+
+[data-blur="off"] [class*="backdrop-blur"] {
+  backdrop-filter: none;
+}

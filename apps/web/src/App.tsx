@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import { Button } from '@/components/ui/button';
+import { QUALITY } from '@/scene/quality';
 import { Stage } from '@/scene/Stage';
 import { app } from '@/state/app';
 import { Captions } from '@/ui/Captions';
@@ -26,7 +27,10 @@ export const App = observer(function App() {
   const title = scenario && (SCENARIO_TITLES[scenario] ?? scenario);
 
   return (
-    <div className="relative h-full overflow-hidden">
+    <div
+      className="relative h-full overflow-hidden"
+      data-blur={QUALITY[app.quality].blur ? undefined : 'off'}
+    >
       <Stage />
       <IntroHint />
       <Captions />

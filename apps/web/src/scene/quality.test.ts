@@ -12,8 +12,11 @@ describe('quality presets', () => {
       expect(a.dustTiers).toBeLessThanOrEqual(b.dustTiers);
       expect(a.pixelRatio).toBeLessThanOrEqual(b.pixelRatio);
       expect(+a.bloom).toBeLessThanOrEqual(+b.bloom);
+      expect(+a.blur).toBeLessThanOrEqual(+b.blur);
     }
     expect(low.dustTiers).toBeGreaterThanOrEqual(1);
+    // backdrop blur re-filters the live canvas every frame: the cheapest preset drops it
+    expect(low.blur).toBe(false);
   });
 
   it('isQuality accepts only preset ids', () => {
@@ -50,6 +53,13 @@ describe('FpsGuard', () => {
     expect(g.sample(30, 'high')).toBeUndefined();
     expect(g.sample(30, 'high')).toBeUndefined();
     expect(g.sample(30, 'high')).toBe('med');
+  });
+
+  it('treats a steady ~50 fps as slow (judder at 60 Hz), not 58', () => {
+    const g = new FpsGuard();
+    for (let i = 0; i < 2; i++) expect(g.sample(50, 'high')).toBeUndefined();
+    expect(g.sample(50, 'high')).toBe('med');
+    for (let i = 0; i < 5; i++) expect(g.sample(58, 'med')).toBeUndefined();
   });
 
   it('a good window resets the streak', () => {
