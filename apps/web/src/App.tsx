@@ -1,9 +1,11 @@
 import { observer } from 'mobx-react-lite';
 import { Button } from '@/components/ui/button';
 import { data } from '@/data/store';
+import { cn } from '@/lib/utils';
 import { QUALITY } from '@/scene/quality';
 import { Stage } from '@/scene/Stage';
 import { app } from '@/state/app';
+import { experiment } from '@/state/experiment';
 import { Captions } from '@/ui/Captions';
 import { CommandPalette } from '@/ui/CommandPalette';
 import { Fatal } from '@/ui/Fatal';
@@ -43,7 +45,14 @@ export const App = observer(function App() {
       <CommandPalette />
       {/* phone = viewer without tools (PRODUCT.md); above the attribution row */}
       {!broken && (
-        <div className="pointer-events-none absolute inset-x-2 bottom-16 z-10 hidden flex-col items-center gap-1 md:flex">
+        <div
+          className={cn(
+            'pointer-events-none absolute inset-x-2 bottom-16 z-10 hidden flex-col items-center gap-1 md:flex',
+            // the open Inspector takes the right column: until both fit, centre between it and the title
+            experiment.selected !== null &&
+              'min-[72rem]:right-64 min-[72rem]:left-40 min-[92rem]:right-2 min-[92rem]:left-2',
+          )}
+        >
           <Toolbar />
           <Scopes />
           <Timeline />
