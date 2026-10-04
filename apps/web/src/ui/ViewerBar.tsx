@@ -18,7 +18,7 @@ export const ViewerBar = observer(function ViewerBar() {
         aria-label={paused ? 'Play' : 'Pause'}
         onClick={() => playback.toggle()}
         // a hairline ring: ghost (one primary per view) but still reads as a control on black
-        className="size-11 shrink-0 rounded-full border border-ash/40 p-0 text-bone hover:border-bone/70 hover:text-bone"
+        className="size-8 shrink-0 rounded-full border border-ash/40 p-0 text-bone hover:border-bone/70 hover:text-bone"
       >
         <svg viewBox="0 0 16 16" aria-hidden className="size-3.5 fill-current">
           {paused ? <path d="M4 2.5v11l9.5-5.5z" /> : <path d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z" />}
@@ -33,7 +33,7 @@ export const ViewerBar = observer(function ViewerBar() {
                 variant="ghost"
                 asChild
                 // current: colour + underline, never hue alone
-                className="h-11 px-2.5 text-body font-light text-ash decoration-bone/60 underline-offset-8 aria-[current=page]:text-bone aria-[current=page]:underline"
+                className="h-8 px-2.5 text-body font-light text-ash decoration-bone/60 underline-offset-8 aria-[current=page]:text-bone aria-[current=page]:underline"
               >
                 <a
                   href={scenarioHref(window.location.search, s.id)}

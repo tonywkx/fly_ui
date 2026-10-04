@@ -11,7 +11,7 @@
   --color-iris: #8052ff;
   --color-saffron: #ffb829;
   --color-verdant: #15846e;
-  --color-panel: rgb(0 0 0 / 0.62);
+  --color-panel: rgb(0 0 0 / 0.7);
 
   /* Transmitters + male-specific; mirrored in src/ui/palette.ts (palette.test.ts keeps them in sync). */
   --color-nt-acetylcholine: #ffb829;
