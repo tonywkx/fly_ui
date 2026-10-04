@@ -6,6 +6,7 @@ import { data } from '@/data/store';
 import { findBodyIds, typeIndex } from '@/data/typeIndex';
 import { app } from '@/state/app';
 import { experiment, paletteKey } from '@/state/experiment';
+import { toggleSound } from '@/ui/Sound';
 import { shareExperiment } from '@/ui/share';
 
 const COLOR_ITEMS: { mode: ColorBy; label: string }[] = [
@@ -105,6 +106,18 @@ export const CommandPalette = observer(function CommandPalette() {
           >
             <span className="flex-1">Follow the activity</span>
             {app.director && <span className="text-caption text-mist">on</span>}
+          </Command.Item>
+          <Command.Item
+            value="sound"
+            keywords={['audio', 'mute', 'clicks', 'song']}
+            onSelect={() => {
+              toggleSound();
+              close();
+            }}
+            className={ITEM}
+          >
+            <span className="flex-1">Sound</span>
+            {app.sound && <span className="text-caption text-mist">on</span>}
           </Command.Item>
         </Command.Group>
         <Command.Group heading="Colour by">

@@ -7,6 +7,7 @@ import { app } from '@/state/app';
 import { playback, playbackKey, SPEEDS } from '@/state/playback';
 import { ACCENT, TEXT } from '@/ui/palette';
 import { bandTop, paintCounts, type RasterGeom, rasterCounts, rasterHeight } from '@/ui/raster';
+import { toggleSound } from '@/ui/Sound';
 
 /** Band height and gap, CSS px. */
 const BAND_PX = 14;
@@ -31,7 +32,7 @@ const ownsKey = (t: EventTarget | null, key: string) =>
  * Spike raster by region (optic lobes → central brain → descending → VNC) with the playhead, play /
  * pause and slow-mo; drag on it to scrub. Baked: the whole loop, drawn once. Live: the last
  * `LIVE_WINDOW_MS`, redrawn as spikes arrive. Drawn in its own rAF from `playback.clock` (no React
- * renders per frame). Ends with the director camera toggle. Owns the playback hotkeys (Space , . [ ]) and D.
+ * renders per frame). Ends with the director camera toggle. Owns the playback hotkeys (Space , . [ ]), D and M.
  */
 export const Timeline = observer(function Timeline() {
   const { log, mode, paused, speed } = playback;
@@ -43,9 +44,15 @@ export const Timeline = observer(function Timeline() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || ownsKey(e.target, e.key)) return;
-      if (e.key === 'd' && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        app.toggleDirector();
-        return;
+      if (!e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        if (e.key === 'd') {
+          app.toggleDirector();
+          return;
+        }
+        if (e.key === 'm') {
+          toggleSound();
+          return;
+        }
       }
       const a = playbackKey(e);
       if (!a) return;
@@ -269,6 +276,24 @@ export const Timeline = observer(function Timeline() {
         <svg viewBox="0 0 16 16" aria-hidden className="size-3 fill-none stroke-current" strokeWidth={1.5}>
           <path d="M2 5.5V2h3.5M10.5 2H14v3.5M14 10.5V14h-3.5M5.5 14H2v-3.5" />
           <circle cx="8" cy="8" r="1.5" className="fill-current stroke-none" />
+        </svg>
+      </Button>
+      <Button
+        aria-label="Sound"
+        aria-pressed={app.sound}
+        aria-keyshortcuts="M"
+        title={app.sound ? 'Mute (M)' : 'Sound on (M)'}
+        onClick={toggleSound}
+        className="size-6 shrink-0 rounded-full p-0 aria-pressed:bg-accent aria-pressed:text-bone"
+      >
+        {/* speaker; waves when on */}
+        <svg viewBox="0 0 16 16" aria-hidden className="size-3 fill-none stroke-current" strokeWidth={1.5}>
+          <path d="M2 6h2.5L8 3v10L4.5 10H2z" className="fill-current stroke-none" />
+          {app.sound ? (
+            <path d="M10.5 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6.5 6.5 0 0 1 0 9" />
+          ) : (
+            <path d="M10.5 6l4 4M14.5 6l-4 4" />
+          )}
         </svg>
       </Button>
     </section>
