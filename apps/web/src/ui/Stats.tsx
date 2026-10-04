@@ -21,7 +21,7 @@ export const Stats = observer(function Stats() {
     <p className="flex gap-2">
       <Readout label="fps" value={fps} />
       <Readout label="ms" value={ms} />
-      <span className="text-ash">
+      <span data-stat="preset" className="text-ash">
         {app.quality} · {app.backend ?? '—'}
       </span>
     </p>
@@ -31,7 +31,7 @@ export const Stats = observer(function Stats() {
 function Readout({ label, value }: { label: string; value: RefObject<HTMLSpanElement | null> }) {
   return (
     <span>
-      <span ref={value} className="inline-block min-w-[4ch] text-right text-bone">
+      <span ref={value} data-stat={label} className="inline-block min-w-[4ch] text-right text-bone">
         —
       </span>{' '}
       <span className="text-ash">{label}</span>

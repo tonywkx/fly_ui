@@ -46,11 +46,20 @@ try {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+  // bytes on the wire until the app is drawn (data/ = baked chunks; the rest is dev-server JS, not the build)
+  const bytes = { data: 0, other: 0 };
+  let drawn = false;
+  page.on('requestfinished', async (r) => {
+    if (drawn) return;
+    const n = (await r.sizes().catch(() => null))?.responseBodySize ?? 0;
+    bytes[new URL(r.url()).pathname.includes('/data/') ? 'data' : 'other'] += n;
+  });
 
   await page.goto(`${base}?${query}`);
   await page.waitForFunction(() => (window as { __snapReady?: boolean }).__snapReady === true, null, {
     timeout: 60_000,
   });
+  drawn = true;
 
   // a string, not a function: tsx (esbuild keepNames) would inject an undefined `__name` helper
   const dts: number[] = await page.evaluate(`new Promise((resolve) => {
@@ -73,8 +82,10 @@ try {
     return i ? [i.vendor, i.architecture, i.description].filter(Boolean).join(' / ') : 'no webgpu adapter';
   })()`);
 
-  // CPU ms of renderer.render, from the ?stats overlay (last 500 ms window)
-  const cpu: string = await page.evaluate(`document.body.innerText.match(/([\\d.]+)\\s*ms/)?.[1] ?? '?'`);
+  // CPU ms of renderer.render and the live preset/backend, from the ?stats overlay (last 500 ms window)
+  const stat = (k: string) => page.evaluate(`document.querySelector('[data-stat=${k}]')?.textContent.trim() ?? '?'`);
+  const cpu = await stat('ms');
+  const preset = await stat('preset');
 
   const sorted = [...dts].sort((a, b) => a - b);
   const pct = (p: number) => sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))] ?? 0;
@@ -84,9 +95,11 @@ try {
     .map((e) => e.join('='))
     .join(' ');
   console.log(
-    `${label}  fps ${(1000 / mean).toFixed(1)}  frame ms p50 ${pct(0.5).toFixed(1)} p95 ${pct(0.95).toFixed(1)} max ${pct(1).toFixed(1)}  cpu render ${cpu} ms  (${dts.length} frames)`,
+    `${label}  fps ${(1000 / mean).toFixed(1)}  frame ms p50 ${pct(0.5).toFixed(1)} p95 ${pct(0.95).toFixed(1)} max ${pct(1).toFixed(1)}  cpu render ${cpu} ms  (${dts.length} frames, ${preset})`,
   );
+  const mb = (n: number) => (n / 1e6).toFixed(1);
   console.log(`  gpu: ${gpu}`);
+  console.log(`  until drawn: data ${mb(bytes.data)} MB, other ${mb(bytes.other)} MB (dev, unminified)`);
   if (errors.length) console.log(`page errors (${errors.length}):\n${errors.slice(0, 5).join('\n')}`);
 } finally {
   await browser.close();
