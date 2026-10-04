@@ -1,0 +1,208 @@
+{
+  "formatVersion": 3,
+  "dataset": "male-cns:v1.0",
+  "attribution": "Janelia FlyEM MaleCNS v1.0 (neuPrint), CC-BY 4.0",
+  "builtAt": "2026-10-02T18:18:12.788Z",
+  "unitNm": 8,
+  "bbox": {
+    "min": [
+      2068.866943359375,
+      4508,
+      7833.6689453125
+    ],
+    "max": [
+      93924,
+      72292,
+      134761.90625
+    ]
+  },
+  "chunks": [
+    {
+      "id": "neuropil-shells",
+      "kind": "neuropil",
+      "file": "neuropil-shells.bin",
+      "bytes": 621436,
+      "tier": "first-frame"
+    },
+    {
+      "id": "cloud-lod0",
+      "kind": "cloud",
+      "file": "cloud-lod0.bin",
+      "bytes": 1200028,
+      "tier": "first-frame",
+      "lod": 0
+    },
+    {
+      "id": "cloud-lod1",
+      "kind": "cloud",
+      "file": "cloud-lod1.bin",
+      "bytes": 3600028,
+      "tier": "lazy",
+      "lod": 1
+    },
+    {
+      "id": "cloud-lod2",
+      "kind": "cloud",
+      "file": "cloud-lod2.bin",
+      "bytes": 7200028,
+      "tier": "lazy",
+      "lod": 2
+    },
+    {
+      "id": "escape-skeletons",
+      "kind": "skeletons",
+      "file": "escape-skeletons.bin",
+      "bytes": 9313400,
+      "tier": "first-frame",
+      "scenario": "escape"
+    },
+    {
+      "id": "escape-graph",
+      "kind": "graph",
+      "file": "escape-graph.bin",
+      "bytes": 129244,
+      "tier": "first-frame",
+      "scenario": "escape"
+    },
+    {
+      "id": "escape-meta",
+      "kind": "meta",
+      "file": "escape-meta.bin",
+      "bytes": 25684,
+      "tier": "first-frame",
+      "scenario": "escape"
+    },
+    {
+      "id": "escape-spikes",
+      "kind": "spikes",
+      "file": "escape-spikes.bin",
+      "bytes": 67936,
+      "tier": "first-frame",
+      "scenario": "escape"
+    },
+    {
+      "id": "song-skeletons",
+      "kind": "skeletons",
+      "file": "song-skeletons.bin",
+      "bytes": 11338716,
+      "tier": "lazy",
+      "scenario": "song"
+    },
+    {
+      "id": "song-graph",
+      "kind": "graph",
+      "file": "song-graph.bin",
+      "bytes": 213412,
+      "tier": "first-frame",
+      "scenario": "song"
+    },
+    {
+      "id": "song-meta",
+      "kind": "meta",
+      "file": "song-meta.bin",
+      "bytes": 35772,
+      "tier": "first-frame",
+      "scenario": "song"
+    },
+    {
+      "id": "song-spikes",
+      "kind": "spikes",
+      "file": "song-spikes.bin",
+      "bytes": 35588,
+      "tier": "first-frame",
+      "scenario": "song"
+    },
+    {
+      "id": "sugar-skeletons",
+      "kind": "skeletons",
+      "file": "sugar-skeletons.bin",
+      "bytes": 10499456,
+      "tier": "lazy",
+      "scenario": "sugar"
+    },
+    {
+      "id": "sugar-graph",
+      "kind": "graph",
+      "file": "sugar-graph.bin",
+      "bytes": 190828,
+      "tier": "first-frame",
+      "scenario": "sugar"
+    },
+    {
+      "id": "sugar-meta",
+      "kind": "meta",
+      "file": "sugar-meta.bin",
+      "bytes": 22052,
+      "tier": "first-frame",
+      "scenario": "sugar"
+    },
+    {
+      "id": "sugar-spikes",
+      "kind": "spikes",
+      "file": "sugar-spikes.bin",
+      "bytes": 43904,
+      "tier": "first-frame",
+      "scenario": "sugar"
+    },
+    {
+      "id": "neuropil-regions",
+      "kind": "neuropil",
+      "file": "neuropil-regions.bin",
+      "bytes": 2406716,
+      "tier": "lazy"
+    },
+    {
+      "id": "graph-full",
+      "kind": "graph",
+      "file": "graph-full.bin",
+      "bytes": 38432480,
+      "tier": "lazy"
+    },
+    {
+      "id": "meta-full",
+      "kind": "meta",
+      "file": "meta-full.bin",
+      "bytes": 3470168,
+      "tier": "lazy"
+    },
+    {
+      "id": "typegraph-full",
+      "kind": "typegraph",
+      "file": "typegraph-full.bin",
+      "bytes": 7800948,
+      "tier": "lazy"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "escape",
+      "title": "Escape: giant fiber takeoff",
+      "chunks": [
+        "escape-skeletons",
+        "escape-graph",
+        "escape-meta",
+        "escape-spikes"
+      ]
+    },
+    {
+      "id": "song",
+      "title": "Courtship song",
+      "chunks": [
+        "song-skeletons",
+        "song-graph",
+        "song-meta",
+        "song-spikes"
+      ]
+    },
+    {
+      "id": "sugar",
+      "title": "Sugar: taste to proboscis extension",
+      "chunks": [
+        "sugar-skeletons",
+        "sugar-graph",
+        "sugar-meta",
+        "sugar-spikes"
+      ]
+    }
+  ]
+}
