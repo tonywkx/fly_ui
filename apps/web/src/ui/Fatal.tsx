@@ -23,8 +23,9 @@ export const Fatal = observer(function Fatal() {
       <p className="max-w-[32rem] text-caption text-ash">{hint}</p>
       {!app.rendererFailed && (
         <Button
+          variant="primary"
           onClick={() => window.location.reload()}
-          className="pointer-events-auto mt-3 h-11 px-3 text-body text-bone"
+          className="pointer-events-auto mt-3"
         >
           Reload
         </Button>
