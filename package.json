@@ -17,6 +17,7 @@
     "graph": "pnpm --filter pipeline graph",
     "snap": "tsx scripts/snap.ts",
     "perf": "tsx scripts/perf.ts",
+    "film": "tsx scripts/film.ts",
     "test": "vitest run",
     "test:bio": "vitest run -c vitest.bio.config.ts",
     "test:watch": "vitest",
