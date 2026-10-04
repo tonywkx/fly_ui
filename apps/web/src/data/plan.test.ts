@@ -29,17 +29,17 @@ const manifest = {
 const ids = (r: ReturnType<typeof firstFrameChunks>) => r.chunks.map((c) => c.id);
 
 describe('firstFrameChunks', () => {
-  it('defaults to the first scenario: all first-frame chunks', () => {
+  it('defaults to the first scenario: shared + its own first-frame chunks', () => {
     const r = firstFrameChunks(manifest, undefined);
     expect(r.scenario).toBe('escape');
     expect(r.warning).toBeUndefined();
-    expect(ids(r)).toEqual(['shells', 'escape-skeletons', 'escape-graph', 'sugar-graph']);
+    expect(ids(r)).toEqual(['shells', 'escape-skeletons', 'escape-graph']);
   });
 
   it('pulls the chosen scenario chunks forward even when lazy', () => {
     const r = firstFrameChunks(manifest, 'sugar');
     expect(r.scenario).toBe('sugar');
-    expect(ids(r)).toEqual(['shells', 'escape-skeletons', 'escape-graph', 'sugar-graph', 'sugar-skeletons']);
+    expect(ids(r)).toEqual(['shells', 'sugar-graph', 'sugar-skeletons']);
   });
 
   it('falls back to the default on an unknown scenario', () => {
