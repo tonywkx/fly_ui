@@ -71,7 +71,7 @@ Phase exit = its "Done when" is true and demoable.
 
 ## Phase 5 — Cinematics (1–2 weeks)
 - [x] 5.1 Director camera following the activity front (GSAP timelines). **[V]**
-- [ ] 5.2 Fly body: jump / proboscis / wing vibration (flybody mesh — check license — or stylized own). **[V]**
+- [x] 5.2 Fly body: jump / proboscis / wing vibration (flybody mesh — check license — or stylized own). **[V]**
 - [ ] 5.3 Sound (Tone.js): spikes as clicks, courtship song synthesis, mute by default.
 - [ ] 5.4 Scenario captions ("signal descends into the thorax…") synced to the timeline. **[UI]**
 

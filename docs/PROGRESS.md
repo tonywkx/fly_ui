@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-04 — 5.2 Fly body (behaviour camera)
+Done: `scene/behavior.ts` (`effectorMask` by type: TTMn → jump, MN9 → proboscis, wing steering MNs `hg|ps|b|i|iii|tp<n> MN` → song; `Behavior.update(log, t)` = exp-kernel rates per effector, jump latch + re-arm, seek back replays the log; tested), `scene/flycam/{model,flycam}.ts` (procedural glass fly, `glassMaterial` shared with shells; own WebGL2 canvas), `ui/FlyCam.tsx` (bottom-right panel, own rAF, caption `takeoff 29.7 ms` / `proboscis out` / `wing song`, hides while Inspector open, `flycam` ready flag).
+State: 365 tests, typecheck, lint green. Snaps: escape t=5 rest, t=40 airborne; GF silenced (`--x=AZYBZAABkU4`, live) at rest; sugar t=60 proboscis; song t=60 far wing out. ui-critic fixes applied.
+Next: 5.3 Sound (Tone.js): spikes as clicks, courtship song synthesis, mute by default.
+Gotchas: Jump threshold is data-tuned (see DECISIONS); higher stim gain can make a GF-silenced fly jump (long-mode, acceptable). Biome `useExhaustiveDependencies` strips `log` from effect deps → keep the biome-ignore (live swaps the log). A renderer must own its canvas (re-creating one on the same canvas after dispose throws `reading '0'`). 1 px lines vanish in the small canvas — outlines are thin triangle rings. The formatter rewraps lines, so scripted string replaces can silently miss: re-read before patching.
+
 ## 2026-10-04 — 5.1 Director camera
 Done: `scene/front.ts` (`activityFront`: exp-weighted centroid + RMS spread of recently spiking rows' `rowBounds`; tested), `scene/director.ts` (GSAP `quickTo` per frame on a `{x,y,z,d}` shot → `engine.aim`, slow `autoRotate`, back to the whole CNS when activity fades; snaps aim instantly; reduced motion = cuts ≥1.5 s apart), engine `aim / frameRadius / setAutoRotate / target / distance`, `app.director` + `?director=1`, Follow toggle at the Timeline's right end + D + ⌘K "Follow the activity".
 State: 357 tests, typecheck, lint green. visual-qa snaps escape t=10/25/40, song t=40 with `--director=1`: activity framed and centred, nothing cut off; escape barely tighter (bilateral optic-lobe activity centroids at the middle), song ≈2.5× closer. Drag-cancels-follow not checked in a browser (same `start` event as flight cancel).
@@ -23,9 +29,3 @@ Done: `data/colorBy.ts` (modes nt/region/class/male → per-row group + legend; 
 State: 342+ tests, typecheck, lint green. Snaps escape `--color=region|class`, song `--color=male` (+ webgl2), `--ui=palette`, 1024×700 legend fit. One-off Playwright: ⌘K → "GF" → Enter opens inspector; "10001" → Neurons group; C cycles; no console warnings.
 Next: 4.7 Experiment URL encoding (stimuli + silenced ids, base64url) + "Share experiment".
 Gotchas: `data.get` was not reactive (plain Map) — now reads `loaded.has(id)` first, so observers re-render on chunk arrival (before: UI reading meta stayed empty until another re-render). Type pick selects the type's first row only. `?debug=` colour modes still static/separate; Legend hides under any `?debug=`. Focus/trace/electrode tints still override the colour mode.
-
-## 2026-10-04 — 4.5 Electrode oscilloscopes
-Done: `sim/trace.ts` (`scenarioNet` = worker net incl. overrides that have edges, `probe` inputs by CSR scan, `voltage` rebuilds v over [from, to] from the `SpikeLog`: exact LIF between logged events, own spikes → reset/refractory + `SPIKE_MV` peak; parity with `Sim` tested), `ui/Scopes.tsx` (card per placed electrode, grid column = slot, own rAF per scope, redraw only when clock/horizon moves), `ui/scope.ts` (lazy uPlot, y −64…−40 mV so spikes clip, threshold/rest guides from `palette.SCOPE_GUIDE`), `?probes=<bodyId,…>` (≤4, applied in `scene/focus.ts`).
-State: 328 tests, typecheck, lint green. Snaps `--scenario=escape --t=40 --ui=electrode --probes=10001` (1600/1024, webgl2) → GF card: flat at rest, then clipped spike burst; t=200 continuous comb.
-Next: 4.6 ⌘K (cmdk) cell-type search, colour modes with legend.
-Gotchas: trace cannot see Poisson stimulus kicks or (live) inputs from outside the scenario → a stimulated probe shows spikes without the sub-threshold climb. Reset = rest (−52), so a fast-firing cell reads as a comb. Warm-up 100 ms before the window (clamped to `log.start`). One rAF per scope (≤4) — fold into one ticker if the HUD gets more loops.
