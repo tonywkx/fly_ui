@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-04 — 5.1 Director camera
+Done: `scene/front.ts` (`activityFront`: exp-weighted centroid + RMS spread of recently spiking rows' `rowBounds`; tested), `scene/director.ts` (GSAP `quickTo` per frame on a `{x,y,z,d}` shot → `engine.aim`, slow `autoRotate`, back to the whole CNS when activity fades; snaps aim instantly; reduced motion = cuts ≥1.5 s apart), engine `aim / frameRadius / setAutoRotate / target / distance`, `app.director` + `?director=1`, Follow toggle at the Timeline's right end + D + ⌘K "Follow the activity".
+State: 357 tests, typecheck, lint green. visual-qa snaps escape t=10/25/40, song t=40 with `--director=1`: activity framed and centred, nothing cut off; escape barely tighter (bilateral optic-lobe activity centroids at the middle), song ≈2.5× closer. Drag-cancels-follow not checked in a browser (same `start` event as flight cancel).
+Next: 5.2 Fly body: jump / proboscis / wing vibration.
+Gotchas: Director waits for `introPhase === 'done'`; user orbit/zoom or any fly-to turns it off. Framing ignores the HUD dock: the subject can sit low, near the toolbar (candidate: `camera.setViewOffset`, check picking). `--k=v` snap args must be separate argv entries.
+
 ## 2026-10-04 — 4.8 HUD motion pass
 Done: find-animation-opportunities → 4 survivors. `components/ui/button.tsx` press `active:scale-[0.97]` for all variants (`scale` added to the transition; before, primary snapped). `ui/Toolbar.tsx` Share/Copied/In URL labels crossfade (opacity + 2px blur, 150 ms). `ui/Scopes.tsx` first scope grows its row (`grid-rows` 0fr→1fr via `starting:`, 200 ms), so the bottom-anchored rail glides up instead of jumping ~108 px; cards fade in. `ui/Tracer.tsx` path list fades in (150 ms).
 State: 351 tests, typecheck, lint green. Playwright (live, electrode click): rail 0→108 px over ~170 ms. Snaps `--ui=electrode --probes=10001`, `--ui=trace` unchanged. ui-critic pass applied (card translate dropped: double motion).
@@ -23,9 +29,3 @@ Done: `sim/trace.ts` (`scenarioNet` = worker net incl. overrides that have edges
 State: 328 tests, typecheck, lint green. Snaps `--scenario=escape --t=40 --ui=electrode --probes=10001` (1600/1024, webgl2) → GF card: flat at rest, then clipped spike burst; t=200 continuous comb.
 Next: 4.6 ⌘K (cmdk) cell-type search, colour modes with legend.
 Gotchas: trace cannot see Poisson stimulus kicks or (live) inputs from outside the scenario → a stimulated probe shows spikes without the sub-threshold climb. Reset = rest (−52), so a fast-firing cell reads as a comb. Warm-up 100 ms before the window (clamped to `log.start`). One rAF per scope (≤4) — fold into one ticker if the HUD gets more loops.
-
-## 2026-10-04 — 4.4 Timeline (raster, scrub, pause, slow-mo)
-Done: `sim/feed.ts` `SpikeLog` (append-only, seek/apply/trim/span; replaces consuming `SpikeFeed`; tested), `state/playback.ts` (paused, speed 1/½/¼/⅛ × 40 sim ms/s, seek/step, `playbackKey` Space , . [ ]; tested), `scene/playback.ts` `play(…, playback)` (seek rebuilds `lastSpike` from 300 ms look-back; live keeps 2 s history in `LiveClient.log`), `data/bands.ts` (Optic / Central / Descending / VNC lanes; tested), `ui/raster.ts` (density counts; tested), `ui/Timeline.tsx` (own rAF, drag scrub, slider keys, `live` tag), dock in `App.tsx` (rail above timeline, always above the attribution row).
-State: 320 tests, typecheck, lint green. Snaps escape t=40 (1600/1024), song t=200 @1280, webgl2 OK. One-off Playwright: Space pauses (3D + readout frozen), drag to 10% → 36 ms, `.`×3 → +3, `[` → ½× (Δ20 ms/s); live: pause holds the Worker, click back in history, resume.
-Next: 4.5 Oscilloscopes (uPlot) for electrodes.
-Gotchas: baked loop = 300 ms run + 60 ms silent tail → last 1/6 of the raster is empty lanes by design. Live window is 400 ms ([0, 400] until the run is longer); pause/scrub back needs no Worker control — pump only fills ≤100 ms ahead of the display. Space on a focused button presses it (hotkey skipped); on the raster slider it toggles. Starting live (first stimulus) unpauses. Snap readouts: `section[aria-label=Timeline] p span`.
