@@ -94,6 +94,18 @@ export const CommandPalette = observer(function CommandPalette() {
           >
             Share experiment
           </Command.Item>
+          <Command.Item
+            value="follow the activity"
+            keywords={['director', 'camera', 'follow']}
+            onSelect={() => {
+              app.toggleDirector();
+              close();
+            }}
+            className={ITEM}
+          >
+            <span className="flex-1">Follow the activity</span>
+            {app.director && <span className="text-caption text-mist">on</span>}
+          </Command.Item>
         </Command.Group>
         <Command.Group heading="Colour by">
           {COLOR_ITEMS.map(({ mode, label }) => (

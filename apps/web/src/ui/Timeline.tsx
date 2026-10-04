@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { BANDS, lanes as lanesOf } from '@/data/bands';
 import { data } from '@/data/store';
+import { app } from '@/state/app';
 import { playback, playbackKey, SPEEDS } from '@/state/playback';
 import { ACCENT, TEXT } from '@/ui/palette';
 import { bandTop, paintCounts, type RasterGeom, rasterCounts, rasterHeight } from '@/ui/raster';
@@ -30,7 +31,7 @@ const ownsKey = (t: EventTarget | null, key: string) =>
  * Spike raster by region (optic lobes → central brain → descending → VNC) with the playhead, play /
  * pause and slow-mo; drag on it to scrub. Baked: the whole loop, drawn once. Live: the last
  * `LIVE_WINDOW_MS`, redrawn as spikes arrive. Drawn in its own rAF from `playback.clock` (no React
- * renders per frame). Owns the playback hotkeys (Space , . [ ]).
+ * renders per frame). Ends with the director camera toggle. Owns the playback hotkeys (Space , . [ ]) and D.
  */
 export const Timeline = observer(function Timeline() {
   const { log, mode, paused, speed } = playback;
@@ -42,6 +43,10 @@ export const Timeline = observer(function Timeline() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || ownsKey(e.target, e.key)) return;
+      if (e.key === 'd' && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        app.toggleDirector();
+        return;
+      }
       const a = playbackKey(e);
       if (!a) return;
       e.preventDefault();
@@ -194,7 +199,7 @@ export const Timeline = observer(function Timeline() {
   return (
     <section
       aria-label="Timeline"
-      className="pointer-events-auto flex w-[min(44rem,100%,100vw-30rem)] items-center gap-1.5 rounded-panel bg-card py-1 pr-3 pl-1 backdrop-blur-md"
+      className="pointer-events-auto flex w-[min(44rem,100%,100vw-30rem)] items-center gap-1.5 rounded-panel bg-card px-1 py-1 backdrop-blur-md"
     >
       <div className="flex shrink-0 flex-col items-center">
         <Button
@@ -252,6 +257,20 @@ export const Timeline = observer(function Timeline() {
         <span className="text-ash">ms</span>
         {mode === 'live' && <span className="block text-mist">live</span>}
       </p>
+      <Button
+        aria-label="Follow the activity"
+        aria-pressed={app.director}
+        aria-keyshortcuts="D"
+        title="Follow the activity (D)"
+        onClick={() => app.toggleDirector()}
+        className="size-6 shrink-0 rounded-full p-0 aria-pressed:bg-accent aria-pressed:text-bone"
+      >
+        {/* viewfinder: four corners round a dot */}
+        <svg viewBox="0 0 16 16" aria-hidden className="size-3 fill-none stroke-current" strokeWidth={1.5}>
+          <path d="M2 5.5V2h3.5M10.5 2H14v3.5M14 10.5V14h-3.5M5.5 14H2v-3.5" />
+          <circle cx="8" cy="8" r="1.5" className="fill-current stroke-none" />
+        </svg>
+      </Button>
     </section>
   );
 });
