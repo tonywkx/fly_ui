@@ -6,39 +6,17 @@
  * drawn, warms up 1 s, then records rAF intervals. Prints fps and frame-time percentiles.
  * Headless Chromium on the real GPU — a guide, not a substitute for `?stats=1` in a real window.
  */
-import { type ChildProcess, spawn } from 'node:child_process';
-import { chromium } from 'playwright';
+import { devServer, launch, parseArgs } from './lib';
 
-const PORT = 5198;
 const own = new Set(['w', 'h', 'url', 'secs', 'dpr', 'profile']);
-const args = Object.fromEntries(
-  process.argv
-    .slice(2)
-    .filter((a) => a.startsWith('--'))
-    .map((a) => {
-      const [k, v = '1'] = a.slice(2).split('=');
-      return [k, v] as [string, string];
-    }),
-);
+const args = parseArgs();
 
 const query = new URLSearchParams({ snap: '1', scenario: 'escape', stats: '1' });
 for (const [k, v] of Object.entries(args)) if (!own.has(k)) query.set(k, v);
 const secs = Number(args.secs ?? 6);
 
-let server: ChildProcess | undefined;
-let base = args.url;
-if (!base) {
-  server = spawn('pnpm', ['--filter', 'web', 'exec', 'vite', '--port', String(PORT), '--strictPort'], {
-    stdio: 'ignore',
-  });
-  base = `http://localhost:${PORT}/`;
-  await waitFor(base, 30_000);
-}
-
-const browser = await chromium.launch({
-  // vsync stays on: uncapped runs stall for seconds and inflate cpu ms through GPU backpressure
-  args: ['--enable-unsafe-webgpu', '--enable-gpu', '--use-angle=metal', '--ignore-gpu-blocklist'],
-});
+const { base, stop } = await devServer(args.url, 5198);
+const browser = await launch();
 try {
   const page = await browser.newPage({
     viewport: { width: Number(args.w ?? 1600), height: Number(args.h ?? 1000) },
@@ -127,16 +105,5 @@ try {
   if (errors.length) console.log(`page errors (${errors.length}):\n${errors.slice(0, 5).join('\n')}`);
 } finally {
   await browser.close();
-  server?.kill();
-}
-
-async function waitFor(url: string, ms: number) {
-  const until = Date.now() + ms;
-  while (Date.now() < until) {
-    try {
-      if ((await fetch(url)).ok) return;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 300));
-  }
-  throw new Error(`dev server not up: ${url}`);
+  stop();
 }
