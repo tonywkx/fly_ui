@@ -76,7 +76,7 @@ export const FlyCam = observer(function FlyCam() {
   }, [log, mask, moves]);
 
   if (!moves) return null;
-  // the Inspector shares the right column and may reach down to here: give way while it is open
+  // the Inspector opens in the same corner: give way while it is open
   const covered = experiment.selected !== null;
   return (
     <figure
@@ -85,8 +85,8 @@ export const FlyCam = observer(function FlyCam() {
       aria-hidden={covered}
       inert={covered}
       className={cn(
-        'pointer-events-auto absolute right-8 bottom-16 z-10 hidden w-53 flex-col gap-1 overflow-hidden rounded-xl bg-card p-2 backdrop-blur-md select-none md:flex',
-        'translate-y-1 opacity-0 transition-[opacity,translate] duration-200 ease-out motion-reduce:transition-none',
+        'pointer-events-auto absolute top-8 right-8 z-10 hidden w-53 flex-col gap-1 overflow-hidden rounded-xl bg-card p-2 backdrop-blur-md select-none md:flex',
+        '-translate-y-1 opacity-0 transition-[opacity,translate] duration-200 ease-out motion-reduce:transition-none',
         app.params.snap && 'transition-none',
         covered ? 'pointer-events-none' : 'data-ready:translate-y-0 data-ready:opacity-100',
       )}
