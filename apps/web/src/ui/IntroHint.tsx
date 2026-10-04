@@ -7,6 +7,9 @@ import { app } from '@/state/app';
 /** First move to try once the intro lands, per scenario (none until that scenario has a tool). */
 const HINTS: Record<string, string> = { escape: 'Click the shadow' };
 
+/** The hint is on screen (only scenarios with a hint ever show one). */
+export const hintShown = () => app.hintVisible && !!data.scenario && !!HINTS[data.scenario];
+
 /** Shown once after the intro; the first press anywhere dismisses it. */
 export const IntroHint = observer(function IntroHint() {
   const text = data.scenario ? HINTS[data.scenario] : undefined;

@@ -119,6 +119,18 @@ export const CommandPalette = observer(function CommandPalette() {
             <span className="flex-1">Sound</span>
             {app.sound && <span className="text-caption text-mist">on</span>}
           </Command.Item>
+          <Command.Item
+            value="captions"
+            keywords={['narration', 'subtitles', 'story']}
+            onSelect={() => {
+              app.toggleCaptions();
+              close();
+            }}
+            className={ITEM}
+          >
+            <span className="flex-1">Captions</span>
+            {app.captions && <span className="text-caption text-mist">on</span>}
+          </Command.Item>
         </Command.Group>
         <Command.Group heading="Colour by">
           {COLOR_ITEMS.map(({ mode, label }) => (

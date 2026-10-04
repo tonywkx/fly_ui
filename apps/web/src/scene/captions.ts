@@ -19,16 +19,16 @@ export const SCRIPTS: Record<string, readonly Beat[]> = {
     // 0.1
     {
       when: { types: /^(LC4|LPLC2)$/ },
-      text: 'A looming shadow: LC4 and LPLC2 cells in the optic lobes fire',
+      text: 'Looming shadow: LC4 and LPLC2 cells fire',
     },
     // 2.9
     {
       when: { types: /^DNp01$/ },
-      text: 'The Giant Fiber fires: the escape command',
-      missing: { byMs: 15, text: 'The Giant Fiber stays silent: the fast escape route is cut' },
+      text: 'Giant Fiber fires: the escape command',
+      missing: { byMs: 15, text: 'Giant Fiber silent: the fast escape route is cut' },
     },
     // 8.3
-    { when: { types: JUMP }, text: 'The signal reaches the thorax: the jump muscle’s motor neuron fires' },
+    { when: { types: JUMP }, text: 'Thorax: the jump motor neuron (TTMn) fires' },
     // ≈30
     { when: { pose: 'jump' }, text: 'Takeoff', missing: { byMs: 100, text: 'No takeoff' } },
   ],
@@ -36,33 +36,33 @@ export const SCRIPTS: Record<string, readonly Beat[]> = {
     // 0.1
     { when: { types: /^LB3[a-d]$/ }, text: 'Taste neurons (LB3) fire' },
     // ≈5
-    { when: { types: /^GNG\d/ }, text: 'The signal spreads through the gnathal ganglion, the taste centre' },
+    { when: { types: /^GNG\d/ }, text: 'Gnathal ganglion, the taste centre, takes it up' },
     // 19.6
     {
       when: { types: PROBOSCIS },
       text: 'MN9, the proboscis motor neuron, fires',
-      missing: { byMs: 100, text: 'MN9 stays silent' },
+      missing: { byMs: 100, text: 'MN9 silent: no command to feed' },
     },
     {
       when: { pose: 'proboscis' },
-      text: 'The proboscis extends',
+      text: 'Proboscis extends',
       missing: { byMs: 150, text: 'No proboscis extension' },
     },
   ],
   song: [
     // 0.1
-    { when: { types: /^pC1/ }, text: 'P1 neurons (pC1), the male courtship drive, fire' },
+    { when: { types: /^pC1/ }, text: 'P1 (pC1), the courtship drive, fires' },
     // 5.5
     {
       when: { types: /^pIP10$/ },
-      text: 'pIP10 carries the song command down to the thorax',
-      missing: { byMs: 30, text: 'pIP10 stays silent: no song command' },
+      text: 'pIP10 carries the song command to the thorax',
+      missing: { byMs: 30, text: 'pIP10 silent: no song command' },
     },
     // 11.5
     { when: { types: WING }, text: 'Wing motor neurons fire' },
     {
       when: { pose: 'wing' },
-      text: 'The wing extends: courtship song',
+      text: 'Wing extends: courtship song',
       missing: { byMs: 150, text: 'No song' },
     },
   ],
@@ -95,7 +95,15 @@ export interface CaptionEvent {
   missed: boolean;
 }
 
-/** Sim time a pose beat is reached at, or null (`t` = now: rates have no single onset spike). */
+/** The behaviour readout (`Behavior`): pose at sim time `t`, replaying itself on a seek back. */
+export interface Body {
+  update(log: SpikeLog, t: number): FlyPose;
+}
+
+/** Sim ms between body reads while a pose beat is pending: its onset is found to within this. */
+export const POSE_STEP_MS = 0.5;
+
+/** Sim time a pose beat is reached at, or null (rates have no onset spike: the read time `t`). */
 function poseAt(pose: FlyPose, part: 'jump' | 'proboscis' | 'wing', t: number): number | null {
   if (part === 'jump') return pose.jumpAt;
   return pose[part] > SHOWN ? t : null;
@@ -116,12 +124,13 @@ export class Narrator {
   constructor(
     private readonly beats: readonly Beat[],
     private readonly mask: Int8Array,
+    private readonly body: Body,
   ) {
     this.reachedAt = beats.map(() => Number.POSITIVE_INFINITY);
     this.missed = beats.map(() => false);
   }
 
-  update(log: SpikeLog, t: number, pose: FlyPose): readonly CaptionEvent[] {
+  update(log: SpikeLog, t: number): readonly CaptionEvent[] {
     if (t < this.t) this.reset();
     const found: CaptionEvent[] = [];
     const reach = (b: number, at: number) => {
@@ -136,11 +145,20 @@ export class Narrator {
       const b = this.mask[rows[i] as number] ?? -1;
       if (b >= 0 && this.reachedAt[b] === Number.POSITIVE_INFINITY) reach(b, times[i] as number);
     }
-    this.beats.forEach((beat, b) => {
-      if (!('pose' in beat.when) || this.reachedAt[b] !== Number.POSITIVE_INFINITY) return;
-      const at = poseAt(pose, beat.when.pose, t);
-      if (at !== null) reach(b, at);
-    });
+    // step the body through a jump (seek, slow frame) so a rate beat gets its onset, not the frame time
+    const pending = () =>
+      this.beats.some((beat, b) => 'pose' in beat.when && this.reachedAt[b] === Number.POSITIVE_INFINITY);
+    let s = Number.isFinite(this.t) ? this.t : i0 < i1 ? (times[i0] as number) : t;
+    while (pending()) {
+      s = Math.min(t, s + POSE_STEP_MS);
+      const pose = this.body.update(log, s);
+      this.beats.forEach((beat, b) => {
+        if (!('pose' in beat.when) || this.reachedAt[b] !== Number.POSITIVE_INFINITY) return;
+        const at = poseAt(pose, beat.when.pose, s);
+        if (at !== null) reach(b, at);
+      });
+      if (s >= t) break;
+    }
 
     if (this.onset === null && found.length) this.onset = Math.min(...found.map((e) => e.at));
     const onset = this.onset;

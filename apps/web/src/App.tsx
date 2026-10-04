@@ -2,6 +2,7 @@ import { observer } from 'mobx-react-lite';
 import { Button } from '@/components/ui/button';
 import { Stage } from '@/scene/Stage';
 import { app } from '@/state/app';
+import { Captions } from '@/ui/Captions';
 import { CommandPalette } from '@/ui/CommandPalette';
 import { FlyCam } from '@/ui/FlyCam';
 import { Inspector } from '@/ui/Inspector';
@@ -28,6 +29,7 @@ export const App = observer(function App() {
     <div className="relative h-full overflow-hidden">
       <Stage />
       <IntroHint />
+      <Captions />
       <NeuronTooltip />
       <Inspector />
       <Legend />

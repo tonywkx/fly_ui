@@ -6,7 +6,16 @@ import { type Device, defaultQuality, type Quality } from '@/scene/quality';
 import { type Params, parseParams } from './params';
 
 /** Things that must finish before a snap is taken. */
-export type ReadyFlag = 'fonts' | 'data' | 'frame' | 'dust' | 'sim' | 'pick' | 'trace' | 'flycam';
+export type ReadyFlag =
+  | 'fonts'
+  | 'data'
+  | 'frame'
+  | 'dust'
+  | 'sim'
+  | 'pick'
+  | 'trace'
+  | 'flycam'
+  | 'captions';
 
 export class AppStore {
   readonly params: Params;
@@ -32,6 +41,8 @@ export class AppStore {
   director: boolean;
   /** Audio monitor (spike clicks + song); off until the user turns it on (autoplay policy). */
   sound = false;
+  /** Scenario narration under the timeline. */
+  captions = true;
 
   constructor(search: string) {
     ({ params: this.params, warnings: this.warnings } = parseParams(search));
@@ -101,6 +112,10 @@ export class AppStore {
 
   setSound(on: boolean) {
     this.sound = on;
+  }
+
+  toggleCaptions() {
+    this.captions = !this.captions;
   }
 
   cycleColorBy() {
