@@ -1,4 +1,5 @@
 import { observer } from 'mobx-react-lite';
+import { Button } from '@/components/ui/button';
 import { data } from '@/data/store';
 import { app } from '@/state/app';
 
@@ -7,7 +8,7 @@ export const Fatal = observer(function Fatal() {
   const [title, hint] = app.rendererFailed
     ? [
         'This browser can’t draw the scene',
-        'It needs WebGPU or WebGL2: try a recent Chrome, Safari or Firefox.',
+        'It needs WebGPU or WebGL2. Try a recent Chrome, Safari or Firefox.',
       ]
     : data.error
       ? ['The connectome didn’t load', 'Check the connection and reload the page.']
@@ -16,10 +17,18 @@ export const Fatal = observer(function Fatal() {
   return (
     <div
       role="alert"
-      className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 p-4 text-center"
+      className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 p-4 text-center"
     >
-      <p className="text-body font-light text-bone">{title}</p>
+      <p className="text-body font-light text-balance text-bone">{title}</p>
       <p className="max-w-[32rem] text-caption text-ash">{hint}</p>
+      {!app.rendererFailed && (
+        <Button
+          onClick={() => window.location.reload()}
+          className="pointer-events-auto mt-3 h-11 px-3 text-body text-bone"
+        >
+          Reload
+        </Button>
+      )}
     </div>
   );
 });

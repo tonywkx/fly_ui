@@ -13,17 +13,18 @@ export const ViewerBar = observer(function ViewerBar() {
   const { paused } = playback;
   if (scenarios.length === 0) return null;
   return (
-    <nav aria-label="Scenarios" className="pointer-events-auto -mx-1 flex items-center gap-1 md:hidden">
+    <nav aria-label="Scenarios" className="pointer-events-auto flex items-center gap-1 md:hidden">
       <Button
         aria-label={paused ? 'Play' : 'Pause'}
         onClick={() => playback.toggle()}
-        className="size-11 shrink-0 rounded-full bg-card p-0 text-bone"
+        // a hairline ring: ghost (one primary per view) but still reads as a control on black
+        className="size-11 shrink-0 rounded-full border border-ash/40 p-0 text-bone hover:border-bone/70 hover:text-bone"
       >
-        <svg viewBox="0 0 16 16" aria-hidden className="size-3 fill-current">
+        <svg viewBox="0 0 16 16" aria-hidden className="size-3.5 fill-current">
           {paused ? <path d="M4 2.5v11l9.5-5.5z" /> : <path d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z" />}
         </svg>
       </Button>
-      <ul className="flex min-w-0 items-center overflow-x-auto">
+      <ul className="flex min-w-0 list-none items-center overflow-x-auto [scrollbar-width:none]">
         {scenarios.map((s) => {
           const current = s.id === data.scenario;
           return (
@@ -31,7 +32,8 @@ export const ViewerBar = observer(function ViewerBar() {
               <Button
                 variant="ghost"
                 asChild
-                className="h-11 px-2.5 text-body font-extralight text-ash aria-[current=page]:text-bone"
+                // current: colour + underline, never hue alone
+                className="h-11 px-2.5 text-body font-light text-ash decoration-bone/60 underline-offset-8 aria-[current=page]:text-bone aria-[current=page]:underline"
               >
                 <a
                   href={scenarioHref(window.location.search, s.id)}

@@ -60,7 +60,7 @@ export const App = observer(function App() {
           )}
         </div>
 
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between md:gap-3">
           <div>
             <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
               fly_ui
@@ -70,7 +70,7 @@ export const App = observer(function App() {
           </div>
           {!broken && <ViewerBar />}
           <p className="pointer-events-auto -mx-1 text-caption text-ash">
-            <Button variant="ghost" asChild className="h-auto text-caption">
+            <Button variant="ghost" asChild className="h-auto py-3 text-caption md:py-0">
               <a href="https://neuprint.janelia.org/" target="_blank" rel="noreferrer">
                 male-cns v1.0 · Janelia FlyEM / neuPrint · CC BY 4.0
               </a>
