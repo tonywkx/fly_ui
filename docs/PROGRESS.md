@@ -1,9 +1,9 @@
 # Progress (newest first, keep ≤5 entries)
 
-## 2026-10-05 — 7.0 Tour shape (draft)
+## 2026-10-05 — 7.0 Tour shape
 Done: `docs/TOUR.md` — impeccable-shape brief, RU/EN copy with i18n keys for tour steps 0–4 + chrome, Sugar/Song "what to watch" cards, plain-language captions for all 3 scenarios (human phrase · term), ASCII wireframes 1600/390.
-State: draft committed, NOT approved yet; 7.0 unticked. User answered: RU addresses «ты», HUD hidden during steps 0–3 (back on step 4), ASCII wireframes.
-Next: get user OK or one edit round on TOUR.md's 4 open points (GF honesty line in step 3, reset to baked escape on finish, card placement/phone FlyCam strip, «Бегство» vs «Побег») → tick 7.0 → 7.1 i18n.
+State: approved by the user as written (incl. step-3 GF honesty line, reset to baked escape on finish, card bottom-centre / phone card replaces ViewerBar + FlyCam strip, «Бегство»). User answered: RU addresses «ты», HUD hidden during steps 0–3 (back on step 4), ASCII wireframes.
+Next: 7.1 i18n — `apps/web/src/i18n/{ru,en}.ts`, keys from TOUR.md.
 Gotchas: escape scenario set ≈1254 neurons (legend at t=40); RU count line needs a PluralRules verb (участвует/участвуют). Real GF-silenced flies still take off (slow long-mode path) — the model has no such route, so copy must not claim "can't escape".
 
 ## 2026-10-04 — 6.4 README, video, article
