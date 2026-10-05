@@ -6,6 +6,7 @@ import { QUALITY } from '@/scene/quality';
 import { Stage } from '@/scene/Stage';
 import { app } from '@/state/app';
 import { experiment } from '@/state/experiment';
+import { tour } from '@/state/tour';
 import { Captions } from '@/ui/Captions';
 import { CommandPalette } from '@/ui/CommandPalette';
 import { Fatal } from '@/ui/Fatal';
@@ -19,6 +20,9 @@ import { Sound } from '@/ui/Sound';
 import { Stats } from '@/ui/Stats';
 import { Timeline } from '@/ui/Timeline';
 import { Toolbar } from '@/ui/Toolbar';
+import { AnatomyLabels } from '@/ui/tour/AnatomyLabels';
+import { CountLine } from '@/ui/tour/CountLine';
+import { Narration } from '@/ui/tour/Narration';
 import { ViewerBar } from '@/ui/ViewerBar';
 import { scenarioTitle } from '@/ui/viewer';
 
@@ -27,6 +31,8 @@ export const App = observer(function App() {
   const title = scenario && scenarioTitle(scenario, 'title');
   // nothing to drive: Fatal explains why
   const broken = app.rendererFailed || !!data.error;
+  // the tour shows the scene alone until its cheat sheet
+  const touring = tour.state !== null && tour.state.step < 4;
 
   return (
     <div
@@ -35,15 +41,18 @@ export const App = observer(function App() {
     >
       <Stage />
       <Fatal />
+      <AnatomyLabels />
+      <Narration />
+      <CountLine />
       <Captions />
       <NeuronTooltip />
       <Inspector />
-      <Legend />
+      {!touring && <Legend />}
       <FlyCam />
       <Sound />
       <CommandPalette />
       {/* phone = viewer without tools (PRODUCT.md); above the attribution row */}
-      {!broken && (
+      {!broken && !touring && (
         <div
           className={cn(
             'pointer-events-none absolute inset-x-2 bottom-16 z-10 hidden flex-col items-center gap-1 md:flex',
