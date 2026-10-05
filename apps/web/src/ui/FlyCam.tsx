@@ -1,18 +1,20 @@
 import { observer } from 'mobx-react-lite';
 import { useEffect, useMemo, useRef } from 'react';
 import { data } from '@/data/store';
+import { t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { Behavior, effectorMask, type FlyPose, SHOWN } from '@/scene/behavior';
 import { app } from '@/state/app';
 import { experiment } from '@/state/experiment';
 import { playback } from '@/state/playback';
 
+/** What the fly is doing; empty at rest. */
 function caption(p: FlyPose): string {
   const parts: string[] = [];
-  if (p.jumpAt !== null) parts.push(`takeoff ${p.jumpAt.toFixed(1)} ms`);
-  if (p.proboscis > SHOWN) parts.push('proboscis out');
-  if (p.wing > SHOWN) parts.push('wing song');
-  return parts.join(' · ') || 'at rest';
+  if (p.jumpAt !== null) parts.push(t('flycam.takeoff', { ms: p.jumpAt.toFixed(1) }));
+  if (p.proboscis > SHOWN) parts.push(t('flycam.proboscis'));
+  if (p.wing > SHOWN) parts.push(t('flycam.wing'));
+  return parts.join(' · ');
 }
 
 /**
@@ -48,7 +50,7 @@ export const FlyCam = observer(function FlyCam() {
       if (dead) return;
       cam = new Cam(el);
       await cam.init();
-      let shown = '';
+      let shown: string | null = null;
       const tick = () => {
         if (dead || !cam) return;
         raf = requestAnimationFrame(tick);
@@ -57,12 +59,13 @@ export const FlyCam = observer(function FlyCam() {
         cam.render(pose);
         // fade in on the first drawn frame, not over an empty card
         if (box.current) box.current.dataset.ready = '';
-        const text = caption(pose);
+        const doing = caption(pose);
+        const text = doing || t('flycam.rest');
         if (text !== shown && label.current) {
           shown = text;
           label.current.textContent = text;
           label.current.title = text;
-          label.current.dataset.active = String(text !== 'at rest');
+          label.current.dataset.active = String(doing !== '');
         }
         app.markReady('flycam');
       };
@@ -81,7 +84,7 @@ export const FlyCam = observer(function FlyCam() {
   return (
     <figure
       ref={box}
-      aria-label="Behaviour camera"
+      aria-label={t('flycam.label')}
       aria-hidden={covered}
       inert={covered}
       className={cn(
@@ -94,7 +97,7 @@ export const FlyCam = observer(function FlyCam() {
       <div ref={host} aria-hidden className="aspect-[4/3] w-full" />
       <figcaption className="flex items-baseline justify-between gap-2 px-1 text-caption">
         <span aria-hidden className="text-ash">
-          Behaviour
+          {t('flycam.title')}
         </span>
         <span
           ref={label}
@@ -102,7 +105,7 @@ export const FlyCam = observer(function FlyCam() {
           aria-atomic
           className="truncate font-mono text-bone tabular-nums data-[active=true]:text-saffron"
         >
-          at rest
+          {t('flycam.rest')}
         </span>
       </figcaption>
     </figure>

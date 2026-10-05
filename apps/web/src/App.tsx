@@ -12,6 +12,7 @@ import { Fatal } from '@/ui/Fatal';
 import { FlyCam } from '@/ui/FlyCam';
 import { Inspector } from '@/ui/Inspector';
 import { IntroHint } from '@/ui/IntroHint';
+import { LangSwitch } from '@/ui/LangSwitch';
 import { Legend } from '@/ui/Legend';
 import { NeuronTooltip } from '@/ui/NeuronTooltip';
 import { Scopes } from '@/ui/Scopes';
@@ -20,11 +21,11 @@ import { Stats } from '@/ui/Stats';
 import { Timeline } from '@/ui/Timeline';
 import { Toolbar } from '@/ui/Toolbar';
 import { ViewerBar } from '@/ui/ViewerBar';
-import { SCENARIO_TITLES } from '@/ui/viewer';
+import { scenarioTitle } from '@/ui/viewer';
 
 export const App = observer(function App() {
   const { scenario, debug, stats } = app.params;
-  const title = scenario && (SCENARIO_TITLES[scenario]?.[0] ?? scenario);
+  const title = scenario && scenarioTitle(scenario, 'title');
   // nothing to drive: Fatal explains why
   const broken = app.rendererFailed || !!data.error;
 
@@ -76,6 +77,8 @@ export const App = observer(function App() {
             </h1>
             {/* phones name the scenario in the ViewerBar */}
             {title && <p className="mt-2 hidden text-body font-extralight text-mist md:block">{title}</p>}
+            {/* phones switch language in the ViewerBar */}
+            <LangSwitch className="-mx-1 mt-1 hidden md:flex" />
           </div>
           {!broken && <ViewerBar />}
           <p className="pointer-events-auto -mx-1 text-caption text-ash">

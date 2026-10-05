@@ -4,10 +4,10 @@ import { scenarioHref } from './viewer';
 describe('scenarioHref', () => {
   it('switches the scenario and keeps only view settings', () => {
     const href = scenarioHref(
-      '?scenario=escape&quality=low&gl=webgl2&stats=1&t=40&select=10001&x=abc',
+      '?scenario=escape&quality=low&gl=webgl2&stats=1&lang=en&t=40&select=10001&x=abc',
       'song',
     );
-    expect(new URLSearchParams(href).toString()).toBe('scenario=song&quality=low&gl=webgl2&stats=1');
+    expect(new URLSearchParams(href).toString()).toBe('scenario=song&quality=low&gl=webgl2&stats=1&lang=en');
   });
 
   it('works from an empty query', () => {

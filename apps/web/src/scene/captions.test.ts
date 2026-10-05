@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { DICTS } from '../i18n';
 import { SpikeLog } from '../sim/feed';
 import type { FlyPose } from './behavior';
 import { type Beat, beatMask, Dwell, Narrator, POSE_STEP_MS, SCRIPTS } from './captions';
@@ -37,6 +38,16 @@ function log(t: number[], row: number[], until = 1000) {
 }
 
 const texts = (n: Narrator) => n.events.map((e) => e.text);
+
+describe('SCRIPTS', () => {
+  it('every line is a key in both dictionaries', () => {
+    const keys = Object.values(SCRIPTS).flatMap((s) => s.flatMap((b) => [b.text, b.missing?.text ?? b.text]));
+    for (const k of keys) {
+      expect(DICTS.ru[k], k).toBeTypeOf('string');
+      expect(DICTS.en[k], k).toBeTypeOf('string');
+    }
+  });
+});
 
 describe('beatMask', () => {
   it('maps rows to the beat of their type, −1 for none', () => {

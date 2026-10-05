@@ -1,12 +1,11 @@
-/** Scenario names for the HUD: [title under the logo, label in the phone ViewerBar]. */
-export const SCENARIO_TITLES: Record<string, readonly [string, string]> = {
-  escape: ['Escape', 'Escape'],
-  sugar: ['Sugar', 'Sugar'],
-  song: ['Courtship song', 'Song'],
-};
+import { tOr } from '../i18n';
+
+/** Scenario name for the HUD: `title` under the logo, `short` in the phone ViewerBar; `fallback` for unknown ids. */
+export const scenarioTitle = (id: string, form: 'title' | 'short', fallback = id) =>
+  tOr(`scenario.${id}.${form}`, fallback);
 
 /** URL params that describe how to view, not what was being done: they survive a scenario switch. */
-const KEEP = ['quality', 'gl', 'stats', 'director'];
+const KEEP = ['quality', 'gl', 'stats', 'director', 'lang'];
 
 /** `?scenario=<id>` plus the current view settings; experiment, time and selection start fresh. */
 export function scenarioHref(search: string, id: string): string {

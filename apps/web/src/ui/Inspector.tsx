@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { type PartnerGroup, type Partners, partners } from '@/data/partners';
 import { data } from '@/data/store';
+import { num, plural, t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { app } from '@/state/app';
 import { experiment } from '@/state/experiment';
@@ -11,10 +12,8 @@ import { FOCUS, MALE, NT_COLORS } from '@/ui/palette';
 
 /** Partner types listed per side before "+N more". */
 const TOP_TYPES = 8;
-const SIDES = { L: 'left', R: 'right', M: 'midline' } as const;
 
 const words = (s: string | null) => s?.replaceAll('_', ' ') ?? null;
-const fmt = new Intl.NumberFormat('en-US');
 
 interface Shown {
   row: number;
@@ -39,7 +38,7 @@ export const Inspector = observer(function Inspector() {
 
   return (
     <aside
-      aria-label="Inspector"
+      aria-label={t('inspector.label')}
       aria-hidden={!open}
       inert={!open}
       className={cn(
@@ -75,12 +74,12 @@ const Body = observer(function Body({ s: { row, n, p } }: { s: Shown }) {
             tabIndex={-1}
             className="truncate text-body leading-tight font-normal text-bone outline-none"
           >
-            {n.type ?? 'untyped'}
+            {n.type ?? t('neuron.untyped')}
           </h2>
           <p className="font-mono text-caption text-ash tabular-nums">{n.bodyId}</p>
         </div>
         <Button
-          aria-label="Close inspector"
+          aria-label={t('inspector.close')}
           className="-mt-1 -mr-1 size-6 p-0"
           onClick={() => experiment.select(null)}
         >
@@ -98,23 +97,25 @@ const Body = observer(function Body({ s: { row, n, p } }: { s: Shown }) {
       </header>
 
       <dl className="mt-2 flex flex-col gap-0.5 text-caption text-mist">
-        <Fact label="Transmitter">
+        <Fact label={t('inspector.nt')}>
           <span className="flex items-center gap-1">
             <Dot color={NT_COLORS[n.nt ?? 'unclear'].hex} />
-            {n.nt ?? 'unknown'}
+            {n.nt ? t(`group.nt.${n.nt}`) : t('inspector.unknown')}
             {n.ntConf !== null && (
-              <span className="font-mono text-ash tabular-nums">{Math.round(n.ntConf * 100)}% pred.</span>
+              <span className="font-mono text-ash tabular-nums">
+                {t('neuron.pred', { p: Math.round(n.ntConf * 100) })}
+              </span>
             )}
           </span>
         </Fact>
-        {cls && <Fact label="Class">{cls}</Fact>}
-        {n.region && <Fact label="Region">{n.region}</Fact>}
-        {n.somaSide && <Fact label="Soma">{SIDES[n.somaSide]}</Fact>}
+        {cls && <Fact label={t('inspector.class')}>{cls}</Fact>}
+        {n.region && <Fact label={t('inspector.region')}>{n.region}</Fact>}
+        {n.somaSide && <Fact label={t('inspector.soma')}>{t(`side.${n.somaSide}`)}</Fact>}
         {n.maleSpecific && (
-          <Fact label="Sex">
+          <Fact label={t('inspector.sex')}>
             <span className="flex items-center gap-1">
               <Dot color={MALE.hex} />
-              male-specific
+              {t('neuron.maleSpecific')}
             </span>
           </Fact>
         )}
@@ -122,27 +123,27 @@ const Body = observer(function Body({ s: { row, n, p } }: { s: Shown }) {
 
       <div className="mt-3 flex items-center gap-1">
         <Button variant="primary" aria-pressed={stimulated} onClick={() => experiment.toggleStim(row)}>
-          {stimulated ? 'Stop stimulus' : 'Stimulate'}
+          {t(stimulated ? 'inspector.stopStim' : 'inspector.stimulate')}
         </Button>
         <Button
           aria-pressed={silenced}
           className="aria-pressed:bg-accent aria-pressed:text-bone"
           onClick={() => experiment.toggleSilence(row)}
         >
-          {silenced ? 'Unsilence' : 'Silence'}
+          {t(silenced ? 'inspector.unsilence' : 'inspector.silence')}
         </Button>
-        <Button onClick={() => experiment.flyTo(row)}>Fly to</Button>
+        <Button onClick={() => experiment.flyTo(row)}>{t('inspector.flyTo')}</Button>
       </div>
       <LiveNote />
 
       {p ? (
         <>
-          <PartnerList title="Inputs" color={FOCUS.input.hex} groups={p.inputs} />
-          <PartnerList title="Outputs" color={FOCUS.output.hex} groups={p.outputs} />
+          <PartnerList title={t('inspector.inputs')} color={FOCUS.input.hex} groups={p.inputs} />
+          <PartnerList title={t('inspector.outputs')} color={FOCUS.output.hex} groups={p.outputs} />
           <p className="mt-3 text-caption text-ash">Synapse counts within the {data.scenario} circuit.</p>
         </>
       ) : (
-        <p className="mt-3 text-caption text-ash">Connectivity not loaded.</p>
+        <p className="mt-3 text-caption text-ash">{t('inspector.noConnectivity')}</p>
       )}
     </>
   );
@@ -151,9 +152,9 @@ const Body = observer(function Body({ s: { row, n, p } }: { s: Shown }) {
 const LiveNote = observer(function LiveNote() {
   const text =
     experiment.live === 'loading'
-      ? 'Loading the whole-CNS simulation…'
+      ? t('live.loading')
       : experiment.live === 'failed' && experiment.touched
-        ? 'Live simulation unavailable — showing the recorded run.'
+        ? t('live.failed')
         : null;
   return (
     <div aria-live="polite" className="text-caption text-ash">
@@ -188,11 +189,11 @@ function PartnerList({ title, color, groups }: { title: string; color: string; g
           {title}
         </span>
         <span className="ml-auto font-mono text-caption text-ash tabular-nums">
-          {groups.length} types · {fmt.format(syn)} syn
+          {plural('count.types', groups.length)} · {t('trace.syn', { n: syn })}
         </span>
       </h3>
       {groups.length === 0 ? (
-        <p className="mt-1 text-caption text-ash">None in this circuit.</p>
+        <p className="mt-1 text-caption text-ash">{t('inspector.none')}</p>
       ) : (
         <ul className="mt-1 flex flex-col">
           {shown.map((g) => (
@@ -200,20 +201,24 @@ function PartnerList({ title, color, groups }: { title: string; color: string; g
               <button
                 type="button"
                 onClick={() => experiment.select(g.top)}
-                aria-label={`${g.type ?? 'untyped'}: ${g.count} ${g.count > 1 ? 'neurons' : 'neuron'}, ${g.synapses} synapses — inspect the strongest`}
+                aria-label={t('inspector.partner', {
+                  type: g.type ?? t('neuron.untyped'),
+                  neurons: plural('count.neurons', g.count),
+                  synapses: plural('count.synapses', g.synapses),
+                })}
                 className="-mx-1 flex w-[calc(100%+--spacing(2))] cursor-pointer items-center gap-1 rounded-md px-1 py-0.5 text-left text-caption text-mist outline-none transition-colors duration-150 hover:bg-accent hover:text-bone focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Dot color={NT_COLORS[g.nt ?? 'unclear'].hex} />
-                <span className="min-w-0 truncate">{g.type ?? 'untyped'}</span>
+                <span className="min-w-0 truncate">{g.type ?? t('neuron.untyped')}</span>
                 {g.count > 1 && <span className="font-mono text-ash tabular-nums">×{g.count}</span>}
-                <span className="ml-auto font-mono text-ash tabular-nums">{fmt.format(g.synapses)}</span>
+                <span className="ml-auto font-mono text-ash tabular-nums">{num(g.synapses)}</span>
               </button>
             </li>
           ))}
           {rest > 0 && (
             <li>
               <Button className="-mx-1 h-auto py-0.5 text-caption" onClick={() => setAll(true)}>
-                +{rest} more types
+                {plural('inspector.more', rest)}
               </Button>
             </li>
           )}

@@ -1,4 +1,5 @@
 import { NONE16 } from '@fly/data';
+import type { Key } from '@/i18n';
 import type { SpikeLog } from '@/sim/feed';
 import { type FlyPose, JUMP, PROBOSCIS, SHOWN, WING } from './behavior';
 
@@ -6,64 +7,69 @@ import { type FlyPose, JUMP, PROBOSCIS, SHOWN, WING } from './behavior';
  * One line of a scenario's narration. It starts at the first spike of its cell types, or when the
  * behaviour readout shows the body part move; never at a scripted time.
  */
-export interface Beat {
+export interface Beat<T extends string = string> {
   when: { types: RegExp } | { pose: 'jump' | 'proboscis' | 'wing' };
-  text: string;
+  /** What to say; in `SCRIPTS` a dictionary key (`i18n`). */
+  text: T;
   /** Not reached `byMs` after the onset (the scenario's first beat) → say so (a silenced link). */
-  missing?: { byMs: number; text: string };
+  missing?: { byMs: number; text: T };
 }
 
 /** Narration per scenario, in story order. Measured onsets (baked, ms) in the comments. */
-export const SCRIPTS: Record<string, readonly Beat[]> = {
+export const SCRIPTS: Record<string, readonly Beat<Key>[]> = {
   escape: [
     // 0.1
     {
       when: { types: /^(LC4|LPLC2)$/ },
-      text: 'Looming shadow: LC4 and LPLC2 cells fire',
+      text: 'cap.escape.shadow',
     },
     // 2.9
     {
       when: { types: /^DNp01$/ },
-      text: 'Giant Fiber fires: the escape command',
-      missing: { byMs: 15, text: 'Giant Fiber silent: the fast escape route is cut' },
+      text: 'cap.escape.gf',
+      missing: { byMs: 15, text: 'cap.escape.gfSilent' },
     },
     // 8.3
-    { when: { types: JUMP }, text: 'Thorax: the jump motor neuron (TTMn) fires' },
+    { when: { types: JUMP }, text: 'cap.escape.ttmn' },
     // ≈30
-    { when: { pose: 'jump' }, text: 'Takeoff', missing: { byMs: 100, text: 'No takeoff' } },
+    {
+      when: { pose: 'jump' },
+      text: 'cap.escape.takeoff',
+      missing: { byMs: 100, text: 'cap.escape.noTakeoff' },
+    },
   ],
   sugar: [
     // 0.1
-    { when: { types: /^LB3[a-d]$/ }, text: 'Taste neurons (LB3) fire' },
+    { when: { types: /^LB3[a-d]$/ }, text: 'cap.sugar.taste' },
     // ≈5
-    { when: { types: /^GNG\d/ }, text: 'Gnathal ganglion, the taste centre, takes it up' },
+    { when: { types: /^GNG\d/ }, text: 'cap.sugar.gng' },
     // 19.6
     {
       when: { types: PROBOSCIS },
-      text: 'MN9, the proboscis motor neuron, fires',
-      missing: { byMs: 100, text: 'MN9 silent: no command to feed' },
+      text: 'cap.sugar.mn9',
+      missing: { byMs: 100, text: 'cap.sugar.mn9Silent' },
     },
     {
       when: { pose: 'proboscis' },
-      text: 'Proboscis extends',
-      missing: { byMs: 150, text: 'No proboscis extension' },
+      text: 'cap.sugar.extend',
+      missing: { byMs: 150, text: 'cap.sugar.noExtend' },
     },
   ],
   song: [
     // 0.1
-    { when: { types: /^pC1/ }, text: 'P1 (pC1), the courtship drive, fires' },
+    { when: { types: /^pC1/ }, text: 'cap.song.p1' },
     // 5.5
     {
       when: { types: /^pIP10$/ },
-      text: 'pIP10 carries the song command to the thorax',
-      missing: { byMs: 30, text: 'pIP10 silent: no song command' },
+      text: 'cap.song.pip10',
+      missing: { byMs: 30, text: 'cap.song.pip10Silent' },
     },
     // 11.5
-    { when: { types: WING }, text: 'Wing motor neurons fire' },
+    { when: { types: WING }, text: 'cap.song.wingMn' },
     {
       when: { pose: 'wing' },
-      text: 'Wing extends: courtship song',
-      missing: { byMs: 150, text: 'No song' },
+      text: 'cap.song.wing',
+      missing: { byMs: 150, text: 'cap.song.noSong' },
     },
   ],
 };

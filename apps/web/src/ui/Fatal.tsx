@@ -1,17 +1,15 @@
 import { observer } from 'mobx-react-lite';
 import { Button } from '@/components/ui/button';
 import { data } from '@/data/store';
+import { t } from '@/i18n';
 import { app } from '@/state/app';
 
 /** Replaces a black screen when the renderer cannot start or the data does not load. */
 export const Fatal = observer(function Fatal() {
   const [title, hint] = app.rendererFailed
-    ? [
-        'This browser can’t draw the scene',
-        'It needs WebGPU or WebGL2. Try a recent Chrome, Safari or Firefox.',
-      ]
+    ? [t('fatal.renderer.title'), t('fatal.renderer.hint')]
     : data.error
-      ? ['The connectome didn’t load', 'Check the connection and reload the page.']
+      ? [t('fatal.data.title'), t('fatal.data.hint')]
       : [];
   if (!title) return null;
   return (
@@ -27,7 +25,7 @@ export const Fatal = observer(function Fatal() {
           onClick={() => window.location.reload()}
           className="pointer-events-auto mt-3"
         >
-          Reload
+          {t('fatal.reload')}
         </Button>
       )}
     </div>

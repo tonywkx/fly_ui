@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { useEffect, useRef } from 'react';
 import type uPlot from 'uplot';
 import { data } from '@/data/store';
+import { t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import type { SpikeLog } from '@/sim/feed';
 import { probe, scenarioNet, voltage } from '@/sim/trace';
@@ -48,13 +49,13 @@ export const Scopes = observer(function Scopes() {
         app.params.snap && 'transition-none',
       )}
     >
-      <section aria-label="Oscilloscopes" className="grid min-h-0 grid-cols-4 gap-1 overflow-hidden">
+      <section aria-label={t('scopes.label')} className="grid min-h-0 grid-cols-4 gap-1 overflow-hidden">
         {placed.map(({ row, slot }) => (
           <Scope
             key={slot}
             slot={slot}
             row={row}
-            name={row < meta.n ? (neuronAt(meta, row).type ?? 'untyped') : `#${row}`}
+            name={row < meta.n ? (neuronAt(meta, row).type ?? t('neuron.untyped')) : `#${row}`}
             log={log}
             net={net}
           />
@@ -118,8 +119,8 @@ function Scope({ slot, row, name, log, net }: ScopeProps) {
   return (
     <figure
       role="img"
-      aria-label={`Electrode ${slot + 1}: ${name} membrane potential`}
-      title={`${name}: −64…−40 mV, spikes clipped · dashed threshold, dotted rest`}
+      aria-label={t('scope.aria', { slot: slot + 1, name })}
+      title={t('scope.title', { name })}
       className={cn(
         'flex min-w-0 flex-col gap-0.5 rounded-panel bg-card px-3 pt-1.5 pb-2 backdrop-blur-md',
         'transition-opacity duration-200 ease-out starting:opacity-0',

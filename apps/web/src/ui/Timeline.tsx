@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { BANDS, lanes as lanesOf } from '@/data/bands';
 import { data } from '@/data/store';
+import { t as tr } from '@/i18n';
 import { app } from '@/state/app';
 import { playback, playbackKey, SPEEDS } from '@/state/playback';
 import { ACCENT, TEXT } from '@/ui/palette';
@@ -144,7 +145,7 @@ export const Timeline = observer(function Timeline() {
         el.setAttribute('aria-valuemin', String(Math.round(playback.clock.start)));
         el.setAttribute('aria-valuemax', String(Math.round(playback.clock.end)));
         el.setAttribute('aria-valuenow', String(Math.round(t)));
-        el.setAttribute('aria-valuetext', `${ms.toFixed(1)} ms`);
+        el.setAttribute('aria-valuetext', tr('unit.ms', { v: ms.toFixed(1) }));
       }
     };
 
@@ -205,12 +206,12 @@ export const Timeline = observer(function Timeline() {
 
   return (
     <section
-      aria-label="Timeline"
+      aria-label={tr('timeline.label')}
       className="pointer-events-auto flex w-[min(44rem,100%,100vw-30rem)] items-center gap-1.5 rounded-panel bg-card px-1 py-1 backdrop-blur-md"
     >
       <div className="flex shrink-0 flex-col items-center">
         <Button
-          aria-label={paused ? 'Play' : 'Pause'}
+          aria-label={tr(paused ? 'timeline.play' : 'timeline.pause')}
           aria-keyshortcuts="Space"
           onClick={() => playback.toggle()}
           className="size-6 rounded-full p-0 text-bone"
@@ -220,9 +221,9 @@ export const Timeline = observer(function Timeline() {
           </svg>
         </Button>
         <Button
-          aria-label={`Speed ${SPEED_LABEL[speed]}`}
+          aria-label={tr('timeline.speed', { v: SPEED_LABEL[speed] ?? '' })}
           aria-keyshortcuts="[ ]"
-          title="Speed [ ]"
+          title={tr('timeline.speedTitle')}
           onClick={() =>
             playback.setSpeed(SPEEDS[(SPEEDS.indexOf(speed as never) + 1) % SPEEDS.length] as number)
           }
@@ -239,7 +240,7 @@ export const Timeline = observer(function Timeline() {
       >
         {BANDS.map((b, i) => (
           <li key={b} className={lanes.counts[i] ? 'text-mist' : 'text-ash'}>
-            {b}
+            {tr(`band.${b}`)}
           </li>
         ))}
       </ul>
@@ -251,7 +252,7 @@ export const Timeline = observer(function Timeline() {
           aria-valuemin={Math.round(playback.clock.start)}
           aria-valuemax={Math.round(playback.clock.end)}
           aria-valuenow={Math.round(playback.clock.t)}
-          aria-label="Sim time"
+          aria-label={tr('timeline.simTime')}
           onKeyDown={onSliderKey}
           className="block w-full cursor-ew-resize touch-none rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
           style={{ height: BANDS.length * BAND_PX + (BANDS.length - 1) * GAP_PX }}
@@ -261,14 +262,14 @@ export const Timeline = observer(function Timeline() {
         <span ref={readout} className="text-bone">
           0.0
         </span>{' '}
-        <span className="text-ash">ms</span>
-        {mode === 'live' && <span className="block text-mist">live</span>}
+        <span className="text-ash">{tr('unit.msShort')}</span>
+        {mode === 'live' && <span className="block text-mist">{tr('timeline.live')}</span>}
       </p>
       <Button
-        aria-label="Follow the activity"
+        aria-label={tr('follow.label')}
         aria-pressed={app.director}
         aria-keyshortcuts="D"
-        title="Follow the activity (D)"
+        title={tr('follow.title')}
         onClick={() => app.toggleDirector()}
         className="size-6 shrink-0 rounded-full p-0 aria-pressed:bg-accent aria-pressed:text-bone"
       >
@@ -279,10 +280,10 @@ export const Timeline = observer(function Timeline() {
         </svg>
       </Button>
       <Button
-        aria-label="Sound"
+        aria-label={tr('sound.label')}
         aria-pressed={app.sound}
         aria-keyshortcuts="M"
-        title="Sound (M)"
+        title={tr('sound.title')}
         onClick={toggleSound}
         className="size-6 shrink-0 rounded-full p-0 aria-pressed:bg-accent aria-pressed:text-bone"
       >

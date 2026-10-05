@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import { useEffect, useMemo, useRef } from 'react';
 import { data } from '@/data/store';
+import { tOr, t as tr } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { Behavior, effectorMask } from '@/scene/behavior';
 import { beatMask, Dwell, Narrator, SCRIPTS } from '@/scene/captions';
@@ -30,6 +31,7 @@ export const Captions = observer(function Captions() {
   const time = useRef<HTMLSpanElement>(null);
   const on = app.captions && !!script;
   const hint = hintShown();
+  const lang = app.lang;
 
   useEffect(() => {
     if (!app.params.snap) return;
@@ -37,7 +39,7 @@ export const Captions = observer(function Captions() {
     if (!on) app.markReady('captions');
   }, [on]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: a new log (live takes over) must restart the narration
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a new log (live takes over) or language must restart the narration
   useEffect(() => {
     if (!on || !log || !masks || !script) return;
     const narrator = new Narrator(script, masks.beats, new Behavior(masks.body));
@@ -56,8 +58,8 @@ export const Captions = observer(function Captions() {
         shown = e;
         line.current.dataset.empty = String(!e);
         if (e) {
-          text.current.textContent = e.text;
-          time.current.textContent = e.missed ? '' : `${e.at.toFixed(1)} ms`;
+          text.current.textContent = tOr(e.text, e.text, lang);
+          time.current.textContent = e.missed ? '' : tr('unit.ms', { v: e.at.toFixed(1) }, lang);
           if (!app.reducedMotion && !app.params.snap)
             line.current.animate([{ transform: 'translateY(4px)' }, { transform: 'none' }], {
               duration: 200,
@@ -70,7 +72,7 @@ export const Captions = observer(function Captions() {
     };
     tick();
     return () => cancelAnimationFrame(raf);
-  }, [on, log, masks, script]);
+  }, [on, log, masks, script, lang]);
 
   if (!on) return null;
   return (

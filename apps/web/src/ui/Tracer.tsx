@@ -2,6 +2,7 @@ import { observer } from 'mobx-react-lite';
 import { useId, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { data } from '@/data/store';
+import { t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { app } from '@/state/app';
 import { TRACE_MAX_HOPS, trace } from '@/state/trace';
@@ -28,14 +29,14 @@ export const Tracer = observer(function Tracer() {
       <div className="grid grid-cols-[1fr_auto] items-end gap-1">
         <div className="flex min-w-0 flex-col gap-0.5">
           <EndField
-            label="From"
+            label={t('trace.from')}
             value={from}
             list={listId}
             types={types}
             onCommit={(t) => trace.setEnds(t, to)}
           />
           <EndField
-            label="To"
+            label={t('trace.to')}
             value={to}
             list={listId}
             types={types}
@@ -43,8 +44,8 @@ export const Tracer = observer(function Tracer() {
           />
         </div>
         <Button
-          aria-label="Swap From and To"
-          title="Swap From and To"
+          aria-label={t('trace.swap')}
+          title={t('trace.swap')}
           className="size-5 px-0 text-caption"
           disabled={!from && !to}
           onClick={() => trace.swap()}
@@ -56,16 +57,16 @@ export const Tracer = observer(function Tracer() {
       </div>
       <p aria-live="polite" className="text-caption text-mist empty:hidden">
         {status === 'loading'
-          ? 'Finding paths…'
+          ? t('trace.finding')
           : status === 'failed'
-            ? 'Could not load the type graph.'
+            ? t('trace.failed')
             : status === 'done' && paths.length === 0
-              ? `No path within ${TRACE_MAX_HOPS} hops through this circuit.`
+              ? t('trace.noPath', { n: TRACE_MAX_HOPS })
               : ''}
       </p>
       {status === 'done' && paths.length > 0 && (
         <ol
-          aria-label="Strongest paths"
+          aria-label={t('trace.paths')}
           className={cn(
             'flex max-h-36 flex-col gap-0.5 overflow-y-auto overscroll-contain',
             'transition-opacity duration-150 ease-out starting:opacity-0',
@@ -88,7 +89,7 @@ export const Tracer = observer(function Tracer() {
               >
                 <span className="text-pretty">{p.types.join(' → ')}</span>
                 <span className="font-mono text-mist tabular-nums">
-                  {percent(p.fraction)} · {p.synapses.toLocaleString('en-US')} syn
+                  {percent(p.fraction)} · {t('trace.syn', { n: p.synapses })}
                 </span>
               </button>
             </li>
@@ -115,18 +116,18 @@ function EndField(p: {
     setText(p.value ?? '');
   }
   const commit = () => {
-    const t = text.trim();
-    if (t === '') p.onCommit(null);
-    else if (p.types.includes(t)) p.onCommit(t);
+    const v = text.trim();
+    if (v === '') p.onCommit(null);
+    else if (p.types.includes(v)) p.onCommit(v);
     else setText(p.value ?? '');
   };
   return (
-    <label className="grid grid-cols-[2.5rem_1fr] items-center gap-1 text-caption">
+    <label className="grid grid-cols-[3.5rem_1fr] items-center gap-1 text-caption">
       <span className="text-mist">{p.label}</span>
       <input
         value={text}
         list={p.list}
-        placeholder="cell type"
+        placeholder={t('trace.placeholder')}
         spellCheck={false}
         autoComplete="off"
         onChange={(e) => {

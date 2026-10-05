@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { data } from '@/data/store';
+import { type Key, t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { app } from '@/state/app';
 import { experiment, keyAction, MAX_PROBES, STIM_RANGE, TOOL_KEYS, type Tool } from '@/state/experiment';
@@ -11,17 +12,13 @@ import { PROBES } from '@/ui/palette';
 import { shareExperiment, shareNote } from '@/ui/share';
 import { Tracer } from '@/ui/Tracer';
 
-const TOOLS: { tool: Tool; label: string; hint: string }[] = [
-  { tool: 'select', label: 'Select', hint: 'Click a neuron to inspect it.' },
-  { tool: 'stimulate', label: 'Stimulate', hint: 'Click or drag across neurons to drive them.' },
-  { tool: 'silence', label: 'Silence', hint: 'Click or drag across neurons to silence them.' },
-  { tool: 'electrode', label: 'Electrode', hint: 'Click a neuron to place an electrode.' },
-  { tool: 'trace', label: 'Trace', hint: 'Click a neuron for From, another for To, or type a cell type.' },
-];
+const TOOLS: { tool: Tool; label: Key; hint: Key }[] = (
+  ['select', 'stimulate', 'silence', 'electrode', 'trace'] as const
+).map((tool) => ({ tool, label: `tool.${tool}`, hint: `tool.${tool}.hint` }));
 
-const SHARE_LABEL = { idle: 'Share', copied: 'Copied', address: 'In URL' } as const;
+const SHARE_LABEL = { idle: 'share.idle', copied: 'share.copied', address: 'share.address' } as const;
 const SHARE_KEYS = Object.keys(SHARE_LABEL) as (keyof typeof SHARE_LABEL)[];
-const SHARE_STATUS = { copied: 'Link copied', address: 'Copy the link from the address bar' } as const;
+const SHARE_STATUS = { copied: 'share.status.copied', address: 'share.status.address' } as const;
 
 /** Keys typed into a field are not hotkeys. */
 const typing = (t: EventTarget | null) =>
@@ -56,7 +53,7 @@ export const Toolbar = observer(function Toolbar() {
     <div className="flex w-full flex-col-reverse items-center gap-1">
       <div
         role="toolbar"
-        aria-label="Tools"
+        aria-label={t('tools.label')}
         className="pointer-events-auto flex items-center gap-0.5 rounded-panel bg-card p-0.5 backdrop-blur-md"
       >
         {TOOLS.map(({ tool, label }) => (
@@ -67,15 +64,15 @@ export const Toolbar = observer(function Toolbar() {
             onClick={() => experiment.setTool(tool)}
             className="h-5 gap-1 rounded-full px-1.5 aria-pressed:bg-accent aria-pressed:text-bone"
           >
-            {label}
+            {t(label)}
             <kbd className="font-mono text-caption text-mist">{TOOL_KEYS[tool]}</kbd>
           </Button>
         ))}
         <span aria-hidden className="mx-0.5 h-3 w-px bg-border" />
         <Button
-          aria-label="Share experiment"
+          aria-label={t('share.aria')}
           onClick={() => void shareExperiment()}
-          title="Copy a link to this experiment"
+          title={t('share.title')}
           className={cn('h-5 rounded-full px-1.5', note === 'idle' && 'text-ash')}
         >
           {/* every label in one cell: the button keeps its width, the centred rail does not shift */}
@@ -88,13 +85,13 @@ export const Toolbar = observer(function Toolbar() {
                   k !== note && 'opacity-0 blur-[2px]',
                 )}
               >
-                {SHARE_LABEL[k]}
+                {t(SHARE_LABEL[k])}
               </span>
             ))}
           </span>
         </Button>
         <span role="status" className="sr-only">
-          {note === 'idle' ? '' : SHARE_STATUS[note]}
+          {note === 'idle' ? '' : t(SHARE_STATUS[note])}
         </span>
       </div>
       {active && active.tool !== 'select' && (
@@ -108,10 +105,10 @@ export const Toolbar = observer(function Toolbar() {
           {active.tool === 'stimulate' && <StimControls />}
           {active.tool === 'electrode' && <Probes />}
           {active.tool === 'trace' && <Tracer />}
-          <p className="text-caption text-ash">{active.hint}</p>
+          <p className="text-caption text-ash">{t(active.hint)}</p>
           <p aria-live="polite" className="text-caption text-mist empty:hidden">
             {active.tool === 'electrode' && experiment.probesFull
-              ? `All ${MAX_PROBES} electrodes placed — remove one to move it.`
+              ? t('electrodes.full', { n: MAX_PROBES })
               : ''}
           </p>
         </div>
@@ -125,15 +122,15 @@ const StimControls = observer(function StimControls() {
   return (
     <>
       <Range
-        label="Rate"
+        label={t('stim.rate')}
         value={hz}
         range={STIM_RANGE.hz}
         step={10}
-        readout={`${hz} Hz`}
+        readout={t('unit.hz', { v: hz })}
         onChange={(v) => experiment.setStim({ hz: v })}
       />
       <Range
-        label="Strength"
+        label={t('stim.strength')}
         value={gain}
         range={STIM_RANGE.gain}
         step={0.05}
@@ -172,10 +169,14 @@ function Range(p: {
 const Probes = observer(function Probes() {
   const meta = data.scenario ? data.get(`${data.scenario}-meta`, 'meta') : undefined;
   return (
-    <ul aria-label="Electrodes" className="flex flex-col">
+    <ul aria-label={t('electrodes.label')} className="flex flex-col">
       {experiment.probes.map((row, slot) => {
         const name =
-          row === null ? null : meta && row < meta.n ? (neuronAt(meta, row).type ?? 'untyped') : `#${row}`;
+          row === null
+            ? null
+            : meta && row < meta.n
+              ? (neuronAt(meta, row).type ?? t('neuron.untyped'))
+              : `#${row}`;
         return (
           // biome-ignore lint/suspicious/noArrayIndexKey: slots are fixed positions
           <li key={slot} className="flex h-4 items-center gap-1 text-caption">
@@ -190,15 +191,15 @@ const Probes = observer(function Probes() {
             />
             <span className="font-mono text-ash tabular-nums">{slot + 1}</span>
             <span className={cn('min-w-0 truncate', row === null ? 'text-ash' : 'text-bone')}>
-              {name ?? 'empty'}
+              {name ?? t('electrode.empty')}
             </span>
             {row !== null && (
               <Button
-                aria-label={`Remove electrode ${slot + 1} (${name})`}
+                aria-label={t('electrode.removeAria', { slot: slot + 1, name: name ?? '' })}
                 className="ml-auto h-4 px-1 text-caption"
                 onClick={() => experiment.removeProbe(slot)}
               >
-                Remove
+                {t('electrode.remove')}
               </Button>
             )}
           </li>

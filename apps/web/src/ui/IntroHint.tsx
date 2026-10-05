@@ -1,11 +1,12 @@
 import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
 import { data } from '@/data/store';
+import { type Key, t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { app } from '@/state/app';
 
 /** First move to try once the intro lands, per scenario (none until that scenario has a tool). */
-const HINTS: Record<string, string> = { escape: 'Click the shadow' };
+const HINTS: Record<string, Key> = { escape: 'hint.escape' };
 
 /** The hint is on screen (only scenarios with a hint ever show one). */
 export const hintShown = () => app.hintVisible && !!data.scenario && !!HINTS[data.scenario];
@@ -33,7 +34,7 @@ export const IntroHint = observer(function IntroHint() {
         shown ? 'translate-y-0 opacity-100' : 'translate-y-1 opacity-0',
       )}
     >
-      {text}
+      {t(text)}
     </p>
   );
 });

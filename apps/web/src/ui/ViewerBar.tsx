@@ -1,8 +1,10 @@
 import { observer } from 'mobx-react-lite';
 import { Button } from '@/components/ui/button';
 import { data } from '@/data/store';
+import { t } from '@/i18n';
 import { playback } from '@/state/playback';
-import { SCENARIO_TITLES, scenarioHref } from './viewer';
+import { LangSwitch } from './LangSwitch';
+import { scenarioHref, scenarioTitle } from './viewer';
 
 /**
  * Phones: the viewer without tools (PRODUCT.md) — play/pause and the scenarios, nothing else.
@@ -13,9 +15,9 @@ export const ViewerBar = observer(function ViewerBar() {
   const { paused } = playback;
   if (scenarios.length === 0) return null;
   return (
-    <nav aria-label="Scenarios" className="pointer-events-auto flex items-center gap-1 md:hidden">
+    <nav aria-label={t('scenarios.label')} className="pointer-events-auto flex items-center gap-1 md:hidden">
       <Button
-        aria-label={paused ? 'Play' : 'Pause'}
+        aria-label={t(paused ? 'timeline.play' : 'timeline.pause')}
         onClick={() => playback.toggle()}
         // a hairline ring: ghost (one primary per view) but still reads as a control on black
         className="size-8 shrink-0 rounded-full border border-ash/40 p-0 text-bone hover:border-bone/70 hover:text-bone"
@@ -39,13 +41,14 @@ export const ViewerBar = observer(function ViewerBar() {
                   href={scenarioHref(window.location.search, s.id)}
                   aria-current={current ? 'page' : undefined}
                 >
-                  {SCENARIO_TITLES[s.id]?.[1] ?? s.title}
+                  {scenarioTitle(s.id, 'short', s.title)}
                 </a>
               </Button>
             </li>
           );
         })}
       </ul>
+      <LangSwitch className="ml-auto shrink-0" />
     </nav>
   );
 });

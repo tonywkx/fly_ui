@@ -2,6 +2,7 @@ import { type NeuronRecord, neuronAt } from '@fly/data';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useRef } from 'react';
 import { data } from '@/data/store';
+import { t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { app } from '@/state/app';
 import { NT_COLORS } from '@/ui/palette';
@@ -61,7 +62,7 @@ export const NeuronTooltip = observer(function NeuronTooltip() {
     >
       {n && (
         <>
-          <p className="text-label leading-tight font-normal text-bone">{n.type ?? 'untyped'}</p>
+          <p className="text-label leading-tight font-normal text-bone">{n.type ?? t('neuron.untyped')}</p>
           <p className="font-mono text-caption text-ash tabular-nums">{n.bodyId}</p>
           <div className="mt-2 flex flex-col text-caption text-mist">
             <p className="flex items-center gap-1 whitespace-nowrap">
@@ -70,9 +71,11 @@ export const NeuronTooltip = observer(function NeuronTooltip() {
                 className="size-1 shrink-0 rounded-full"
                 style={{ background: NT_COLORS[n.nt ?? 'unclear'].hex }}
               />
-              {n.nt ?? 'unknown transmitter'}
+              {n.nt ? t(`group.nt.${n.nt}`) : t('neuron.ntUnknown')}
               {n.ntConf !== null && (
-                <span className="font-mono text-ash tabular-nums">{Math.round(n.ntConf * 100)}% pred.</span>
+                <span className="font-mono text-ash tabular-nums">
+                  {t('neuron.pred', { p: Math.round(n.ntConf * 100) })}
+                </span>
               )}
             </p>
             {cls && <p>{cls}</p>}

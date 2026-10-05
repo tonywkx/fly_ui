@@ -2,14 +2,13 @@ import { observer } from 'mobx-react-lite';
 import { Button } from '@/components/ui/button';
 import { type ColorBy, colorGroups } from '@/data/colorBy';
 import { data } from '@/data/store';
+import { type Key, t, tOr } from '@/i18n';
 import { app } from '@/state/app';
 
-const MODES: { mode: ColorBy; label: string }[] = [
-  { mode: 'nt', label: 'Transmitter' },
-  { mode: 'region', label: 'Region' },
-  { mode: 'class', label: 'Class' },
-  { mode: 'male', label: 'Male' },
-];
+const MODES: { mode: ColorBy; label: Key }[] = (['nt', 'region', 'class', 'male'] as const).map((mode) => ({
+  mode,
+  label: `mode.${mode}`,
+}));
 
 /**
  * Colour mode switch (C cycles) and the legend of the groups present in the scenario, with names and
@@ -23,10 +22,10 @@ export const Legend = observer(function Legend() {
 
   return (
     <section
-      aria-label="Colour legend"
+      aria-label={t('legend.label')}
       className="pointer-events-auto absolute top-8 left-8 z-10 hidden w-57 flex-col gap-1 rounded-xl bg-card p-2 backdrop-blur-md md:flex"
     >
-      <fieldset aria-label="Colour by" className="flex items-center gap-0.5">
+      <fieldset aria-label={t('legend.colorBy')} className="flex items-center gap-0.5">
         {MODES.map(({ mode: m, label }) => (
           <Button
             key={m}
@@ -35,7 +34,7 @@ export const Legend = observer(function Legend() {
             onClick={() => app.setColorBy(m)}
             className="h-5 flex-1 rounded-full px-1.5 text-caption aria-pressed:bg-accent aria-pressed:text-bone"
           >
-            {label}
+            {t(label)}
           </Button>
         ))}
         <kbd className="px-0.5 font-mono text-caption text-mist">C</kbd>
@@ -48,7 +47,9 @@ export const Legend = observer(function Legend() {
               className="size-1.5 shrink-0 rounded-full"
               style={{ background: e.swatch.hex }}
             />
-            <span className="min-w-0 flex-1 truncate text-bone">{e.label}</span>
+            <span className="min-w-0 flex-1 truncate text-bone">
+              {tOr(`group.${mode}.${e.label}`, e.label)}
+            </span>
             <span className="font-mono text-mist tabular-nums">{e.count}</span>
           </li>
         ))}
