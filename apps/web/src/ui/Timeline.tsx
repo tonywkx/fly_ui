@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { BANDS, lanes as lanesOf } from '@/data/bands';
 import { data } from '@/data/store';
 import { t as tr } from '@/i18n';
+import { hotkey } from '@/lib/keys';
 import { app } from '@/state/app';
 import { playback, playbackKey, SPEEDS } from '@/state/playback';
 import { ACCENT, TEXT } from '@/ui/palette';
@@ -46,11 +47,11 @@ export const Timeline = observer(function Timeline() {
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || ownsKey(e.target, e.key)) return;
       if (!e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        if (e.key === 'd') {
+        if (hotkey(e) === 'd') {
           app.toggleDirector();
           return;
         }
-        if (e.key === 'm') {
+        if (hotkey(e) === 'm') {
           toggleSound();
           return;
         }

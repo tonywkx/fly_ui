@@ -1,5 +1,6 @@
 import { makeAutoObservable, observableRef } from 'mobx';
 import type { SpikeLog } from '@/sim/feed';
+import { hotkey } from '../lib/keys';
 
 /** Base playback speed: sim ms per real second at 1×. */
 export const SIM_MS_PER_S = 40;
@@ -155,7 +156,7 @@ const KEYS: Record<string, PlaybackAction> = {
 /** Playback hotkey for a key press, or null (modified, unbound; only steps auto-repeat). */
 export function playbackKey(e: KeyboardEvent): PlaybackAction | null {
   if (e.metaKey || e.ctrlKey || e.altKey) return null;
-  const a = KEYS[e.key] ?? null;
+  const a = KEYS[hotkey(e)] ?? null;
   if (e.repeat && a !== 'back' && a !== 'forward') return null;
   return a;
 }

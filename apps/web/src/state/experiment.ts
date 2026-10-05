@@ -1,4 +1,5 @@
 import { makeAutoObservable, observable, observableRef } from 'mobx';
+import { hotkey } from '../lib/keys';
 
 /** Live sim as the inspector sees it: not started, loading the full graph, or running. */
 export type LiveStatus = 'off' | 'loading' | 'on' | 'failed';
@@ -161,14 +162,15 @@ const BY_KEY = Object.fromEntries(
 /** Global hotkey for a key press, or null (modified, auto-repeat, unbound). */
 export function keyAction(e: KeyboardEvent): KeyAction | null {
   if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return null;
-  if (e.key === 'Escape') return 'escape';
-  if (e.key.toLowerCase() === 'c') return 'color';
-  return BY_KEY[e.key.toLowerCase()] ?? null;
+  const k = hotkey(e);
+  if (k === 'Escape') return 'escape';
+  if (k === 'c') return 'color';
+  return BY_KEY[k] ?? null;
 }
 
 /** ⌘K / Ctrl+K: the command palette (works while typing too). */
 export function paletteKey(e: KeyboardEvent): boolean {
-  return !!(e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'k';
+  return !!(e.metaKey || e.ctrlKey) && !e.altKey && hotkey(e) === 'k';
 }
 
 function toggle(set: Set<number>, row: number) {
