@@ -11,7 +11,6 @@ import { CommandPalette } from '@/ui/CommandPalette';
 import { Fatal } from '@/ui/Fatal';
 import { FlyCam } from '@/ui/FlyCam';
 import { Inspector } from '@/ui/Inspector';
-import { IntroHint } from '@/ui/IntroHint';
 import { LangSwitch } from '@/ui/LangSwitch';
 import { Legend } from '@/ui/Legend';
 import { NeuronTooltip } from '@/ui/NeuronTooltip';
@@ -36,7 +35,6 @@ export const App = observer(function App() {
     >
       <Stage />
       <Fatal />
-      <IntroHint />
       <Captions />
       <NeuronTooltip />
       <Inspector />

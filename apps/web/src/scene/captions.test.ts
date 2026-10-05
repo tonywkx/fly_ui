@@ -10,7 +10,12 @@ const meta = { n: 4, type: Uint16Array.from([0, 1, 2, 0xffff]), strings: { types
 
 const beats: Beat[] = [
   { when: { types: /^LC4$/ }, text: 'shadow' },
-  { when: { types: /^DNp01$/ }, text: 'gf', missing: { byMs: 15, text: 'gf silent' } },
+  {
+    when: { types: /^DNp01$/ },
+    text: 'gf',
+    term: 'DNp01',
+    missing: { byMs: 15, text: 'gf silent', term: 'DNp01' },
+  },
   { when: { types: /^TTMn$/ }, text: 'ttmn' },
   { when: { pose: 'jump' }, text: 'takeoff', missing: { byMs: 100, text: 'no takeoff' } },
 ];
@@ -123,6 +128,20 @@ describe('Narrator', () => {
       ['ttmn', 30, false],
       ['no takeoff', 110, true],
     ]);
+  });
+
+  it('carries the term of the beat, or of its missing line', () => {
+    const n = new Narrator(beats, mask, still);
+    n.update(log([10, 12, 30], [0, 1, 2]), 200);
+    const m = new Narrator(beats, mask, still);
+    m.update(log([10], [0]), 200);
+    expect(n.events.map((e) => [e.text, e.term])).toEqual([
+      ['shadow', undefined],
+      ['gf', 'DNp01'],
+      ['ttmn', undefined],
+      ['no takeoff', undefined],
+    ]);
+    expect(m.events.find((e) => e.missed)).toMatchObject({ text: 'gf silent', term: 'DNp01' });
   });
 
   it('says nothing before any spike (no onset, no deadlines)', () => {

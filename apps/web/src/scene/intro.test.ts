@@ -76,7 +76,7 @@ describe('bezierLut', () => {
 describe('introTimeline', () => {
   it('assembles from zero', () => {
     const s = introTimeline(0, 0);
-    expect(s).toMatchObject({ phase: 'assemble', assembleMs: 0, dive: 0, reveal: 0, hint: false });
+    expect(s).toMatchObject({ phase: 'assemble', assembleMs: 0, dive: 0, reveal: 0 });
   });
 
   it('dives once assembly ends when data was ready early', () => {
@@ -95,9 +95,8 @@ describe('introTimeline', () => {
     expect(late.reveal).toBe(1);
   });
 
-  it('finishes, then shows the hint after a beat', () => {
-    expect(introTimeline(DONE, 0)).toMatchObject({ phase: 'done', dive: 1, reveal: 1, hint: false });
-    expect(introTimeline(DONE + INTRO.hintDelayMs, 0).hint).toBe(true);
+  it('finishes at the end of the dive', () => {
+    expect(introTimeline(DONE, 0)).toMatchObject({ phase: 'done', dive: 1, reveal: 1 });
   });
 });
 

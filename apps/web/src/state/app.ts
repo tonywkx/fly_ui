@@ -40,8 +40,6 @@ export class AppStore {
   rendererFailed = false;
   /** Set by the scene at phase boundaries only (never per frame). */
   introPhase: IntroPhase = 'assemble';
-  hint = false;
-  hintDismissed = false;
   /** Render preset: from the URL, else from the device; `FpsGuard` may step it down. */
   quality: Quality;
   /** Fixed by `?quality=` or a snap (always high unless asked): no device default, no auto step-down. */
@@ -106,17 +104,8 @@ export class AppStore {
     this.reducedMotion = v;
   }
 
-  setIntro(phase: IntroPhase, hint: boolean) {
+  setIntro(phase: IntroPhase) {
     this.introPhase = phase;
-    this.hint = hint;
-  }
-
-  dismissHint() {
-    this.hintDismissed = true;
-  }
-
-  get hintVisible() {
-    return this.hint && !this.hintDismissed;
   }
 
   setRendererFailed() {

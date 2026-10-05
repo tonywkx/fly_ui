@@ -11,8 +11,10 @@ export interface Beat<T extends string = string> {
   when: { types: RegExp } | { pose: 'jump' | 'proboscis' | 'wing' };
   /** What to say; in `SCRIPTS` a dictionary key (`i18n`). */
   text: T;
+  /** The dataset's name for it (cell type, region), shown as is after the phrase; none → the time. */
+  term?: string;
   /** Not reached `byMs` after the onset (the scenario's first beat) → say so (a silenced link). */
-  missing?: { byMs: number; text: T };
+  missing?: { byMs: number; text: T; term?: string };
 }
 
 /** Narration per scenario, in story order. Measured onsets (baked, ms) in the comments. */
@@ -22,15 +24,17 @@ export const SCRIPTS: Record<string, readonly Beat<Key>[]> = {
     {
       when: { types: /^(LC4|LPLC2)$/ },
       text: 'cap.escape.shadow',
+      term: 'LC4, LPLC2',
     },
     // 2.9
     {
       when: { types: /^DNp01$/ },
       text: 'cap.escape.gf',
-      missing: { byMs: 15, text: 'cap.escape.gfSilent' },
+      term: 'DNp01',
+      missing: { byMs: 15, text: 'cap.escape.gfSilent', term: 'DNp01' },
     },
     // 8.3
-    { when: { types: JUMP }, text: 'cap.escape.ttmn' },
+    { when: { types: JUMP }, text: 'cap.escape.ttmn', term: 'TTMn' },
     // ≈30
     {
       when: { pose: 'jump' },
@@ -40,14 +44,15 @@ export const SCRIPTS: Record<string, readonly Beat<Key>[]> = {
   ],
   sugar: [
     // 0.1
-    { when: { types: /^LB3[a-d]$/ }, text: 'cap.sugar.taste' },
+    { when: { types: /^LB3[a-d]$/ }, text: 'cap.sugar.taste', term: 'LB3' },
     // ≈5
-    { when: { types: /^GNG\d/ }, text: 'cap.sugar.gng' },
+    { when: { types: /^GNG\d/ }, text: 'cap.sugar.gng', term: 'GNG' },
     // 19.6
     {
       when: { types: PROBOSCIS },
       text: 'cap.sugar.mn9',
-      missing: { byMs: 100, text: 'cap.sugar.mn9Silent' },
+      term: 'MN9',
+      missing: { byMs: 100, text: 'cap.sugar.mn9Silent', term: 'MN9' },
     },
     {
       when: { pose: 'proboscis' },
@@ -57,15 +62,16 @@ export const SCRIPTS: Record<string, readonly Beat<Key>[]> = {
   ],
   song: [
     // 0.1
-    { when: { types: /^pC1/ }, text: 'cap.song.p1' },
+    { when: { types: /^pC1/ }, text: 'cap.song.p1', term: 'P1 (pC1)' },
     // 5.5
     {
       when: { types: /^pIP10$/ },
       text: 'cap.song.pip10',
-      missing: { byMs: 30, text: 'cap.song.pip10Silent' },
+      term: 'pIP10',
+      missing: { byMs: 30, text: 'cap.song.pip10Silent', term: 'pIP10' },
     },
     // 11.5
-    { when: { types: WING }, text: 'cap.song.wingMn' },
+    { when: { types: WING }, text: 'cap.song.wingMn', term: 'wing MN' },
     {
       when: { pose: 'wing' },
       text: 'cap.song.wing',
@@ -98,6 +104,7 @@ export interface CaptionEvent {
   /** Sim ms: first spike / takeoff / when the part moved; for a missed beat, its deadline. */
   at: number;
   text: string;
+  term?: string;
   missed: boolean;
 }
 
@@ -141,7 +148,8 @@ export class Narrator {
     const found: CaptionEvent[] = [];
     const reach = (b: number, at: number) => {
       this.reachedAt[b] = at;
-      found.push({ beat: b, at, text: (this.beats[b] as Beat).text, missed: false });
+      const { text, term } = this.beats[b] as Beat;
+      found.push({ beat: b, at, text, term, missed: false });
     };
 
     const [i0, i1] = log.span(this.t, t);
@@ -174,7 +182,7 @@ export class Narrator {
         const due = onset + beat.missing.byMs;
         if (t < due || (this.reachedAt[b] as number) <= due) return;
         this.missed[b] = true;
-        found.push({ beat: b, at: due, text: beat.missing.text, missed: true });
+        found.push({ beat: b, at: due, text: beat.missing.text, term: beat.missing.term, missed: true });
       });
 
     found.sort((a, b) => a.at - b.at || a.beat - b.beat);

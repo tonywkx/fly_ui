@@ -1,6 +1,6 @@
 /**
  * Intro choreography (pure): dust assembles into the CNS silhouette while data loads, then the
- * camera dives to the working framing while shells and neurons fade in, then a hint appears.
+ * camera dives to the working framing while shells and neurons fade in.
  * Curves are the project's strong ease-out / ease-in-out (animate skill), never hand-rolled.
  */
 
@@ -57,7 +57,6 @@ export const INTRO = {
   diveMs: 1800,
   /** Shells + neurons fade in over the start of the dive. */
   revealMs: 900,
-  hintDelayMs: 300,
 } as const;
 
 export type IntroPhase = 'assemble' | 'dive' | 'done';
@@ -70,7 +69,6 @@ export interface IntroState {
   dive: number;
   /** Eased shells/neurons opacity. */
   reveal: number;
-  hint: boolean;
 }
 
 /**
@@ -85,7 +83,6 @@ export function introTimeline(t: number, readyAt: number): IntroState {
     assembleMs: Math.min(Math.max(t, 0), INTRO.assembleMs),
     dive: EASE_IN_OUT(since / INTRO.diveMs),
     reveal: EASE_OUT(since / INTRO.revealMs),
-    hint: since >= INTRO.diveMs + INTRO.hintDelayMs,
   };
 }
 

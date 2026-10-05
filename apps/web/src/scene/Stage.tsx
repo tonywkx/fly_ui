@@ -110,9 +110,8 @@ function stageDust(engine: Engine, stops: (() => void)[]): Intro {
   engine.setFrame(m);
 
   const { snap, debug, intro: frozen } = app.params;
-  // snaps and debug modes show the final state; reduced motion too, but keeps the hint
+  // snaps, debug modes and reduced motion show the final state
   const skip = (snap && frozen === undefined) || !!debug || app.reducedMotion;
-  const showHint = !(snap && frozen === undefined) && !debug;
 
   const s = m.unitNm / 1000;
   const min = new Vector3().fromArray(m.bbox.min);
@@ -133,7 +132,6 @@ function stageDust(engine: Engine, stops: (() => void)[]): Intro {
   let readyAt = frozen !== undefined || skip ? 0 : Number.POSITIVE_INFINITY;
   let userTook = false;
   let phase: IntroPhase | undefined;
-  let hint: boolean | undefined;
   const offInput = engine.onUserInput(() => {
     userTook = true;
   });
@@ -152,13 +150,11 @@ function stageDust(engine: Engine, stops: (() => void)[]): Intro {
       };
       engine.setPose(lerpPose(far, rest, st.dive));
     }
-    const h = showHint && (st.hint || (userTook && st.phase !== 'assemble'));
-    if (st.phase !== phase || h !== hint) {
+    if (st.phase !== phase) {
       phase = st.phase;
-      hint = h;
-      app.setIntro(phase, hint);
+      app.setIntro(phase);
     }
-    if (phase === 'done' && (hint || !showHint)) {
+    if (phase === 'done') {
       off();
       offInput();
       stops.push(...afterIntro(engine, cloud));
