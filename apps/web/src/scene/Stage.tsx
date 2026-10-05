@@ -6,9 +6,12 @@ import { type Node, Vector3 } from 'three/webgpu';
 import { colorGroups, fillTints } from '@/data/colorBy';
 import { data } from '@/data/store';
 import { LiveClient } from '@/sim/client';
+import type { SpikeLog } from '@/sim/feed';
 import { app } from '@/state/app';
 import { experiment } from '@/state/experiment';
 import { playback } from '@/state/playback';
+import { Behavior, effectorMask } from './behavior';
+import { beatMask, Narrator, SCRIPTS } from './captions';
 import { startDirector } from './director';
 import { Engine } from './engine';
 import { startFocus } from './focus';
@@ -370,9 +373,19 @@ function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, s
   if (!train) return;
   const { t: fixed, sim } = app.params;
   const baked = bakedSource(train, TAIL_MS);
-  let stop = play(engine, layer, baked, playback, { fixed });
+  // play-once (the tour) ends with the story: a fresh narrator per run
+  const script = SCRIPTS[data.scenario as string];
+  const masks = script && { beats: beatMask(meta, script), body: effectorMask(meta) };
+  const lastBeat = () => {
+    if (!script || !masks) return undefined;
+    const narrator = new Narrator(script, masks.beats, new Behavior(masks.body));
+    const end = script.length - 1;
+    return (log: SpikeLog, t: number) => narrator.update(log, t).find((e) => e.beat === end) ?? null;
+  };
+  let stop = play(engine, layer, baked, playback, { fixed, lastBeat: lastBeat() });
   let client: LiveClient | undefined;
   let loading: Promise<LiveClient> | undefined;
+  let tuning = false;
   let disposed = false;
   stops.push(() => {
     disposed = true;
@@ -405,13 +418,14 @@ function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, s
     if (fixed === undefined) playback.setPaused(false);
     stop = play(engine, layer, { log: c.log, pump: (t) => c.pump(t), run: baked.period }, playback, {
       fixed,
+      lastBeat: lastBeat(),
       onReached: () => app.markReady('sim'),
     });
   };
   /** Live from rest at t = 0 with the experiment applied (a fresh or a reused Worker). */
   const restartLive = async (c: LiveClient) => {
     await c.reset();
-    if (disposed) return;
+    if (disposed || experiment.live === 'off') return; // left for baked meanwhile
     applied.stim.clear();
     applied.silent.clear();
     experiment.setLive('on');
@@ -441,19 +455,17 @@ function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, s
     if (experiment.live !== 'off') return;
     experiment.setLive('loading');
     if (fixed !== undefined) app.waitFor('sim');
-    const first = !loading;
     loading ??= load();
     loading
       .then((c) => {
         if (disposed) return c.dispose();
         client = c;
         if (experiment.live !== 'loading') return; // left for baked meanwhile
-        if (first) {
-          experiment.setLive('on');
-          sync();
-          start(c);
-          if (import.meta.env.DEV && (!app.params.snap || app.params.ui === 'tune')) mountDevTuning(c);
-        } else void restartLive(c);
+        void restartLive(c);
+        if (import.meta.env.DEV && !tuning && (!app.params.snap || app.params.ui === 'tune')) {
+          tuning = true;
+          mountDevTuning(c);
+        }
       })
       .catch((e) => {
         console.error('[sim] live mode failed, staying on baked', e);
@@ -466,7 +478,7 @@ function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, s
     if (experiment.live === 'failed') return;
     stop();
     experiment.setLive('off');
-    stop = play(engine, layer, baked, playback, { fixed });
+    stop = play(engine, layer, baked, playback, { fixed, lastBeat: lastBeat() });
   };
 
   const mountDevTuning = (c: LiveClient) =>
@@ -489,6 +501,22 @@ function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, s
 
   stops.push(
     reaction(() => [experiment.stim, ...experiment.stimulated, -1, ...experiment.silenced], sync),
+    // a failed prefetch is retried (and reported) by the switch itself
+    when(
+      () => experiment.warm,
+      () => {
+        loading ??= load();
+        loading.then(
+          (c) => {
+            if (disposed) c.dispose();
+            else client = c;
+          },
+          () => {
+            loading = undefined;
+          },
+        );
+      },
+    ),
     reaction(
       () => playback.restartReq,
       (req) => {

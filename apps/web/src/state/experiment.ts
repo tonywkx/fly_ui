@@ -32,6 +32,8 @@ export class ExperimentStore {
   readonly stimulated = observable.set<number>();
   readonly silenced = observable.set<number>();
   live: LiveStatus = 'off';
+  /** Fetch the live sim ahead of need (the tour, before "now break it"); baked keeps playing. */
+  warm = false;
   /** Latest fly-to request (the scene reacts to a new object, even for the same row). */
   fly: { row: number } | null = null;
   /** Latest neuron clicked with the Trace tool (the scene turns it into a tracer end). */
@@ -87,6 +89,10 @@ export class ExperimentStore {
 
   flyTo(row: number) {
     this.fly = { row };
+  }
+
+  warmLive() {
+    this.warm = true;
   }
 
   setLive(s: LiveStatus) {

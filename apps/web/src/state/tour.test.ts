@@ -88,17 +88,21 @@ describe('TourStore', () => {
   };
 
   it('scare plays the baked run once at ¼×, its end shows the result', () => {
-    const { playback, tour } = setup();
+    const { playback, experiment, tour } = setup();
     tour.start(1);
     expect(playback.paused).toBe(true);
+    expect(experiment.warm).toBe(false);
     tour.next();
+    expect(experiment.warm).toBe(true);
     expect(tour.state).toEqual(at(2, 'running'));
     expect(playback.speed).toBe(0.25);
     expect(playback.once).toBe(true);
     expect(playback.paused).toBe(false);
     expect(playback.restartReq).toEqual({ baked: true });
-    playback.finish();
+    expect(tour.outcome).toBeNull();
+    playback.finish({ at: 30, missed: false });
     expect(tour.state).toEqual(at(2, 'done'));
+    expect(tour.outcome).toEqual({ at: 30, missed: false });
   });
 
   it('break silences every DNp01 and waits paused for the live sim', () => {

@@ -106,6 +106,11 @@ export class TourStore {
     return this.memory.seen();
   }
 
+  /** How the finished run ended: takeoff at `at` ms, or missed (no takeoff by then). */
+  get outcome() {
+    return this.state?.phase === 'done' ? this.pb.last : null;
+  }
+
   /** Step 3 waits for the whole brain to load (the live sim). */
   get preparing() {
     return this.state?.step === 3 && this.state.phase === 'running' && this.ex.live === 'loading';
@@ -155,6 +160,8 @@ export class TourStore {
 
   /** One run at ¼× from t = 0: the baked escape, or (break) the live sim with every DNp01 silent. */
   private play(broken: boolean) {
+    // the whole brain loads while they watch the first run
+    this.ex.warmLive();
     this.pb.setSpeed(TOUR_SPEED);
     this.pb.setOnce(true);
     if (!broken) {
