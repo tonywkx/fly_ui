@@ -39,6 +39,8 @@ export interface LabelDom {
 }
 /** Mounted labels; empty = nothing to do (outside step 1). */
 export const anatomyDom = new Map<Part, LabelDom>();
+/** Labels stay above this viewport y, px (the tour card's top edge; set by the card, not read per frame). */
+export const anatomyView = { bottom: Number.POSITIVE_INFINITY };
 
 export interface ShellSamples {
   /** Vertex bbox centre, mesh space. */
@@ -86,7 +88,8 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), M
 
 /**
  * Label beside the shell's screen `rect` on the first of `sides` where it fits the viewport (else the
- * last one, pushed inside), its line running to `anchor` (the projected centre).
+ * last one, pushed inside), its line running to `anchor` (the projected centre). Left / right need
+ * only the width: the label slides up or down inside the view.
  */
 export function placeLabel(
   sides: Side[],
@@ -117,8 +120,11 @@ export function placeLabel(
       x: clamp(x, MARGIN, view.w - MARGIN - size.w),
       y: clamp(y, MARGIN, view.h - MARGIN - size.h),
     };
+    // beside the shell only the width has to fit: lifted / lowered, the line still meets the label
+    const side2 = side === 'left' || side === 'right';
+    if (side2 && box.y !== y) end[1] = box.y + size.h / 2;
     p = { end, box };
-    if (box.x === x && box.y === y) return p;
+    if (box.x === x && (side2 || box.y === y)) return p;
   }
   if (!p) throw new Error('placeLabel: no sides');
   return p;
@@ -160,6 +166,7 @@ export function startAnatomy(engine: Engine, mesh: Mesh, set: NeuropilSet): () =
     if (anatomyDom.size === 0) return;
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
+    const view = { w, h: Math.min(h, anatomyView.bottom) };
     for (const [part, dom] of anatomyDom) {
       const { shells: names, sides } = PARTS[part];
       // several shells (the two optic lobes): the leftmost on screen
@@ -171,7 +178,7 @@ export function startAnatomy(engine: Engine, mesh: Mesh, set: NeuropilSet): () =
       }
       dom.label.style.visibility = dom.line.style.visibility = best ? '' : 'hidden';
       if (!best) continue;
-      const { end, box } = placeLabel(sides, best.rect, best.anchor, dom.size, { w, h });
+      const { end, box } = placeLabel(sides, best.rect, best.anchor, dom.size, view);
       dom.label.style.transform = `translate(${box.x}px, ${box.y}px)`;
       dom.line.setAttribute('x1', String(best.anchor[0]));
       dom.line.setAttribute('y1', String(best.anchor[1]));

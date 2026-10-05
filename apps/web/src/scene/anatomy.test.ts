@@ -56,6 +56,13 @@ describe('placeLabel', () => {
     expect(p.box.y + size.h).toBeLessThan(300);
   });
 
+  it('left / right only need the width: lifted above the bottom, the line follows the label', () => {
+    const p = placeLabel(['right', 'below'], rect, [500, 480], size, { w: 1600, h: 470 });
+    expect(p.box.x).toBeGreaterThan(600);
+    expect(p.box.y + size.h).toBeLessThanOrEqual(470);
+    expect(p.end[1]).toBeCloseTo(p.box.y + size.h / 2);
+  });
+
   it('no side fits: the last one, pushed inside the viewport margin', () => {
     const p = placeLabel(['left'], { x0: 10, y0: 300, x1: 100, y1: 500 }, [50, 400], size, view);
     expect(p.box.x).toBe(16);
