@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-05 — 7.5 Tour UI
+Done: `ui/tour/cardView.ts` pure step→card content + test; `ui/tour/TourCard.tsx` (desktop: first child of the toolbar stack, HUD fades in under it on step 4; phone: replaces ViewerBar, Skip inside; step 1 count line moved in, `CountLine.tsx` removed; step 4 closes on pill / Esc / first `experiment.tool` change). `ui/tour/TourChrome.tsx` `TourSkip` (top-right, `md:right-108` beside the big FlyCam), `TourRestart` "?" (by LangSwitch / in ViewerBar; escape → `tour.start(1)`, else link `?tour=1`), `bigFlyCam()`. FlyCam hidden steps 0–1, `md:w-96` / phone top strip in 2–3; Captions off in step 0, phone offset under the strip; ms decimals via `num` (RU «29,7»). `tour.start(1)` now `restore()`s (drops their experiment). Play-once runs at ≥1× after a missed beat (`onceRate`, `PlayOptions.broken` from the Narrator). Anatomy labels bounded above the card (`anatomyView.bottom`, set by the card's ResizeObserver); left/right labels slide vertically.
+State: 435 tests, typecheck, lint, smoke 6/6 green. visual-qa steps 1/2-done/3/4 RU+EN 1600/390 OK after fixes.
+Next: 7.6 QA — ui-critic on the tour, smoke "tour completes" test (drive `window.__tour` / pills), full RU/EN snap set, hallway test.
+Gotchas: `git rm` stages immediately — the next `git commit` takes it along. Step 2 "done" can't be snapped with `--tour=2` (captures mid-run): Playwright + `__tour.start(2)`, wait `phase === 'done'`. Phone step 2: captions «Взлёт» sit on the brain's top edge under the strip (no free room; acceptable). Cheat sheet keys render one row per key (dt/dd grid), not the wireframe's two side-by-side columns.
+
 ## 2026-10-05 — 7.4 Narration, anatomy labels, count line
 Done: `ui/tour/narrationTiming.ts` `narrationAt` (3 lines × `LINE_MS`=2500, last holds until intro `done`) + test; `ui/tour/Narration.tsx` (step 0, timeouts not rAF; ends step 0 → `tour.next()`, boot's intro-done hook removed). `scene/anatomy.ts` `shellSamples` / `placeLabel(sides[])` + test, `startAnatomy` (Stage `populate`) projects ≤160 sampled shell verts per part each frame into `anatomyDom` (label transform + SVG line attrs; no-op when empty); `ui/tour/AnatomyLabels.tsx` (step 1, ResizeObserver sizes, short names < md, text-shadow). `ui/tour/CountLine.tsx` (desktop bottom-28, phone top). `App.tsx` hides Legend + toolbar/scopes/timeline while `tour.step < 4`.
 State: 425 tests, typecheck, lint, smoke 6/6 green. visual-qa step 1 RU/EN 1600 + 390 and step 0 narration OK.
@@ -23,9 +29,3 @@ Done: `apps/web/src/i18n/{index,ru,en}.ts` (flat keys, `t` / `plural` (Intl.Plur
 State: 396 tests, typecheck, lint, smoke 6/6 green. snap/film/perf/smoke pin `lang=en` (`pnpm snap --lang=ru` for Russian); README demo link `?lang=en`; `scenarioHref` keeps `lang`. visual-qa RU/EN 1600 + 390 OK after fixes.
 Next: 7.2 plain-language captions (rewrite `cap.*` copy from TOUR.md §Captions, mono term suffix), remove `ui/IntroHint.tsx`.
 Gotchas: vitest doesn't resolve `@/` — modules imported by tests must use relative paths (`ui/viewer.ts` → `../i18n`). Superclass words («descending neuron») and ROI names stay untranslated (data vocabulary, like cell types). Instrument readouts keep `toFixed` (dot decimals); counts use `num`. Legend's trailing «C» is the hotkey kbd, not a clipped tab.
-
-## 2026-10-05 — 7.0 Tour shape
-Done: `docs/TOUR.md` — impeccable-shape brief, RU/EN copy with i18n keys for tour steps 0–4 + chrome, Sugar/Song "what to watch" cards, plain-language captions for all 3 scenarios (human phrase · term), ASCII wireframes 1600/390.
-State: approved by the user as written (incl. step-3 GF honesty line, reset to baked escape on finish, card bottom-centre / phone card replaces ViewerBar + FlyCam strip, «Бегство»). User answered: RU addresses «ты», HUD hidden during steps 0–3 (back on step 4), ASCII wireframes.
-Next: 7.1 i18n — `apps/web/src/i18n/{ru,en}.ts`, keys from TOUR.md.
-Gotchas: escape scenario set ≈1254 neurons (legend at t=40); RU count line needs a PluralRules verb (участвует/участвуют). Real GF-silenced flies still take off (slow long-mode path) — the model has no such route, so copy must not claim "can't escape".
