@@ -1,5 +1,6 @@
-import { makeAutoObservable, observable } from 'mobx';
+import { makeAutoObservable, observable, reaction } from 'mobx';
 import { type ColorBy, nextColorBy } from '@/data/colorBy';
+import { isLang, type Lang, lang, setLangValue } from '@/i18n';
 import type { Backend } from '@/scene/engine';
 import type { IntroPhase } from '@/scene/intro';
 import { type Device, defaultQuality, type Quality } from '@/scene/quality';
@@ -16,6 +17,18 @@ export type ReadyFlag =
   | 'trace'
   | 'flycam'
   | 'captions';
+
+const LANG_KEY = 'fly_ui.lang';
+
+/** Storage can be missing or throw (private mode, blocked site data): the choice is a convenience. */
+function storedLang(): Lang | undefined {
+  try {
+    const v = localStorage.getItem(LANG_KEY);
+    return v && isLang(v) ? v : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 export class AppStore {
   readonly params: Params;
@@ -52,11 +65,27 @@ export class AppStore {
     // before init the backend is a guess: WebGPU if exposed and not forced off
     const guess = this.params.gl || !('gpu' in navigator) ? 'webgl2' : 'webgpu';
     this.colorBy = this.params.color ?? 'nt';
+    setLangValue(this.params.lang ?? storedLang() ?? 'ru');
     const d = device(guess);
     // touch = the viewer without tools (PRODUCT.md): the camera tells the story until a drag takes it
     this.director = !!this.params.director || (!this.params.snap && d.coarsePointer);
     this.quality = this.params.quality ?? (this.params.snap ? 'high' : defaultQuality(d));
     makeAutoObservable(this, { params: false, warnings: false, pending: false });
+  }
+
+  /** Interface language (`?lang=` → stored choice → ru). */
+  get lang(): Lang {
+    return lang();
+  }
+
+  setLang(l: Lang) {
+    setLangValue(l);
+    if (this.params.snap) return;
+    try {
+      localStorage.setItem(LANG_KEY, l);
+    } catch {
+      // not remembered: fine
+    }
   }
 
   get ready() {
@@ -141,3 +170,11 @@ function device(backend: Backend): Device {
 }
 
 export const app = new AppStore(window.location.search);
+
+reaction(
+  () => app.lang,
+  (l) => {
+    document.documentElement.lang = l;
+  },
+  { fireImmediately: true },
+);

@@ -114,6 +114,13 @@ describe('parseParams', () => {
     expect(warnings).toEqual(['quality: unknown preset "ultra" (low | med | high)']);
   });
 
+  it('accepts ru | en for lang', () => {
+    expect(parseParams('?lang=en').params.lang).toBe('en');
+    const { params, warnings } = parseParams('?lang=de');
+    expect(params.lang).toBeUndefined();
+    expect(warnings).toEqual(['lang: expected "ru" | "en", got "de"']);
+  });
+
   it('accepts baked | live for sim', () => {
     expect(parseParams('?sim=live').params.sim).toBe('live');
     const { params, warnings } = parseParams('?sim=fast');

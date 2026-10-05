@@ -1,4 +1,5 @@
 import { COLOR_BY, type ColorBy, isColorBy } from '../data/colorBy';
+import { isLang, LANGS, type Lang } from '../i18n';
 import { isQuality, QUALITIES, type Quality } from '../scene/quality';
 import { MAX_PROBES } from './experiment';
 import { decodeExperiment, type SharedExperiment } from './share';
@@ -42,6 +43,8 @@ export interface Params {
   experiment?: SharedExperiment;
   /** Start with the director camera following the activity front. */
   director?: true;
+  /** Interface language; overrides the stored choice (scripts pin `en`). */
+  lang?: Lang;
 }
 
 const flag = (v: string | null) => v !== null && v !== '0' && v !== 'false';
@@ -94,6 +97,12 @@ export function parseParams(search: string): { params: Params; warnings: string[
   if (quality !== null) {
     if (isQuality(quality)) params.quality = quality;
     else warnings.push(`quality: unknown preset "${quality}" (${QUALITIES.join(' | ')})`);
+  }
+
+  const lang = q.get('lang');
+  if (lang !== null) {
+    if (isLang(lang)) params.lang = lang;
+    else warnings.push(`lang: expected ${LANGS.map((l) => `"${l}"`).join(' | ')}, got "${lang}"`);
   }
 
   const sim = q.get('sim');
