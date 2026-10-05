@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-05 — 7.2 Plain-language captions
+Done: `scene/captions.ts` `Beat.term` / `missing.term` / `CaptionEvent.term` (dataset name, untranslated) + test; `cap.*` RU/EN rewritten from TOUR.md; `ui/Captions.tsx` suffix `· <term>`, else `· <t> ms` for body beats, none for a missed body beat. Removed `ui/IntroHint.tsx`, `hint.escape`, app `hint*` state, `intro.ts` `hint`/`hintDelayMs`; `Stage.tsx` runs `afterIntro` right at `phase === 'done'`.
+State: 397 tests, typecheck, lint, smoke 6/6 green. visual-qa escape t=5/40 EN 1600, RU 390, sugar RU OK.
+Next: 7.3 tour engine — `state/tour.ts` step machine + `?tour=`, play-once in `state/playback.ts`, DNp01-silence preset → live sim; measure the live switch time.
+Gotchas: `app.setIntro(phase)` now takes only the phase. visual-qa can misread Cyrillic «мс» as «ms» in the mono suffix — crop and look before "fixing".
+
 ## 2026-10-05 — 7.1 i18n
 Done: `apps/web/src/i18n/{index,ru,en}.ts` (flat keys, `t` / `plural` (Intl.PluralRules) / `num` (Intl.NumberFormat) / `tOr` for data-built keys; `en: Shape<typeof ru>` + `i18n.test.ts` check keys, placeholders, plural categories); `?lang=ru|en` → localStorage `fly_ui.lang` → ru; `app.lang`/`setLang`, `<html lang>` synced; `ui/LangSwitch.tsx` (desktop under the scenario title, phone = one compact button in ViewerBar). Whole HUD translated incl. captions (`SCRIPTS` texts are now keys, `Beat<Key>`), colorBy groups, NT names, raster bands, palette (cmdk `value` = translated label, English in `keywords`). Tour/watch keys from TOUR.md already in the dicts.
 State: 396 tests, typecheck, lint, smoke 6/6 green. snap/film/perf/smoke pin `lang=en` (`pnpm snap --lang=ru` for Russian); README demo link `?lang=en`; `scenarioHref` keeps `lang`. visual-qa RU/EN 1600 + 390 OK after fixes.
@@ -23,9 +29,3 @@ Done: audit (detector clean; snaps base-*/after-* at 1600/1280/1024/390). `ui/Fl
 State: 384 tests, typecheck, lint, smoke (6/6, real GPU) green. visual-qa after-pass PASS except the known tablet overlap (Backlog). ui-critic fixes applied; captions stay viewport-centred while the stack is shifted (accepted).
 Next: 6.4 README (CC-BY attribution), 30–60 s video, article. Check the first GitHub Actions run if not yet done.
 Gotchas: `--spacing` is 6px — `size-11` = 66 px, not 44; 48 px targets are `size-8`/`h-8`. Translucent panels have no visible edge over black, so a "hard edge" in snaps is just the panel border over the bright brain. `trace=` only sets the ends; add `ui=trace` to see the panel in a snap. visual-qa claims ("clipped", "cut off") need a look — two were false this session.
-
-## 2026-10-04 — 6.2 Smoke tests, CI → Pages
-Done: `e2e/smoke.spec.ts` + `playwright.config.ts` (`pnpm smoke`: fresh prod build → `vite preview` :5197; 3 scenarios ready with 0 console errors and ≤15 MB before first frame — 10.6/11.7/12.5 MB; play/pause moves the clock; phone `ViewerBar` switches scenario; manifest 500 → `Fatal`), `e2e/tsconfig.json` in `pnpm typecheck`; `scripts/data-push.sh` (`pnpm data:push [remote|url]`, orphan `data` branch, one force-pushed commit); `.github/workflows/ci.yml` (check → smoke with `data` checked out into `public/data` → deploy-pages from the smoke job's dist, main only).
-State: 384 tests, typecheck, lint green; smoke green on real GPU (4 s) and with `CI=1` (SwiftShader WebGL2, ≈6 min). data-push verified against a local bare repo. No remote yet: workflow never ran on GitHub, actionlint not installed.
-Next: user creates the GitHub repo → `git remote add origin`, `pnpm data:push`, push main, Pages Source = GitHub Actions; check the first run. Then 6.3 `impeccable` audit.
-Gotchas: `CI=1` switches pages to `?gl=webgl2` + SwiftShader flags; ≈50 s per load there regardless of viewport (not pixel-bound). Real clicks hang under SwiftShader (input ack waits on a frame commit) → smoke uses `dispatchEvent('click')`; a link navigation there never unloads the busy page within 30 s → phone test checks hrefs only. Repo default branch must be `main` (data was pushed first) or the github-pages env rejects the deploy. `--reporter=json` stdout is polluted by pnpm/webServer output: use `PLAYWRIGHT_JSON_OUTPUT_NAME`.
