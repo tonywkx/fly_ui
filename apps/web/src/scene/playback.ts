@@ -11,6 +11,8 @@ export interface Source {
   pump?(t: number): void;
   /** Loop length in sim ms: the clock wraps to 0 past it. Absent: endless (live). */
   period?: number;
+  /** One run in sim ms, where play-once stops (live: the baked run's length). Absent: `period`. */
+  run?: number;
 }
 
 export interface PlayOptions {
@@ -67,12 +69,16 @@ export function play(
       log.seek(t, layer.lastSpike);
       changed = true;
     } else if (!ctl.paused) {
-      if (src.period !== undefined && t >= src.period) {
+      const run = src.run ?? src.period;
+      if (ctl.once && run !== undefined && t >= run) {
+        ctl.finish();
+      } else if (src.period !== undefined && t >= src.period) {
         t = 0;
         log.seek(t, layer.lastSpike);
         changed = true;
       } else {
-        const next = nextSimTime(t, frameMs, ctl.rate, log.until);
+        let next = nextSimTime(t, frameMs, ctl.rate, log.until);
+        if (ctl.once && run !== undefined) next = Math.min(next, run);
         changed = log.apply(t, next, layer.lastSpike);
         t = next;
       }

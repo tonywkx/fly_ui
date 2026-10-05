@@ -24,6 +24,12 @@ export class PlaybackStore {
   log: SpikeLog | null = null;
   /** Shown sim time and the seekable range [start, end] (baked: the loop; live: held history). */
   readonly clock = { t: 0, start: 0, end: 0 };
+  /** Play the run once and stop at its end (the tour) instead of looping / running on. */
+  once = false;
+  /** The play-once run reached its end (set by the scene, once per run). */
+  ended = false;
+  /** Latest restart-from-0 request (the scene reacts to a new object); `baked` leaves the live sim. */
+  restartReq: { baked: boolean } | null = null;
   private pending: number | null = null;
 
   constructor() {
@@ -33,6 +39,7 @@ export class PlaybackStore {
       takeSeek: false,
       setRange: false,
       log: observableRef,
+      restartReq: observableRef,
     });
   }
 
@@ -41,7 +48,27 @@ export class PlaybackStore {
   }
 
   toggle() {
-    this.paused = !this.paused;
+    if (this.ended) this.restart();
+    else this.paused = !this.paused;
+  }
+
+  setOnce(v: boolean) {
+    this.once = v;
+    this.ended = false;
+  }
+
+  /** The play-once run is over: hold its last frame (scene). */
+  finish() {
+    this.paused = true;
+    this.ended = true;
+  }
+
+  /** Runs again from t = 0; `baked` switches back from the live sim to the baked run. */
+  restart({ baked = false, paused = false }: { baked?: boolean; paused?: boolean } = {}) {
+    this.ended = false;
+    this.paused = paused;
+    this.restartReq = { baked };
+    this.pending = 0;
   }
 
   setPaused(v: boolean) {

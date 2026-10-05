@@ -49,6 +49,40 @@ describe('PlaybackStore', () => {
     expect(p.takeSeek()).toBe(42 - STEP_MS);
   });
 
+  it('play-once: finish pauses and marks the run ended', () => {
+    const p = store();
+    p.setOnce(true);
+    p.finish();
+    expect(p.paused).toBe(true);
+    expect(p.ended).toBe(true);
+  });
+
+  it('restart plays from 0 with a fresh request each time', () => {
+    const p = store(0, 300);
+    p.setPaused(true);
+    p.finish();
+    p.restart();
+    const first = p.restartReq;
+    expect(first).toEqual({ baked: false });
+    expect(p.ended).toBe(false);
+    expect(p.paused).toBe(false);
+    expect(p.takeSeek()).toBe(0);
+    p.restart({ baked: true, paused: true });
+    expect(p.restartReq).not.toBe(first);
+    expect(p.restartReq).toEqual({ baked: true });
+    expect(p.paused).toBe(true);
+  });
+
+  it('play after an ended run starts it again', () => {
+    const p = store();
+    p.setOnce(true);
+    p.finish();
+    p.toggle();
+    expect(p.paused).toBe(false);
+    expect(p.ended).toBe(false);
+    expect(p.takeSeek()).toBe(0);
+  });
+
   it('runs a key action', () => {
     const p = store();
     p.run('toggle');
