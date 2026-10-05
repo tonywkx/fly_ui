@@ -4,11 +4,15 @@ import { data } from '@/data/store';
 import { num, t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { Behavior, effectorMask, type FlyPose, SHOWN } from '@/scene/behavior';
+import { sceneInset } from '@/scene/inset';
 import { app } from '@/state/app';
 import { experiment } from '@/state/experiment';
 import { playback } from '@/state/playback';
 import { tour } from '@/state/tour';
 import { bigFlyCam } from './tour/TourChrome';
+
+/** Px kept between the scene's frame and the big panel. */
+const INSET_GAP = 16;
 
 /** What the fly is doing; empty at rest. */
 function caption(p: FlyPose): string {
@@ -80,11 +84,33 @@ export const FlyCam = observer(function FlyCam() {
     };
   }, [log, mask, moves]);
 
+  // desktop, big: the scene frames itself left of the panel (layout read on resize only)
+  const big = bigFlyCam();
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `moves` mounts the panel (box.current)
+  useEffect(() => {
+    const el = box.current;
+    if (!big || !el) return;
+    const desktop = window.matchMedia('(min-width: 48rem)');
+    const measure = () => {
+      sceneInset.right = desktop.matches
+        ? window.innerWidth - el.getBoundingClientRect().left + INSET_GAP
+        : 0;
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    window.addEventListener('resize', measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+      sceneInset.right = 0;
+    };
+  }, [big, moves]);
+
   if (!moves) return null;
   // the Inspector opens in the same corner: give way while it is open; the tour shows it from its run on
   const covered = experiment.selected !== null || (tour.state !== null && tour.state.step < 2);
   // the tour's runs: twice the size (phones: a wide strip at the top)
-  const big = bigFlyCam();
   return (
     <figure
       ref={box}

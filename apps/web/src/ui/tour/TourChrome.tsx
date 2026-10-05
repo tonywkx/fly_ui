@@ -22,7 +22,8 @@ export const TourSkip = observer(function TourSkip() {
       className={cn(
         'pointer-events-auto absolute top-[max(1rem,env(safe-area-inset-top))] right-4 z-20 h-8 text-label md:top-8 md:right-8',
         step > 0 && 'hidden md:inline-flex',
-        bigFlyCam() && 'md:right-108',
+        // beside the big panel it sits over the scene: the labels' void halo keeps it legible
+        bigFlyCam() && 'md:right-108 [text-shadow:0_0_6px_var(--color-void),0_0_2px_var(--color-void)]',
       )}
     >
       {t('tour.skip')}

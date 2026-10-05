@@ -14,6 +14,7 @@ import {
 } from 'three/webgpu';
 import { frameDistance } from './frame';
 import { sampleFrame } from './frameStats';
+import { insetView, sceneInset } from './inset';
 import { EASE_IN_OUT, type Pose, posePosition } from './intro';
 import { orbitDistance } from './orbit';
 import type { Preset } from './quality';
@@ -25,6 +26,8 @@ const BLOOM = { strength: 0.5, radius: 0.4, threshold: 1.0 };
 /** Fly-to: duration and framing margin around the neuron's bounding sphere. */
 const FLY_MS = 900;
 const FLY_MARGIN = 1.1;
+/** Time constant of the frame's approach to `sceneInset.right`, ms. */
+const INSET_TAU = 150;
 
 interface Flight {
   t0: number;
@@ -65,6 +68,10 @@ export class Engine {
   private initialized?: Promise<unknown>;
   private flight: Flight | null = null;
   private readonly reducedMotion: boolean;
+  private size = { w: 0, h: 0 };
+  /** Right inset the projection currently keeps clear, px (eases toward `sceneInset.right`). */
+  private inset = 0;
+  private lastNow = 0;
 
   constructor(
     private readonly host: HTMLElement,
@@ -236,6 +243,7 @@ export class Engine {
 
   private frame(now: number) {
     this.fly(now);
+    this.ease(now);
     this.controls.update();
     orbitDistance.value = this.camera.position.distanceTo(this.controls.target);
     for (const fn of this.hooks) fn(now);
@@ -260,6 +268,27 @@ export class Engine {
     if (!w || !h) return;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
-    this.camera.updateProjectionMatrix();
+    this.size = { w, h };
+    this.project();
+  }
+
+  /** Ease the inset toward `sceneInset.right` (instant under reduced motion). */
+  private ease(now: number) {
+    const dt = this.lastNow ? now - this.lastNow : 0;
+    this.lastNow = now;
+    const to = sceneInset.right;
+    if (this.inset === to) return;
+    const k = this.reducedMotion ? 1 : 1 - Math.exp(-dt / INSET_TAU);
+    this.inset += (to - this.inset) * k;
+    if (Math.abs(to - this.inset) < 0.5) this.inset = to;
+    this.project();
+  }
+
+  /** Projection with the current inset: the whole frame fits left of it (picking follows the matrix). */
+  private project() {
+    const { w, h } = this.size;
+    const v = insetView(w, h, this.inset);
+    if (v) this.camera.setViewOffset(v.fullW, v.fullH, v.x, v.y, w, h);
+    else this.camera.clearViewOffset();
   }
 }
