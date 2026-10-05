@@ -4,7 +4,6 @@ import { data } from '@/data/store';
 import { t } from '@/i18n';
 import { playback } from '@/state/playback';
 import { LangSwitch } from './LangSwitch';
-import { TourRestart } from './tour/TourChrome';
 import { scenarioHref, scenarioTitle } from './viewer';
 
 /**
@@ -49,10 +48,7 @@ export const ViewerBar = observer(function ViewerBar() {
           );
         })}
       </ul>
-      <div className="ml-auto flex shrink-0 items-center">
-        <TourRestart />
-        <LangSwitch compact />
-      </div>
+      <LangSwitch compact className="ml-auto shrink-0" />
     </nav>
   );
 });

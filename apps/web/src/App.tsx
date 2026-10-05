@@ -87,9 +87,13 @@ export const App = observer(function App() {
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between md:gap-3">
           {/* phones: the tour card needs the room */}
           <div className={cn(tour.active && tour.state?.step !== 0 && 'hidden md:block')}>
-            <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
-              fly_ui
-            </h1>
+            <div className="flex items-center justify-between">
+              <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
+                fly_ui
+              </h1>
+              {/* phones: beside the wordmark, the ViewerBar has no room for it */}
+              <TourRestart className="md:hidden" />
+            </div>
             {/* phones name the scenario in the ViewerBar */}
             {title && <p className="mt-2 hidden text-body font-extralight text-mist md:block">{title}</p>}
             {/* phones switch language in the ViewerBar */}
