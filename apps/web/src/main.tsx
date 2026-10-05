@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { data } from './data/store';
 import { app } from './state/app';
+import { bootTour } from './ui/tour/boot';
 import './ui/theme.css';
 
 declare global {
@@ -33,6 +34,8 @@ data
     app.markReady('frame'); // nothing will draw; let snap capture the broken state
   })
   .finally(() => app.markReady('data'));
+
+bootTour();
 
 when(
   () => app.ready,

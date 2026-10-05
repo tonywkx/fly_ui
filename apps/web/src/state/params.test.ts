@@ -128,6 +128,16 @@ describe('parseParams', () => {
     expect(warnings).toEqual(['sim: expected "baked" | "live", got "fast"']);
   });
 
+  it('accepts a tour step 0..4 (0 = off)', () => {
+    expect(parseParams('?tour=0').params.tour).toBe(0);
+    expect(parseParams('?tour=3').params.tour).toBe(3);
+    for (const v of ['5', '1.5', 'x', '']) {
+      const { params, warnings } = parseParams(`?tour=${v}`);
+      expect(params.tour).toBeUndefined();
+      expect(warnings).toEqual([`tour: expected 0..4, got "${v}"`]);
+    }
+  });
+
   it('reads a shared experiment code', () => {
     const e = { stimulated: [7], silenced: [10001], stim: { hz: 200, gain: 1.5 } };
     expect(parseParams(`?x=${encodeExperiment(e)}`)).toEqual({

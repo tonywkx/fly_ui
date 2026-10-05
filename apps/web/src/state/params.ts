@@ -3,6 +3,7 @@ import { isLang, LANGS, type Lang } from '../i18n';
 import { isQuality, QUALITIES, type Quality } from '../scene/quality';
 import { MAX_PROBES } from './experiment';
 import { decodeExperiment, type SharedExperiment } from './share';
+import type { TourStep } from './tour';
 
 /** Colour modes (2.6) + layer isolation: `cloud` / `shells` show only that background layer. */
 export const DEBUG_MODES = ['soma-dist', 'id', 'nt', 'region', 'cloud', 'shells', 'neurons'] as const;
@@ -45,6 +46,8 @@ export interface Params {
   director?: true;
   /** Interface language; overrides the stored choice (scripts pin `en`). */
   lang?: Lang;
+  /** First-visit tour: 0 = off, 1..4 = open at that step (see `state/tour.ts`). */
+  tour?: TourStep;
 }
 
 const flag = (v: string | null) => v !== null && v !== '0' && v !== 'false';
@@ -103,6 +106,12 @@ export function parseParams(search: string): { params: Params; warnings: string[
   if (lang !== null) {
     if (isLang(lang)) params.lang = lang;
     else warnings.push(`lang: expected ${LANGS.map((l) => `"${l}"`).join(' | ')}, got "${lang}"`);
+  }
+
+  const tour = q.get('tour');
+  if (tour !== null) {
+    if (/^[0-4]$/.test(tour)) params.tour = Number(tour) as TourStep;
+    else warnings.push(`tour: expected 0..4, got "${tour}"`);
   }
 
   const sim = q.get('sim');
