@@ -36,27 +36,40 @@ export const TourCard = observer(function TourCard({
   const s = tour.state;
   const v = cardView(s, { outcome: tour.outcome, preparing: tour.preparing, phone });
 
-  // cheat sheet: Esc or the first tool pick closes it (desktop only: phones have no tools)
+  // Esc: skips the tour, or closes the cheat sheet
+  const shown = !!v;
+  useEffect(() => {
+    if (!shown) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      if (tour.state?.step === 4) tour.next();
+      else tour.skip();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [shown]);
+
+  // cheat sheet: the first tool pick closes it (desktop only: phones have no tools)
   const sheet = v?.sheet === 'keys';
   useEffect(() => {
     if (!sheet) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') tour.next();
-    };
-    window.addEventListener('keydown', onKey);
-    const off = reaction(
+    return reaction(
       () => experiment.tool,
       () => tour.next(),
     );
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      off();
-    };
   }, [sheet]);
+
+  // the content re-keys on every step / phase: a pill that had focus unmounts, hand it to the new one
+  const pill = useRef<HTMLButtonElement>(null);
+  const swap = s && `${s.step}-${s.phase}-${tour.preparing}`;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refocus on every content swap
+  useEffect(() => {
+    const lost = !document.activeElement || document.activeElement === document.body;
+    if (lost) pill.current?.focus({ preventScroll: true });
+  }, [swap]);
 
   // anatomy labels keep clear of the card (layout read on resize only, never per frame)
   const box = useRef<HTMLElement>(null);
-  const shown = !!v;
   // biome-ignore lint/correctness/useExhaustiveDependencies: re-attach when the card mounts / unmounts
   useLayoutEffect(() => {
     const el = box.current;
@@ -87,9 +100,13 @@ export const TourCard = observer(function TourCard({
         className,
       )}
     >
+      {/* one persistent live region: a region mounted already filled is not announced */}
+      <p role="status" className="sr-only">
+        {v.line ? t(v.line) : v.title ? t(v.title.key, v.title.vars) : ''}
+      </p>
       {/* key: every step / phase swaps the content with a crossfade */}
       <div
-        key={`${s.step}-${s.phase}-${tour.preparing}`}
+        key={swap}
         className="flex flex-col gap-2 transition-opacity duration-200 ease-out starting:opacity-0"
       >
         <div className="flex items-baseline gap-2">
@@ -97,12 +114,12 @@ export const TourCard = observer(function TourCard({
             {t('tour.step', { i: v.step, n: TOUR_STEPS })}
           </span>
           {v.line && (
-            <p role="status" className="min-w-0 flex-1 text-label text-bone">
+            <p aria-hidden className="min-w-0 flex-1 text-label text-bone">
               {t(v.line)}
             </p>
           )}
           {phone && v.step < 4 && (
-            <Button onClick={() => tour.skip()} className="-my-2 ml-auto h-8 text-caption">
+            <Button onClick={() => tour.skip()} className="-my-3 ml-auto h-11 text-caption">
               {t('tour.skip')}
             </Button>
           )}
@@ -119,7 +136,7 @@ export const TourCard = observer(function TourCard({
           <div className="mt-1 flex items-center justify-end gap-3">
             {v.ghost && <Button onClick={() => tour.again()}>{t(v.ghost)}</Button>}
             {v.pill && (
-              <Button variant="primary" onClick={() => tour.next()}>
+              <Button ref={pill} variant="primary" onClick={() => tour.next()}>
                 {t(v.pill)}
               </Button>
             )}
@@ -151,7 +168,7 @@ function Sheet({ view }: { view: CardView }) {
       {view.sheet === 'keys' ? (
         <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-label font-light">
           {SHEET.map((key) => {
-            const [k, text] = t(key).split(' · ');
+            const [k, text = ''] = t(key).split(' · ');
             return (
               <div key={key} className="contents">
                 <dt className="font-mono text-bone">{k}</dt>
