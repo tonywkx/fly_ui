@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { app } from '@/state/app';
 import { experiment } from '@/state/experiment';
 import { FOCUS, MALE, NT_COLORS } from '@/ui/palette';
+import { scenarioTitle } from '@/ui/viewer';
 
 /** Partner types listed per side before "+N more". */
 const TOP_TYPES = 8;
@@ -140,7 +141,9 @@ const Body = observer(function Body({ s: { row, n, p } }: { s: Shown }) {
         <>
           <PartnerList title={t('inspector.inputs')} color={FOCUS.input.hex} groups={p.inputs} />
           <PartnerList title={t('inspector.outputs')} color={FOCUS.output.hex} groups={p.outputs} />
-          <p className="mt-3 text-caption text-ash">Synapse counts within the {data.scenario} circuit.</p>
+          <p className="mt-3 text-caption text-ash">
+            {t('inspector.footnote', { scenario: scenarioTitle(data.scenario ?? '', 'title') })}
+          </p>
         </>
       ) : (
         <p className="mt-3 text-caption text-ash">{t('inspector.noConnectivity')}</p>

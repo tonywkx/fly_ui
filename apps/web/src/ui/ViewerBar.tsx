@@ -48,7 +48,7 @@ export const ViewerBar = observer(function ViewerBar() {
           );
         })}
       </ul>
-      <LangSwitch className="ml-auto shrink-0" />
+      <LangSwitch compact className="ml-auto shrink-0" />
     </nav>
   );
 });

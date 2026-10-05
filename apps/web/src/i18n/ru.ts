@@ -8,6 +8,7 @@ export const ru = {
   'lang.switch': 'Язык интерфейса',
   'lang.ru': 'RU',
   'lang.en': 'EN',
+  'lang.to': 'Switch to English',
 
   // scenarios: title under the logo, short label in the phone ViewerBar
   'scenario.escape.title': 'Бегство',
@@ -96,6 +97,7 @@ export const ru = {
   'inspector.noConnectivity': 'Связи не загружены.',
   'inspector.none': 'В этой цепи таких нет.',
   'inspector.partner': '{type}: {neurons}, {synapses} — открыть самый сильный',
+  'inspector.footnote': 'Синапсы посчитаны внутри цепи «{scenario}».',
   'live.loading': 'Загружаю симуляцию всей нервной системы…',
   'live.failed': 'Живая симуляция недоступна — показываю записанный прогон.',
   'count.neurons': { one: '{n} нейрон', few: '{n} нейрона', many: '{n} нейронов', other: '{n} нейрона' },
@@ -142,10 +144,10 @@ export const ru = {
   'group.class.unknown': 'неизвестно',
   'group.male.male-specific': 'только у самцов',
   'group.male.other': 'прочие',
-  'band.Optic lobes': 'Зрительные доли',
-  'band.Central brain': 'Центральный мозг',
+  'band.Optic lobes': 'Зрит. доли',
+  'band.Central brain': 'Мозг',
   'band.Descending': 'Нисходящие',
-  'band.VNC': 'Нервная цепочка',
+  'band.VNC': 'Цепочка',
 
   // tracer
   'trace.from': 'Откуда',

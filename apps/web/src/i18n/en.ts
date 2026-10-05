@@ -6,6 +6,7 @@ export const en: Shape<typeof ru> = {
   'lang.switch': 'Interface language',
   'lang.ru': 'RU',
   'lang.en': 'EN',
+  'lang.to': 'Переключить на русский',
 
   'scenario.escape.title': 'Escape',
   'scenario.escape.short': 'Escape',
@@ -88,6 +89,7 @@ export const en: Shape<typeof ru> = {
   'inspector.noConnectivity': 'Connectivity not loaded.',
   'inspector.none': 'None in this circuit.',
   'inspector.partner': '{type}: {neurons}, {synapses} — inspect the strongest',
+  'inspector.footnote': 'Synapse counts within the {scenario} circuit.',
   'live.loading': 'Loading the whole-CNS simulation…',
   'live.failed': 'Live simulation unavailable — showing the recorded run.',
   'count.neurons': { one: '{n} neuron', other: '{n} neurons' },
