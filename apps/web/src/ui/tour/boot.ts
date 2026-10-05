@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-/** Opens the tour on a first visit (or `?tour=`), hands it the DNp01 rows, ends the narration with the intro. */
+/** Opens the tour on a first visit (or `?tour=`) and hands it the DNp01 rows; `Narration` ends step 0. */
 export function bootTour() {
   if (import.meta.env.DEV) window.__tour = tour;
   when(
@@ -24,12 +24,6 @@ export function bootTour() {
       when(
         () => !!meta(),
         () => tour.setPanic(panicRows(meta() as NonNullable<ReturnType<typeof meta>>)),
-      );
-      when(
-        () => app.introPhase === 'done',
-        () => {
-          if (tour.state?.step === 0) tour.next();
-        },
       );
     },
   );
