@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-05 — 7.1 i18n
+Done: `apps/web/src/i18n/{index,ru,en}.ts` (flat keys, `t` / `plural` (Intl.PluralRules) / `num` (Intl.NumberFormat) / `tOr` for data-built keys; `en: Shape<typeof ru>` + `i18n.test.ts` check keys, placeholders, plural categories); `?lang=ru|en` → localStorage `fly_ui.lang` → ru; `app.lang`/`setLang`, `<html lang>` synced; `ui/LangSwitch.tsx` (desktop under the scenario title, phone = one compact button in ViewerBar). Whole HUD translated incl. captions (`SCRIPTS` texts are now keys, `Beat<Key>`), colorBy groups, NT names, raster bands, palette (cmdk `value` = translated label, English in `keywords`). Tour/watch keys from TOUR.md already in the dicts.
+State: 396 tests, typecheck, lint, smoke 6/6 green. snap/film/perf/smoke pin `lang=en` (`pnpm snap --lang=ru` for Russian); README demo link `?lang=en`; `scenarioHref` keeps `lang`. visual-qa RU/EN 1600 + 390 OK after fixes.
+Next: 7.2 plain-language captions (rewrite `cap.*` copy from TOUR.md §Captions, mono term suffix), remove `ui/IntroHint.tsx`.
+Gotchas: vitest doesn't resolve `@/` — modules imported by tests must use relative paths (`ui/viewer.ts` → `../i18n`). Superclass words («descending neuron») and ROI names stay untranslated (data vocabulary, like cell types). Instrument readouts keep `toFixed` (dot decimals); counts use `num`. Legend's trailing «C» is the hotkey kbd, not a clipped tab.
+
 ## 2026-10-05 — 7.0 Tour shape
 Done: `docs/TOUR.md` — impeccable-shape brief, RU/EN copy with i18n keys for tour steps 0–4 + chrome, Sugar/Song "what to watch" cards, plain-language captions for all 3 scenarios (human phrase · term), ASCII wireframes 1600/390.
 State: approved by the user as written (incl. step-3 GF honesty line, reset to baked escape on finish, card bottom-centre / phone card replaces ViewerBar + FlyCam strip, «Бегство»). User answered: RU addresses «ты», HUD hidden during steps 0–3 (back on step 4), ASCII wireframes.
@@ -23,9 +29,3 @@ Done: `e2e/smoke.spec.ts` + `playwright.config.ts` (`pnpm smoke`: fresh prod bui
 State: 384 tests, typecheck, lint green; smoke green on real GPU (4 s) and with `CI=1` (SwiftShader WebGL2, ≈6 min). data-push verified against a local bare repo. No remote yet: workflow never ran on GitHub, actionlint not installed.
 Next: user creates the GitHub repo → `git remote add origin`, `pnpm data:push`, push main, Pages Source = GitHub Actions; check the first run. Then 6.3 `impeccable` audit.
 Gotchas: `CI=1` switches pages to `?gl=webgl2` + SwiftShader flags; ≈50 s per load there regardless of viewport (not pixel-bound). Real clicks hang under SwiftShader (input ack waits on a frame commit) → smoke uses `dispatchEvent('click')`; a link navigation there never unloads the busy page within 30 s → phone test checks hrefs only. Repo default branch must be `main` (data was pushed first) or the github-pages env rejects the deploy. `--reporter=json` stdout is polluted by pnpm/webServer output: use `PLAYWRIGHT_JSON_OUTPUT_NAME`.
-
-## 2026-10-04 — 6.1 Profiling, WebGL2 fallback, phone viewer
-Done: `pnpm perf` prints bytes until drawn + `--profile` (CDP self-time top 15), stats read via `data-stat`; `data/plan.ts` loads only shared + chosen scenario chunks (song 23.4 → 13.7 MB); `Preset.blur` (off on low, `[data-blur=off]` in theme.css = denser panels) + `FpsGuard` < 54 fps; `ui/Fatal.tsx` (`app.rendererFailed` / `data.error`, tools hidden, `ready` true on renderer failure); phone `ui/ViewerBar.tsx` (play/pause + scenario links via `ui/viewer.ts` `scenarioHref`, `SCENARIO_TITLES` moved there), director on for coarse pointers.
-State: 384+ tests, typecheck, lint green. visual-qa: WebGL2 ≡ WebGPU on all scenarios/tools/low; phone snaps 390×844 ok; ui-critic fixes applied. Song at high still 48 fps headless (guard steps it to low); not checked on a real phone.
-Next: 6.2 Playwright smoke tests; GitHub Actions → Pages.
-Gotchas: zsh doesn't word-split `$a` — use `${=a}` when looping perf/snap args. Debug modes hide the HUD, so they also hide blur cost. Pick ties among overlapping ribbons differ by backend (same spot, different neuron) — not a flip bug. Snap pins quality to high, so FpsGuard can't be exercised by perf.
