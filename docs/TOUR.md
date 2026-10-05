@@ -23,8 +23,8 @@ Lines fade in one at a time over the assembling dust, bottom-centre, display typ
 | key | RU | EN |
 |---|---|---|
 | `tour.narr.1` | Это нервная система плодовой мушки. | This is the nervous system of a fruit fly. |
-| `tour.narr.2` | 176 000 нейронов. Каждый провод нанесён на карту под электронным микроскопом. | 176,000 neurons. Every wire mapped under an electron microscope. |
-| `tour.narr.3` | Всё, что ты увидишь, бежит по настоящей проводке. | Everything you'll see runs on the real wiring. |
+| `tour.narr.2` | 176 000 нейронов. Каждое соединение нанесено на карту под электронным микроскопом. | 176,000 neurons. Every connection mapped under an electron microscope. |
+| `tour.narr.3` | Всё, что ты увидишь, работает на настоящей проводке. | Everything you'll see runs on the real wiring. |
 
 ### 1 · What you see
 
@@ -51,7 +51,7 @@ Pill press → card collapses to its title line; shadow looms; run plays once at
 |---|---|---|
 | `tour.scare.running` | Смотри на муху справа ↗ | Watch the fly, top right ↗ |
 | `tour.scare.title` | Взлёт за {ms} мс | Takeoff in {ms} ms |
-| `tour.scare.body` | Тень → глаза → один «нейрон паники» → мышца прыжка. Это в разы быстрее, чем ты моргаешь. | Shadow → eyes → one "panic neuron" → jump muscle. Several times faster than you can blink. |
+| `tour.scare.body` | Тень → глаза → один «нейрон паники» → мышца прыжка. Это быстрее, чем моргнуть. | Shadow → eyes → one "panic neuron" → jump muscle. Faster than a blink. |
 | ghost `tour.again` | Ещё раз | Again |
 | pill `tour.scare.cta` | Теперь сломай её | Now break it |
 
@@ -64,12 +64,12 @@ Card first shows the setup; pill silences every DNp01 (both turn grey, camera do
 | key | RU | EN |
 |---|---|---|
 | `tour.break.title` | Выключи нейрон паники | Switch off the panic neuron |
-| `tour.break.body` | Их всего два, по одному на сторону — Giant Fiber. Что будет без них? | There are only two, one per side — the Giant Fiber. What happens without them? |
+| `tour.break.body` | Их всего два — по одному на сторону («гигантские волокна»). Что будет без них? | There are only two, one per side (the "giant fibers"). What happens without them? |
 | pill `tour.break.cta` | Выключить и напугать | Silence and scare |
 | `tour.preparing` | Готовлю весь мозг… | Waking up the whole brain… |
 | `tour.break.running` | Нейрон паники выключен · DNp01 | Panic neuron off · DNp01 |
 | `tour.broken.title` | Муха не взлетела | No takeoff |
-| `tour.broken.body` | Глаза видят тень, но команды «прыгай» больше нет. Живая муха без этих нейронов всё же улетит — медленнее, запасным путём, которого в нашей модели нет. | The eyes still see the shadow, but the "jump" command is gone. A real fly without them still leaves — slower, by a backup route this model doesn't include. |
+| `tour.broken.body` | Глаза видят тень, но команды «прыгай» нет. Настоящая муха улетела бы запасным путём — в модели его нет. | The eyes see the shadow, but there's no "jump" command. A real fly would still leave by a backup route — the model doesn't have it. |
 | ghost `tour.again` | Ещё раз | Again |
 | pill `tour.broken.cta` | Дальше | Next |
 
@@ -82,7 +82,7 @@ HUD fades back in; silencing is undone (default baked escape, paused at t=0). Ca
 | `tour.end.title` | Теперь сам | Your turn |
 | `tour.end.select` | V · Выбор — наведи на нейрон, узнай, кто это | V · Select — hover a neuron to see what it is |
 | `tour.end.stim` | S · Стимул — заставь нейрон стрелять | S · Stimulate — make a neuron fire |
-| `tour.end.silence` | X · Тишина — выключи нейрон | X · Silence — switch a neuron off |
+| `tour.end.silence` | X · Заглушить — выключи нейрон | X · Silence — switch a neuron off |
 | `tour.end.probe` | E · Электрод — смотри напряжение | E · Electrode — watch its voltage |
 | `tour.end.play` | Пробел — пауза · [ ] — скорость · ⌘K — поиск | Space pause · [ ] speed · ⌘K search |
 | `tour.end.more` | Ещё опыты: | More runs: |
