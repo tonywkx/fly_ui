@@ -1,17 +1,19 @@
 import { observer } from 'mobx-react-lite';
 import { useEffect, useMemo, useRef } from 'react';
 import { data } from '@/data/store';
-import { t } from '@/i18n';
+import { num, t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { Behavior, effectorMask, type FlyPose, SHOWN } from '@/scene/behavior';
 import { app } from '@/state/app';
 import { experiment } from '@/state/experiment';
 import { playback } from '@/state/playback';
+import { tour } from '@/state/tour';
+import { bigFlyCam } from './tour/TourChrome';
 
 /** What the fly is doing; empty at rest. */
 function caption(p: FlyPose): string {
   const parts: string[] = [];
-  if (p.jumpAt !== null) parts.push(t('flycam.takeoff', { ms: p.jumpAt.toFixed(1) }));
+  if (p.jumpAt !== null) parts.push(t('flycam.takeoff', { ms: num(p.jumpAt, undefined, 1) }));
   if (p.proboscis > SHOWN) parts.push(t('flycam.proboscis'));
   if (p.wing > SHOWN) parts.push(t('flycam.wing'));
   return parts.join(' · ');
@@ -20,7 +22,7 @@ function caption(p: FlyPose): string {
 /**
  * Behaviour camera: the glass fly driven by its motor neurons (TTMn jump, MN9 proboscis, wing MNs
  * song), read from `playback.log` at `playback.clock` in its own rAF — no React renders per frame.
- * Hidden on phones and when the scenario records no motor neurons.
+ * Hidden on phones (except the tour's runs) and when the scenario records no motor neurons.
  */
 export const FlyCam = observer(function FlyCam() {
   const { log } = playback;
@@ -79,8 +81,10 @@ export const FlyCam = observer(function FlyCam() {
   }, [log, mask, moves]);
 
   if (!moves) return null;
-  // the Inspector opens in the same corner: give way while it is open
-  const covered = experiment.selected !== null;
+  // the Inspector opens in the same corner: give way while it is open; the tour shows it from its run on
+  const covered = experiment.selected !== null || (tour.state !== null && tour.state.step < 2);
+  // the tour's runs: twice the size (phones: a wide strip at the top)
+  const big = bigFlyCam();
   return (
     <figure
       ref={box}
@@ -89,12 +93,18 @@ export const FlyCam = observer(function FlyCam() {
       inert={covered}
       className={cn(
         'pointer-events-auto absolute top-8 right-8 z-10 hidden w-53 flex-col gap-1 overflow-hidden rounded-xl bg-card p-2 backdrop-blur-md select-none md:flex',
+        big &&
+          'inset-x-4 top-[max(1rem,env(safe-area-inset-top))] flex w-auto md:inset-x-auto md:top-8 md:right-8 md:w-96',
         '-translate-y-1 opacity-0 transition-[opacity,translate] duration-200 ease-out motion-reduce:transition-none',
         app.params.snap && 'transition-none',
         covered ? 'pointer-events-none' : 'data-ready:translate-y-0 data-ready:opacity-100',
       )}
     >
-      <div ref={host} aria-hidden className="aspect-[4/3] w-full" />
+      <div
+        ref={host}
+        aria-hidden
+        className={cn('aspect-[4/3] w-full', big && 'aspect-auto h-36 md:aspect-[4/3] md:h-auto')}
+      />
       <figcaption className="flex items-baseline justify-between gap-2 px-1 text-caption">
         <span aria-hidden className="text-ash">
           {t('flycam.title')}

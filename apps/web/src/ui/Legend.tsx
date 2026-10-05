@@ -23,7 +23,7 @@ export const Legend = observer(function Legend() {
   return (
     <section
       aria-label={t('legend.label')}
-      className="pointer-events-auto absolute top-8 left-8 z-10 hidden w-57 flex-col gap-1 rounded-xl bg-card p-2 backdrop-blur-md md:flex"
+      className="pointer-events-auto absolute top-8 left-8 z-10 hidden w-57 flex-col gap-1 rounded-xl bg-card p-2 backdrop-blur-md transition-opacity duration-200 ease-out starting:opacity-0 md:flex"
     >
       <fieldset aria-label={t('legend.colorBy')} className="flex items-center gap-0.5">
         {MODES.map(({ mode: m, label }) => (

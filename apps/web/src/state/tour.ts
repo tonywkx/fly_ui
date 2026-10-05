@@ -151,7 +151,8 @@ export class TourStore {
     } else if (s.phase === 'running' && (prev?.step !== s.step || prev.phase !== 'running')) {
       this.play(s.step === 3);
     } else if (s.step === 1 && prev?.step !== 1) {
-      this.pb.restart({ baked: true, paused: true });
+      // "?" can replay it over their own experiment
+      this.restore();
     } else if (s.step === 4 && prev?.step !== 4) {
       this.restore();
       this.memory.markSeen();

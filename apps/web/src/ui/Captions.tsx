@@ -1,13 +1,15 @@
 import { observer } from 'mobx-react-lite';
 import { useEffect, useMemo, useRef } from 'react';
 import { data } from '@/data/store';
-import { tOr, t as tr } from '@/i18n';
+import { num, tOr, t as tr } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { Behavior, effectorMask } from '@/scene/behavior';
 import { beatMask, Dwell, Narrator, SCRIPTS } from '@/scene/captions';
 import { continuous } from '@/scene/sound';
 import { app } from '@/state/app';
 import { playback } from '@/state/playback';
+import { tour } from '@/state/tour';
+import { bigFlyCam } from './tour/TourChrome';
 
 /** Real seconds each line stays up at least while the cascade runs ahead of it. */
 const MIN_S = 1.6;
@@ -28,7 +30,8 @@ export const Captions = observer(function Captions() {
   const line = useRef<HTMLParagraphElement>(null);
   const text = useRef<HTMLSpanElement>(null);
   const tag = useRef<HTMLSpanElement>(null);
-  const on = app.captions && !!script;
+  // not under the tour's narration (the baked loop plays beneath it)
+  const on = app.captions && !!script && tour.state?.step !== 0;
   const lang = app.lang;
 
   useEffect(() => {
@@ -58,7 +61,7 @@ export const Captions = observer(function Captions() {
         if (e) {
           text.current.textContent = tOr(e.text, e.text, lang);
           // the dataset's term, else when it happened (a body beat); a missing body beat has neither
-          const suffix = e.term ?? (e.missed ? '' : tr('unit.ms', { v: e.at.toFixed(1) }, lang));
+          const suffix = e.term ?? (e.missed ? '' : tr('unit.ms', { v: num(e.at, lang, 1) }, lang));
           tag.current.textContent = suffix && `· ${suffix}`;
           if (!app.reducedMotion && !app.params.snap)
             line.current.animate([{ transform: 'translateY(4px)' }, { transform: 'none' }], {
@@ -83,6 +86,8 @@ export const Captions = observer(function Captions() {
         // phones: top (the title stack owns the bottom); desktop: under the timeline, clear of the corners
         'pointer-events-none absolute inset-x-4 top-[max(1rem,env(safe-area-inset-top))] z-10 mx-auto max-w-[32rem] text-center text-body font-light text-balance text-bone md:top-auto md:bottom-8 md:max-w-[max(16rem,min(32rem,100vw-44rem))]',
         'transition-opacity duration-200 ease-out motion-reduce:transition-none data-[empty=true]:opacity-0',
+        // phones: under the tour's FlyCam strip
+        bigFlyCam() && 'top-[calc(max(1rem,env(safe-area-inset-top))+17rem)]',
       )}
     >
       <span ref={text} />

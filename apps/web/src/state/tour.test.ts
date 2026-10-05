@@ -105,6 +105,16 @@ describe('TourStore', () => {
     expect(tour.outcome).toEqual({ at: 30, missed: false });
   });
 
+  it('replaying ("?") from step 1 drops their experiment and the tour speed', () => {
+    const { playback, experiment, tour } = setup();
+    experiment.load([], [7], experiment.stim);
+    playback.setSpeed(0.5);
+    tour.start(1);
+    expect(experiment.silenced.size).toBe(0);
+    expect(playback.speed).toBe(1);
+    expect(playback.restartReq).toEqual({ baked: true });
+  });
+
   it('break silences every DNp01 and waits paused for the live sim', () => {
     const { playback, experiment, tour } = setup();
     tour.start(3);

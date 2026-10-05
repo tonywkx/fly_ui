@@ -21,8 +21,9 @@ import { Stats } from '@/ui/Stats';
 import { Timeline } from '@/ui/Timeline';
 import { Toolbar } from '@/ui/Toolbar';
 import { AnatomyLabels } from '@/ui/tour/AnatomyLabels';
-import { CountLine } from '@/ui/tour/CountLine';
 import { Narration } from '@/ui/tour/Narration';
+import { TourCard } from '@/ui/tour/TourCard';
+import { TourRestart, TourSkip } from '@/ui/tour/TourChrome';
 import { ViewerBar } from '@/ui/ViewerBar';
 import { scenarioTitle } from '@/ui/viewer';
 
@@ -43,7 +44,7 @@ export const App = observer(function App() {
       <Fatal />
       <AnatomyLabels />
       <Narration />
-      <CountLine />
+      <TourSkip />
       <Captions />
       <NeuronTooltip />
       <Inspector />
@@ -52,7 +53,7 @@ export const App = observer(function App() {
       <Sound />
       <CommandPalette />
       {/* phone = viewer without tools (PRODUCT.md); above the attribution row */}
-      {!broken && !touring && (
+      {!broken && (
         <div
           className={cn(
             'pointer-events-none absolute inset-x-2 bottom-16 z-10 hidden flex-col items-center gap-1 md:flex',
@@ -61,9 +62,15 @@ export const App = observer(function App() {
               'min-[72rem]:right-64 min-[72rem]:left-40 min-[92rem]:right-2 min-[92rem]:left-2',
           )}
         >
-          <Toolbar />
-          <Scopes />
-          <Timeline />
+          {/* the card holds the toolbar's slot; on the cheat sheet the HUD fades back in under it */}
+          <TourCard />
+          {!touring && (
+            <div className="flex w-full flex-col items-center gap-1 transition-opacity duration-200 ease-out starting:opacity-0">
+              <Toolbar />
+              <Scopes />
+              <Timeline />
+            </div>
+          )}
         </div>
       )}
 
@@ -78,16 +85,21 @@ export const App = observer(function App() {
         </div>
 
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between md:gap-3">
-          <div>
+          {/* phones: the tour card needs the room */}
+          <div className={cn(tour.active && tour.state?.step !== 0 && 'hidden md:block')}>
             <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
               fly_ui
             </h1>
             {/* phones name the scenario in the ViewerBar */}
             {title && <p className="mt-2 hidden text-body font-extralight text-mist md:block">{title}</p>}
             {/* phones switch language in the ViewerBar */}
-            <LangSwitch className="-mx-1 mt-1 hidden md:flex" />
+            <div className="-mx-1 mt-1 hidden items-center gap-1 md:flex">
+              <LangSwitch />
+              <TourRestart />
+            </div>
           </div>
-          {!broken && <ViewerBar />}
+          {/* phones: the card stands in for the ViewerBar until the tour ends */}
+          {!broken && (tour.active ? <TourCard phone className="md:hidden" /> : <ViewerBar />)}
           <p className="pointer-events-auto -mx-1 text-caption text-ash">
             <Button variant="ghost" asChild className="h-auto py-3 text-caption md:py-0">
               <a href="https://neuprint.janelia.org/" target="_blank" rel="noreferrer">
