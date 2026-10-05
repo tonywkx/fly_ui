@@ -79,6 +79,29 @@ test('phone viewer bar links the scenarios', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+// Pills only (prod build, no `window.__tour`); step 3 switches to the live sim with DNp01 silenced.
+test('tour completes', async ({ page }) => {
+  test.setTimeout(120_000);
+  const { errors } = watch(page);
+  await page.goto(url({ scenario: 'escape', tour: '1' }));
+  await ready(page);
+  const card = page.getByRole('region', { name: /^\d \/ \d$/ });
+  const pill = (name: string) => card.getByRole('button', { name, exact: true });
+  await expect(page.getByRole('region', { name: 'Timeline' })).toBeHidden();
+
+  await pill('Scare the fly').dispatchEvent('click');
+  await expect(pill('Now break it')).toBeVisible({ timeout: 30_000 });
+  await pill('Now break it').dispatchEvent('click');
+  await pill('Silence and scare').dispatchEvent('click');
+  await expect(card.getByRole('heading', { name: 'No takeoff' })).toBeVisible({ timeout: 60_000 });
+  await pill('Next').dispatchEvent('click');
+  await pill('Start').dispatchEvent('click');
+
+  await expect(card).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Timeline' })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
 test('data error shows the fatal screen', async ({ page }) => {
   await page.route('**/data/manifest.json', (r) => r.fulfill({ status: 500, body: 'down' }));
   await page.goto(url({ scenario: 'escape' }));
