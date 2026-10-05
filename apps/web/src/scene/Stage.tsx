@@ -6,7 +6,6 @@ import { type Node, Vector3 } from 'three/webgpu';
 import { colorGroups, fillTints } from '@/data/colorBy';
 import { data } from '@/data/store';
 import { LiveClient } from '@/sim/client';
-import type { SpikeLog } from '@/sim/feed';
 import { app } from '@/state/app';
 import { experiment } from '@/state/experiment';
 import { playback } from '@/state/playback';
@@ -22,7 +21,7 @@ import { CloudLayer } from './layers/cloud';
 import { isColorMode, type NeuronsLayer, neuronsLayer } from './layers/neurons';
 import { shellsLayer } from './layers/shells';
 import { Picker } from './pick';
-import { bakedSource, play } from './playback';
+import { bakedSource, type PlayOptions, play } from './playback';
 import { FpsGuard, QUALITY } from './quality';
 import { buildSegments, rowBounds } from './segments';
 import { startTrace } from './trace';
@@ -378,13 +377,16 @@ function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, s
   // play-once (the tour) ends with the story: a fresh narrator per run
   const script = SCRIPTS[data.scenario as string];
   const masks = script && { beats: beatMask(meta, script), body: effectorMask(meta) };
-  const lastBeat = () => {
-    if (!script || !masks) return undefined;
+  const story = (): Pick<PlayOptions, 'lastBeat' | 'broken'> => {
+    if (!script || !masks) return {};
     const narrator = new Narrator(script, masks.beats, new Behavior(masks.body));
     const end = script.length - 1;
-    return (log: SpikeLog, t: number) => narrator.update(log, t).find((e) => e.beat === end) ?? null;
+    return {
+      lastBeat: (log, t) => narrator.update(log, t).find((e) => e.beat === end) ?? null,
+      broken: (log, t) => narrator.update(log, t).some((e) => e.missed),
+    };
   };
-  let stop = play(engine, layer, baked, playback, { fixed, lastBeat: lastBeat() });
+  let stop = play(engine, layer, baked, playback, { fixed, ...story() });
   let client: LiveClient | undefined;
   let loading: Promise<LiveClient> | undefined;
   let tuning = false;
@@ -420,7 +422,7 @@ function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, s
     if (fixed === undefined) playback.setPaused(false);
     stop = play(engine, layer, { log: c.log, pump: (t) => c.pump(t), run: baked.period }, playback, {
       fixed,
-      lastBeat: lastBeat(),
+      ...story(),
       onReached: () => app.markReady('sim'),
     });
   };
@@ -480,7 +482,7 @@ function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, s
     if (experiment.live === 'failed') return;
     stop();
     experiment.setLive('off');
-    stop = play(engine, layer, baked, playback, { fixed, lastBeat: lastBeat() });
+    stop = play(engine, layer, baked, playback, { fixed, ...story() });
   };
 
   const mountDevTuning = (c: LiveClient) =>

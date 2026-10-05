@@ -8,6 +8,9 @@ export const SPEEDS = [1, 0.5, 0.25, 0.125] as const;
 /** One `,` / `.` step, sim ms. */
 export const STEP_MS = 1;
 
+/** Play-once after its story broke (a beat missed): at least 1× to the end, nothing more happens. */
+export const onceRate = (rate: number, broken: boolean) => (broken ? Math.max(rate, SIM_MS_PER_S) : rate);
+
 /** The story's last beat in a play-once run: when (sim ms), or when it was due and missed. */
 export interface LastBeat {
   at: number;

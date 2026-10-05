@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PlaybackStore, playbackKey, SIM_MS_PER_S, SPEEDS, STEP_MS } from './playback';
+import { onceRate, PlaybackStore, playbackKey, SIM_MS_PER_S, SPEEDS, STEP_MS } from './playback';
 
 const store = (start = 0, end = 300) => {
   const p = new PlaybackStore();
@@ -116,5 +116,13 @@ describe('playbackKey', () => {
     expect(key(' ', { repeat: true })).toBeNull();
     expect(key(']', { repeat: true })).toBeNull();
     expect(key('.', { repeat: true })).toBe('forward');
+  });
+});
+
+describe('onceRate', () => {
+  it('a broken story plays out at 1× at least', () => {
+    expect(onceRate(SIM_MS_PER_S / 4, false)).toBe(SIM_MS_PER_S / 4);
+    expect(onceRate(SIM_MS_PER_S / 4, true)).toBe(SIM_MS_PER_S);
+    expect(onceRate(SIM_MS_PER_S * 2, true)).toBe(SIM_MS_PER_S * 2);
   });
 });
