@@ -52,9 +52,12 @@ describe('PlaybackStore', () => {
   it('play-once: finish pauses and marks the run ended', () => {
     const p = store();
     p.setOnce(true);
-    p.finish();
+    p.finish({ at: 30, missed: false });
     expect(p.paused).toBe(true);
     expect(p.ended).toBe(true);
+    expect(p.last).toEqual({ at: 30, missed: false });
+    p.restart();
+    expect(p.last).toBeNull();
   });
 
   it('restart plays from 0 with a fresh request each time', () => {

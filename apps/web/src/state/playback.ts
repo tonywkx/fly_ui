@@ -8,6 +8,12 @@ export const SPEEDS = [1, 0.5, 0.25, 0.125] as const;
 /** One `,` / `.` step, sim ms. */
 export const STEP_MS = 1;
 
+/** The story's last beat in a play-once run: when (sim ms), or when it was due and missed. */
+export interface LastBeat {
+  at: number;
+  missed: boolean;
+}
+
 export type PlaybackAction = 'toggle' | 'back' | 'forward' | 'slower' | 'faster';
 
 /**
@@ -28,6 +34,8 @@ export class PlaybackStore {
   once = false;
   /** The play-once run reached its end (set by the scene, once per run). */
   ended = false;
+  /** How the ended run's story ended (null: it has no story / did not get that far). */
+  last: LastBeat | null = null;
   /** Latest restart-from-0 request (the scene reacts to a new object); `baked` leaves the live sim. */
   restartReq: { baked: boolean } | null = null;
   private pending: number | null = null;
@@ -55,17 +63,20 @@ export class PlaybackStore {
   setOnce(v: boolean) {
     this.once = v;
     this.ended = false;
+    this.last = null;
   }
 
   /** The play-once run is over: hold its last frame (scene). */
-  finish() {
+  finish(last: LastBeat | null = null) {
     this.paused = true;
     this.ended = true;
+    this.last = last;
   }
 
   /** Runs again from t = 0; `baked` switches back from the live sim to the baked run. */
   restart({ baked = false, paused = false }: { baked?: boolean; paused?: boolean } = {}) {
     this.ended = false;
+    this.last = null;
     this.paused = paused;
     this.restartReq = { baked };
     this.pending = 0;

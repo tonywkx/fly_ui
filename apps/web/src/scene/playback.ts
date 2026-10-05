@@ -1,6 +1,6 @@
 import type { SpikeTrain } from '@fly/data';
 import { bakedEvents, nextSimTime, SpikeLog } from '@/sim/feed';
-import type { PlaybackStore } from '@/state/playback';
+import type { LastBeat, PlaybackStore } from '@/state/playback';
 import type { Engine } from './engine';
 import type { NeuronsLayer } from './layers/neurons';
 
@@ -19,7 +19,12 @@ export interface PlayOptions {
   /** Frozen sim time (`?t=`): held (paused) once the log reaches it, then `onReached` fires. */
   fixed?: number;
   onReached?(): void;
+  /** The story's last beat once reached or missed by `t` (play-once ends `HOLD_MS` after it). */
+  lastBeat?(log: SpikeLog, t: number): LastBeat | null;
 }
+
+/** Sim ms a play-once run holds after its last beat (the jump stays in view). */
+export const HOLD_MS = 15;
 
 /** Baked train on a loop: the whole run, then `tailMs` for the last wave to fade. */
 export function bakedSource(train: SpikeTrain, tailMs: number): Source {
@@ -69,9 +74,10 @@ export function play(
       log.seek(t, layer.lastSpike);
       changed = true;
     } else if (!ctl.paused) {
-      const run = src.run ?? src.period;
+      const last = ctl.once ? (o.lastBeat?.(log, t) ?? null) : null;
+      const run = last ? last.at + HOLD_MS : (src.run ?? src.period);
       if (ctl.once && run !== undefined && t >= run) {
-        ctl.finish();
+        ctl.finish(last);
       } else if (src.period !== undefined && t >= src.period) {
         t = 0;
         log.seek(t, layer.lastSpike);
