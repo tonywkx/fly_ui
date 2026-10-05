@@ -10,6 +10,7 @@ import type { SpikeLog } from '@/sim/feed';
 import { app } from '@/state/app';
 import { experiment } from '@/state/experiment';
 import { playback } from '@/state/playback';
+import { startAnatomy } from './anatomy';
 import { Behavior, effectorMask } from './behavior';
 import { beatMask, Narrator, SCRIPTS } from './captions';
 import { startDirector } from './director';
@@ -240,6 +241,7 @@ function populate(engine: Engine, intro: Intro, stops: (() => void)[]) {
   const only = colorMode ? 'neurons' : debug;
   shellMesh.visible = !only || only === 'shells';
   engine.world.add(shellMesh);
+  stops.push(startAnatomy(engine, shellMesh, shells));
 
   const skeletons = data.get(`${data.scenario}-skeletons`, 'skeletons');
   const meta = data.get(`${data.scenario}-meta`, 'meta');
