@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-05 — 7.0 Tour shape (draft)
+Done: `docs/TOUR.md` — impeccable-shape brief, RU/EN copy with i18n keys for tour steps 0–4 + chrome, Sugar/Song "what to watch" cards, plain-language captions for all 3 scenarios (human phrase · term), ASCII wireframes 1600/390.
+State: draft committed, NOT approved yet; 7.0 unticked. User answered: RU addresses «ты», HUD hidden during steps 0–3 (back on step 4), ASCII wireframes.
+Next: get user OK or one edit round on TOUR.md's 4 open points (GF honesty line in step 3, reset to baked escape on finish, card placement/phone FlyCam strip, «Бегство» vs «Побег») → tick 7.0 → 7.1 i18n.
+Gotchas: escape scenario set ≈1254 neurons (legend at t=40); RU count line needs a PluralRules verb (участвует/участвуют). Real GF-silenced flies still take off (slow long-mode path) — the model has no such route, so copy must not claim "can't escape".
+
 ## 2026-10-04 — 6.4 README, video, article
 Done: `README.md` (live link, scenarios/tools/hotkeys, architecture, dev, data & attribution: Berg et al. bioRxiv 2025 doi:10.1101/2025.10.09.680999 + Shiu 2024, CC BY 4.0) + `LICENSE` (MIT) + `docs/media/*.jpg`; `docs/article.ru.md` (Habr draft, ~2.1k words); `scripts/film.ts` (`pnpm film [--shot --sec --fps --join]`) → `snaps/fly_ui.mp4` master (43 s 1080p60, 194 MB) + `snaps/fly_ui.web.mp4` (30 fps, 9.6 MB); snap/perf/film share `scripts/lib.ts` (ports 5199/5198/5196).
 State: typecheck, lint green; snap re-verified after the refactor. Video not uploaded; README has a placeholder comment for it. 9 local commits ahead of origin/main (6.3 polish + this), not pushed.
@@ -23,9 +29,3 @@ Done: `pnpm perf` prints bytes until drawn + `--profile` (CDP self-time top 15),
 State: 384+ tests, typecheck, lint green. visual-qa: WebGL2 ≡ WebGPU on all scenarios/tools/low; phone snaps 390×844 ok; ui-critic fixes applied. Song at high still 48 fps headless (guard steps it to low); not checked on a real phone.
 Next: 6.2 Playwright smoke tests; GitHub Actions → Pages.
 Gotchas: zsh doesn't word-split `$a` — use `${=a}` when looping perf/snap args. Debug modes hide the HUD, so they also hide blur cost. Pick ties among overlapping ribbons differ by backend (same spot, different neuron) — not a flip bug. Snap pins quality to high, so FpsGuard can't be exercised by perf.
-
-## 2026-10-04 — 5.4 Scenario captions
-Done: `scene/captions.ts` (`SCRIPTS` per scenario, `beatMask`, `Narrator` = beats at first spike of their types or when the body moves — steps the injected `Behavior` at 0.5 ms through seeks so rate beats get their onset; `missing.byMs` after the onset → "Giant Fiber silent" / "No takeoff"; `Dwell` holds each line ≥1.6 s real while playing, jumps to `t` on pause/seek/wrap; tested), `ui/Captions.tsx` (own rAF, DOM via refs, bottom-centre desktop / top phone, hidden while the intro hint shows via `hintShown()` from IntroHint), `app.captions` (on) + ⌘K "Captions", `captions` ready flag. `SHOWN` + motor regexes now exported from `behavior.ts`.
-State: 381 tests, typecheck, lint green. visual-qa: escape t=2/5/40, sugar/song t=60 (onsets 22.5 / 12.0 ms, not the playhead), GF silenced → "No takeoff", phone at top. ui-critic fixes applied (copy tightened, WAAPI transform-only, hint bug on sugar/song); final copy not re-snapped.
-Next: 6.1 Profiling, WebGL2 fallback check, mobile viewer mode.
-Gotchas: Spike times are float32 — tests must use exactly representable values (0.25, 2.75…). `app.hintVisible` is true on scenarios without a hint: use `hintShown()`. No scrim/text-shadow behind captions on purpose (HUD has no shadows).
