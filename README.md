@@ -2,7 +2,7 @@
 
 **A real fruit-fly nervous system you can poke.** The complete male *Drosophila* CNS connectome — brain and nerve cord, 176k neurons — in 3D in the browser, set up like an electrophysiology rig. Pick a stimulus, watch spikes run through the actual wiring, silence a neuron and see the behaviour change.
 
-**[Open the live demo →](https://tonywkx.github.io/fly_ui/)** · any modern desktop browser (WebGPU, WebGL2 fallback); phones get a simplified viewer.
+**[Open the live demo →](https://tonywkx.github.io/fly_ui/?lang=en)** · any modern desktop browser (WebGPU, WebGL2 fallback); phones get a simplified viewer.
 
 ![Escape: a looming shadow drives the visual neurons, the Giant Fiber fires and the fly jumps](docs/media/hero.jpg)
 

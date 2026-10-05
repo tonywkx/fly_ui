@@ -58,7 +58,7 @@ async function film(shot: Shot, base: string, browser: Browser) {
   page.on('pageerror', (e) => console.log(`[${shot.name}] page error: ${e.message}`));
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
-  await page.goto(`${base}?${new URLSearchParams({ quality: 'high', ...shot.query })}`);
+  await page.goto(`${base}?${new URLSearchParams({ quality: 'high', lang: 'en', ...shot.query })}`);
 
   const step = 1000 / fps;
   let frame = 0;

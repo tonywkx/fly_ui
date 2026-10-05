@@ -11,7 +11,7 @@ import { devServer, launch, parseArgs } from './lib';
 const own = new Set(['w', 'h', 'url', 'secs', 'dpr', 'profile']);
 const args = parseArgs();
 
-const query = new URLSearchParams({ snap: '1', scenario: 'escape', stats: '1' });
+const query = new URLSearchParams({ snap: '1', scenario: 'escape', stats: '1', lang: 'en' });
 for (const [k, v] of Object.entries(args)) if (!own.has(k)) query.set(k, v);
 const secs = Number(args.secs ?? 6);
 

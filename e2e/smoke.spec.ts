@@ -6,7 +6,7 @@ const FIRST_FRAME_MB = 15;
 
 /** Query string for a snap-mode page; CI has no GPU, so it always takes the WebGL2 path. */
 function url(q: Record<string, string>) {
-  const p = new URLSearchParams({ snap: '1', quality: 'low', ...q });
+  const p = new URLSearchParams({ snap: '1', quality: 'low', lang: 'en', ...q });
   if (process.env.CI) p.set('gl', 'webgl2');
   return `./?${p}`;
 }

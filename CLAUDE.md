@@ -14,7 +14,7 @@ docs/           PLAN.md (phases, tasks), PROGRESS.md (session log), DECISIONS.md
 
 ## Commands
 `pnpm dev` · `pnpm test [path]` · `pnpm typecheck` · `pnpm lint` / `pnpm fix` · `pnpm bake` · `pnpm scout` · `pnpm pull [--scenario=x]` (skeletons → data/cache)
-`pnpm snap --scenario=escape --t=40 [--debug=<mode>] [--ui=<state>]` → PNG paths.
+`pnpm snap --scenario=escape --t=40 [--debug=<mode>] [--ui=<state>] [--lang=ru]` (en by default) → PNG paths.
 pnpm runs via corepack (`corepack pnpm ...` if `pnpm` is not on PATH).
 
 ## Invariants (do not break)

@@ -10,7 +10,8 @@ import { devServer, launch, parseArgs } from './lib';
 const own = new Set(['w', 'h', 'name', 'url']);
 const args = parseArgs();
 
-const query = new URLSearchParams({ snap: '1' });
+// English unless `--lang=ru`: scripts and smoke query English aria names
+const query = new URLSearchParams({ snap: '1', lang: 'en' });
 for (const [k, v] of Object.entries(args)) if (!own.has(k)) query.set(k, v);
 
 const { base, stop } = await devServer(args.url, 5199);
