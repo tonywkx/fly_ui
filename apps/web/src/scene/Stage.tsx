@@ -361,15 +361,18 @@ function startPicking(engine: Engine, layer: NeuronsLayer): (() => void)[] {
 
 /**
  * Baked spike train on a loop; the Worker sim takes over once the full graph has loaded (baked keeps
- * playing meanwhile) — from the start with `?sim=live`, else on the first stimulus / silencing.
- * A live snap at `?t=` waits for the sim to reach it.
+ * playing meanwhile) — from the start with `?sim=live`, else on a stimulus / silencing. A restart
+ * request replays from t = 0 (the live sim from rest) or drops back to the baked run; the Worker is
+ * kept for the next switch. A live snap at `?t=` waits for the sim to reach it.
  */
 function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, stops: (() => void)[]) {
   const train = data.get(`${data.scenario}-spikes`, 'spikes');
   if (!train) return;
   const { t: fixed, sim } = app.params;
-  let stop = play(engine, layer, bakedSource(train, TAIL_MS), playback, { fixed });
+  const baked = bakedSource(train, TAIL_MS);
+  let stop = play(engine, layer, baked, playback, { fixed });
   let client: LiveClient | undefined;
+  let loading: Promise<LiveClient> | undefined;
   let disposed = false;
   stops.push(() => {
     disposed = true;
@@ -377,78 +380,80 @@ function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, s
     client?.dispose();
   });
 
-  const goLive = () => {
-    if (experiment.live !== 'off') return;
+  // the experiment's stimulus / silencing, applied as diffs (all stimuli again when the drive
+  // changes); a restart clears them in the Worker
+  const applied = { stim: new Set<number>(), silent: new Set<number>(), drive: experiment.stim };
+  const sync = () => {
+    const c = client;
+    if (!c || experiment.live !== 'on') return;
+    const ops: Promise<void>[] = [];
+    const { hz, gain } = experiment.stim;
+    const redo = applied.drive !== experiment.stim;
+    for (const r of experiment.stimulated)
+      if (redo || !applied.stim.has(r)) ops.push(c.stimulate(r, hz, gain));
+    for (const r of applied.stim) if (!experiment.stimulated.has(r)) ops.push(c.stimulate(r, 0));
+    for (const r of experiment.silenced) if (!applied.silent.has(r)) ops.push(c.silence(r, true));
+    for (const r of applied.silent) if (!experiment.silenced.has(r)) ops.push(c.silence(r, false));
+    applied.stim = new Set(experiment.stimulated);
+    applied.silent = new Set(experiment.silenced);
+    applied.drive = experiment.stim;
+    Promise.all(ops).catch((e) => console.error('[sim]', e));
+  };
+  const start = (c: LiveClient) => {
+    stop();
+    // a stimulus is meant to be seen: live starts playing unless a snap holds `?t=`
+    if (fixed === undefined) playback.setPaused(false);
+    stop = play(engine, layer, { log: c.log, pump: (t) => c.pump(t), run: baked.period }, playback, {
+      fixed,
+      onReached: () => app.markReady('sim'),
+    });
+  };
+  /** Live from rest at t = 0 with the experiment applied (a fresh or a reused Worker). */
+  const restartLive = async (c: LiveClient) => {
+    await c.reset();
+    if (disposed) return;
+    applied.stim.clear();
+    applied.silent.clear();
+    experiment.setLive('on');
+    sync();
+    start(c);
+  };
+
+  const load = () => {
     const chunk = (id: string) => data.manifest?.chunks.find((c) => c.id === id);
     const graph = chunk('graph-full');
     const full = chunk('meta-full');
-    if (!graph || !full) {
-      console.warn('[sim] graph-full / meta-full missing from the manifest, staying on baked');
-      experiment.setLive('failed');
-      return;
-    }
-    experiment.setLive('loading');
-    if (fixed !== undefined) app.waitFor('sim');
-    LiveClient.start({
+    if (!graph || !full) return Promise.reject(new Error('graph-full / meta-full missing from the manifest'));
+    const t0 = performance.now();
+    return LiveClient.start({
       graphUrl: data.url(graph),
       metaUrl: data.url(full),
       scenarioBodyIds: meta.bodyIds,
       stim: [...train.stim],
       seed: train.seed,
-    })
+    }).then((c) => {
+      console.info(`[sim] live switch: ${(performance.now() - t0).toFixed(0)} ms`);
+      return c;
+    });
+  };
+
+  const goLive = () => {
+    if (experiment.live !== 'off') return;
+    experiment.setLive('loading');
+    if (fixed !== undefined) app.waitFor('sim');
+    const first = !loading;
+    loading ??= load();
+    loading
       .then((c) => {
         if (disposed) return c.dispose();
         client = c;
-        // the experiment's stimulus / silencing, applied as diffs (all stimuli again when the drive
-        // changes); a restart clears them in the Worker
-        const applied = { stim: new Set<number>(), silent: new Set<number>(), drive: experiment.stim };
-        const sync = () => {
-          const ops: Promise<void>[] = [];
-          const { hz, gain } = experiment.stim;
-          const redo = applied.drive !== experiment.stim;
-          for (const r of experiment.stimulated)
-            if (redo || !applied.stim.has(r)) ops.push(c.stimulate(r, hz, gain));
-          for (const r of applied.stim) if (!experiment.stimulated.has(r)) ops.push(c.stimulate(r, 0));
-          for (const r of experiment.silenced) if (!applied.silent.has(r)) ops.push(c.silence(r, true));
-          for (const r of applied.silent) if (!experiment.silenced.has(r)) ops.push(c.silence(r, false));
-          applied.stim = new Set(experiment.stimulated);
-          applied.silent = new Set(experiment.silenced);
-          applied.drive = experiment.stim;
-          Promise.all(ops).catch((e) => console.error('[sim]', e));
-        };
-        const start = () => {
-          stop();
-          // a stimulus is meant to be seen: live starts playing unless a snap holds `?t=`
-          if (fixed === undefined) playback.setPaused(false);
-          stop = play(engine, layer, { log: c.log, pump: (t) => c.pump(t) }, playback, {
-            fixed,
-            onReached: () => app.markReady('sim'),
-          });
-        };
-        sync();
-        start();
-        experiment.setLive('on');
-        stops.push(
-          reaction(() => [experiment.stim, ...experiment.stimulated, -1, ...experiment.silenced], sync),
-        );
-        if (import.meta.env.DEV && (!app.params.snap || app.params.ui === 'tune')) {
-          import('@/dev/tuning').then(({ mountTuning }) => {
-            if (disposed) return;
-            stops.push(
-              mountTuning({
-                apply: (t) =>
-                  void c.tune(t).then(() => {
-                    if (disposed) return;
-                    applied.stim.clear();
-                    applied.silent.clear();
-                    sync();
-                    start();
-                  }),
-                speed: () => c.speed,
-              }),
-            );
-          });
-        }
+        if (experiment.live !== 'loading') return; // left for baked meanwhile
+        if (first) {
+          experiment.setLive('on');
+          sync();
+          start(c);
+          if (import.meta.env.DEV && (!app.params.snap || app.params.ui === 'tune')) mountDevTuning(c);
+        } else void restartLive(c);
       })
       .catch((e) => {
         console.error('[sim] live mode failed, staying on baked', e);
@@ -457,6 +462,52 @@ function startActivity(engine: Engine, layer: NeuronsLayer, meta: NeuronTable, s
       });
   };
 
+  const goBaked = () => {
+    if (experiment.live === 'failed') return;
+    stop();
+    experiment.setLive('off');
+    stop = play(engine, layer, baked, playback, { fixed });
+  };
+
+  const mountDevTuning = (c: LiveClient) =>
+    import('@/dev/tuning').then(({ mountTuning }) => {
+      if (disposed) return;
+      stops.push(
+        mountTuning({
+          apply: (t) =>
+            void c.tune(t).then(() => {
+              if (disposed) return;
+              applied.stim.clear();
+              applied.silent.clear();
+              sync();
+              start(c);
+            }),
+          speed: () => c.speed,
+        }),
+      );
+    });
+
+  stops.push(
+    reaction(() => [experiment.stim, ...experiment.stimulated, -1, ...experiment.silenced], sync),
+    reaction(
+      () => playback.restartReq,
+      (req) => {
+        if (!req) return;
+        if (req.baked) goBaked();
+        else if (experiment.live === 'on' && client) void restartLive(client);
+        // baked / still loading: the pending seek to 0 replays it
+      },
+    ),
+  );
   if (sim === 'live') goLive();
-  else stops.push(when(() => experiment.touched, goLive));
+  else
+    stops.push(
+      reaction(
+        () => experiment.touched,
+        (touched) => {
+          if (touched) goLive();
+        },
+        { fireImmediately: true },
+      ),
+    );
 }
