@@ -100,7 +100,7 @@ Goal: the hallway test showed "switch a neuron off" changes nothing visible — 
 - [x] 8.0b Remove sound everywhere: Tone.js dep, `scene/sound.ts` / `scene/audio.ts`, `ui/Sound.tsx`, Timeline sound button + `m` key, i18n strings, README mentions. Tests + smoke green; note the bundle drop.
 
 Stage 1 — MVP wow (desktop):
-- [ ] 8.1 Feasibility in Node (go / no-go): `neuprint-scout` picks sensory groups (sugar GRNs Gr5a, bitter Gr66a, odor ORNs L/R, LC4/LPLC2 per side, female cues, grooming mechanosensors) and command neurons (DNp01, MDN, turning DNs L/R, walking, grooming, MN9, P1). A script runs `packages/sim` headless per input → table "input → command neurons → behaviour" in `docs/TERRARIUM.md`. Decide odor steering: if it doesn't emerge, the fly wanders on its own (labelled simplification) and the connectome decides at encounters. **[T]**
+- [x] 8.1 Feasibility in Node (go / no-go): `neuprint-scout` picks sensory groups (sugar GRNs Gr5a, bitter Gr66a, odor ORNs L/R, LC4/LPLC2 per side, female cues, grooming mechanosensors) and command neurons (DNp01, MDN, turning DNs L/R, walking, grooming, MN9, P1). A script runs `packages/sim` headless per input → table "input → command neurons → behaviour" in `docs/TERRARIUM.md`. Decide odor steering: if it doesn't emerge, the fly wanders on its own (labelled simplification) and the connectome decides at encounters. **[T]**
 - [ ] 8.2 Shape: dish look, items, trail, brain hologram, item palette, operation card, RU/EN copy, wireframes 1600/390; where the Terrarium lives (own view vs home) and how a newcomer gets there (tour → Terrarium). User approves before code. **[S]** **[UI]**
 - [ ] 8.3 Bridge world ↔ brain (pure + tests): world → per-side rates of sensory groups; command neurons → action (forward, turn, back, stop, eat, groom, jump, court); live Worker API for time-varying input (`lif.ts` `stimulate(i, hz, gain)` per tick); row groups via `packages/data` if a format change is needed. **[T]**
 - [ ] 8.4 World model (pure, deterministic, tests): 2D fly kinematics; items (sugar, bitter, odor plume field, shadow, swatter, wandering female); contact + sensing. **[T]**
@@ -111,7 +111,7 @@ Stage 1 — MVP wow (desktop):
 - [ ] 8.9 "From fly to neuron" zoom: click the fly → one continuous camera flight into its head → full brain view → operate → back to the dish. **[V]**
 
 Stage 2 — deeper:
-- [ ] 8.10 Odor navigation (only if 8.1 allows; else drop).
+- [ ] 8.10 Odor navigation — 8.1: no L/R steering in the model → drop unless the model changes.
 - [ ] 8.11 "Why did she do that?" — explanation card for the last decision. **[UI]**
 - [ ] 8.12 Puzzle levels (3–5) with a hint ladder and a success moment. **[V]** **[UI]**
 - [ ] 8.13 Puppet mode: arrow keys → command neurons.
