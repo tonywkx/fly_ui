@@ -140,3 +140,11 @@ export function bakedEvents(train: SpikeTrain): { t: Float32Array; row: Uint32Ar
 export function nextSimTime(prev: number, frameMs: number, rate: number, until: number): number {
   return Math.min(prev + (Math.min(frameMs, MAX_FRAME_MS) * rate) / 1000, until);
 }
+
+/** Longest real step (s) of a play frame: `MAX_FRAME_MS` plus slack. */
+const MAX_STEP_S = 0.12;
+
+/** True if `prev → t` is a play step (not a pause, a seek or a loop wrap). */
+export function continuous(prev: number, t: number, rate: number): boolean {
+  return t > prev && t - prev <= rate * MAX_STEP_S;
+}

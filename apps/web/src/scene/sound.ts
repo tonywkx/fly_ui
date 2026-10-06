@@ -15,8 +15,6 @@ export interface ClickOptions {
 
 /** Gain of a lone spike's click; a thinned click standing for `k` spikes gets `BASE·√k`. */
 const BASE = 0.35;
-/** Longest real frame (s) the playback clock advances by (feed.ts MAX_FRAME_MS) plus slack. */
-const MAX_STEP_S = 0.12;
 
 /**
  * The spikes of (t0, t1] as clicks. `rate` = sim ms per real second, so a slowed clock spreads
@@ -43,9 +41,4 @@ export function clicks(log: SpikeLog, t0: number, t1: number, rate: number, o: C
     out.push({ dt: (t - t0) / rate, gain });
   }
   return out;
-}
-
-/** True if `prev → t` is a play step (not a pause, a seek or a loop wrap): only then it sounds. */
-export function continuous(prev: number, t: number, rate: number): boolean {
-  return t > prev && t - prev <= rate * MAX_STEP_S;
 }

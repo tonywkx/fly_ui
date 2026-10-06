@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SpikeLog } from '../sim/feed';
-import { clicks, continuous } from './sound';
+import { clicks } from './sound';
 
 function log(t: number[], row: number[], until = 1000) {
   const l = new SpikeLog();
@@ -46,14 +46,5 @@ describe('clicks', () => {
     expect(dts[3]).toBeGreaterThan(0.025 + 0.75 * 0.025);
     expect(c[0]?.gain).toBeGreaterThan(one[0]?.gain ?? 1);
     expect(c[0]?.gain).toBeLessThanOrEqual(1);
-  });
-});
-
-describe('continuous', () => {
-  it('accepts a normal play step, rejects pause, seeks and loop wraps', () => {
-    expect(continuous(10, 10.7, 40)).toBe(true);
-    expect(continuous(10, 10, 40)).toBe(false);
-    expect(continuous(10, 5, 40)).toBe(false);
-    expect(continuous(10, 60, 40)).toBe(false);
   });
 });

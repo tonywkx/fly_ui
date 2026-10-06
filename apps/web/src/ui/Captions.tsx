@@ -5,7 +5,7 @@ import { num, tOr, t as tr } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { Behavior, effectorMask } from '@/scene/behavior';
 import { beatMask, Dwell, Narrator, SCRIPTS } from '@/scene/captions';
-import { continuous } from '@/scene/sound';
+import { continuous } from '@/sim/feed';
 import { app } from '@/state/app';
 import { playback } from '@/state/playback';
 import { tour } from '@/state/tour';

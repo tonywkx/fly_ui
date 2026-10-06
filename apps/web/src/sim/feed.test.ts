@@ -1,6 +1,6 @@
 import { decodeSpikes, encodeSpikes, spikeTrainFrom } from '@fly/data';
 import { describe, expect, it } from 'vitest';
-import { bakedEvents, LOOKBACK_MS, NEVER, nextSimTime, SpikeLog } from './feed';
+import { bakedEvents, continuous, LOOKBACK_MS, NEVER, nextSimTime, SpikeLog } from './feed';
 
 const fresh = (n: number) => new Float32Array(n).fill(NEVER);
 
@@ -112,5 +112,14 @@ describe('nextSimTime', () => {
 
   it('clamps long frame gaps (hidden tab) to one step', () => {
     expect(nextSimTime(0, 5000, 40, 1e9)).toBeCloseTo(4); // 100 ms real max
+  });
+});
+
+describe('continuous', () => {
+  it('accepts a normal play step, rejects pause, seeks and loop wraps', () => {
+    expect(continuous(10, 10.7, 40)).toBe(true);
+    expect(continuous(10, 10, 40)).toBe(false);
+    expect(continuous(10, 5, 40)).toBe(false);
+    expect(continuous(10, 60, 40)).toBe(false);
   });
 });
