@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-06 — 8.1 Terrarium feasibility
+Done: `apps/pipeline/src/explore/terrarium.ts` (`pnpm -C apps/pipeline explore:terrarium [--ops]`): sensory input → command-neuron rates (L/R) + surgeon ops on the full graph; results + verdict in `docs/TERRARIUM.md`; DECISIONS line; 8.10 marked "drop unless model changes".
+State: GO. Connectome-driven: loom → DNp01 → TTMn (GF off → TTMn 44 Hz, no jump), sugar LB3 → MN9, bitter LB1 → MDN, LC10a → pIP10. Scripted: forward walk, turning, odor approach (L/R ORN input gives identical output). P1 off only cuts pIP10 by 30 %. Grooming dropped.
+Next: 8.2 Shape (dish look, items, operation card, RU/EN copy, wireframes 1600/390, where the Terrarium lives); user approves before code.
+Gotchas: sensory cells have no `somaSide`, so the L/R split needs neuPrint `rootSide` (the script queries it, token needed). Full run ≈ 4.5 min (≈3 s per 300 ms full-graph run). neuPrint has no Gr/ppk labels: LB3 = sugar, LB1 = bitter, pC1_* = P1 are inferred. There is no "P1"/"oDN1"/"aDN" type. DNb06 fires L ≫ R for any input (artefact). DNg11 fires 20–30 Hz for almost any input.
+
 ## 2026-10-06 — 8.0b Remove sound
 Done: deleted `scene/sound.ts`, `scene/audio.ts`, `ui/Sound.tsx`, `tone` dep, Timeline speaker button + `M` key, palette item, `app.sound`, `sound.*` i18n; `continuous` (play-step test used by Captions) moved to `sim/feed.ts` + test. README / PRODUCT / article.ru cleaned; DECISIONS 2026-10-04 sound line marked superseded.
 State: no sound anywhere. Bundle `dist/assets` 2532 → 2304 KB (−228 KB, the lazy Tone chunk; first-frame size unchanged). 439 tests, typecheck, lint, smoke 7/7 green; snap escape t=40 RU/EN OK.
@@ -24,8 +30,3 @@ State: 435 tests, typecheck, lint, smoke 6/6 green. visual-qa steps 1/2-done/3/4
 Next: 7.6 QA — ui-critic on the tour, smoke "tour completes" test (drive `window.__tour` / pills), full RU/EN snap set, hallway test.
 Gotchas: `git rm` stages immediately — the next `git commit` takes it along. Step 2 "done" can't be snapped with `--tour=2` (captures mid-run): Playwright + `__tour.start(2)`, wait `phase === 'done'`. Phone step 2: captions «Взлёт» sit on the brain's top edge under the strip (no free room; acceptable). Cheat sheet keys render one row per key (dt/dd grid), not the wireframe's two side-by-side columns.
 
-## 2026-10-05 — 7.4 Narration, anatomy labels, count line
-Done: `ui/tour/narrationTiming.ts` `narrationAt` (3 lines × `LINE_MS`=2500, last holds until intro `done`) + test; `ui/tour/Narration.tsx` (step 0, timeouts not rAF; ends step 0 → `tour.next()`, boot's intro-done hook removed). `scene/anatomy.ts` `shellSamples` / `placeLabel(sides[])` + test, `startAnatomy` (Stage `populate`) projects ≤160 sampled shell verts per part each frame into `anatomyDom` (label transform + SVG line attrs; no-op when empty); `ui/tour/AnatomyLabels.tsx` (step 1, ResizeObserver sizes, short names < md, text-shadow). `ui/tour/CountLine.tsx` (desktop bottom-28, phone top). `App.tsx` hides Legend + toolbar/scopes/timeline while `tour.step < 4`.
-State: 425 tests, typecheck, lint, smoke 6/6 green. visual-qa step 1 RU/EN 1600 + 390 and step 0 narration OK.
-Next: 7.5 tour UI — step card (count line moves into it), Skip, large FlyCam, cheat sheet, "?"; HUD fade back on step 4; phone card replaces ViewerBar; mute/hide captions during step 0 (baked loop plays under the narration).
-Gotchas: macOS is case-insensitive — `narration.ts` next to `Narration.tsx` breaks tsc (TS1261). Step 0 can't be snapped (`tour=0` = off): drive with `window.__tour.start(0)` in a fresh Playwright profile. Front view: VNC projects under the brain → its label goes right (RU phone falls back to below). Back-to-back `pnpm snap` can fail on port 5199 — kill the leftover vite.
