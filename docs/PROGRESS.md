@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-06 — 8.0b Remove sound
+Done: deleted `scene/sound.ts`, `scene/audio.ts`, `ui/Sound.tsx`, `tone` dep, Timeline speaker button + `M` key, palette item, `app.sound`, `sound.*` i18n; `continuous` (play-step test used by Captions) moved to `sim/feed.ts` + test. README / PRODUCT / article.ru cleaned; DECISIONS 2026-10-04 sound line marked superseded.
+State: no sound anywhere. Bundle `dist/assets` 2532 → 2304 KB (−228 KB, the lazy Tone chunk; first-frame size unchanged). 439 tests, typecheck, lint, smoke 7/7 green; snap escape t=40 RU/EN OK.
+Next: 8.1 feasibility in Node — `neuprint-scout` picks sensory groups + command neurons, headless `packages/sim` per input → table in `docs/TERRARIUM.md`, go / no-go.
+Gotchas: visual-qa noticed (pre-existing, not fixed): FlyCam dark backdrop edge cuts the brain silhouette at 1600; legend card truncates «Male C…». Reading `dist/` and `pnpm-lock.yaml` via Bash is permission-denied — measure with `du -sk`.
+
 ## 2026-10-06 — 8.0 FlyCam returns + phase 8 planned
 Done: `scene/behavior.ts` — the fly no longer waits for TTMn quiet: out of frame `AWAY_MS`=60 → new fly drops in (`drop`, `LAND_MS`=30) → stands ≥`HOLD_MS`=120 → may take off again; `FlyPose` + `firstJumpAt` / `jumps` / `drop`; FlyCam caption «взлёт 26,5 мс · ×3» (`flycam.takeoffs`); captions' jump beat reads `firstJumpAt`. Dev Tweakpane panel bottom-right, collapsed. Phase 8 (Simple mode, famous neurons, missions) written into PLAN.md; D/E/F → backlog "Phase 9 candidates".
 State: 7.7 hallway test done by the user — "more or less fine", phase 7 closed. 443 tests, typecheck, lint, smoke 7/7 green. Live check: panic rows stimulated non-stop → fly lands back and stays; repeats when TTMn burst ≥200 Hz.
@@ -23,9 +29,3 @@ Done: `ui/tour/narrationTiming.ts` `narrationAt` (3 lines × `LINE_MS`=2500, las
 State: 425 tests, typecheck, lint, smoke 6/6 green. visual-qa step 1 RU/EN 1600 + 390 and step 0 narration OK.
 Next: 7.5 tour UI — step card (count line moves into it), Skip, large FlyCam, cheat sheet, "?"; HUD fade back on step 4; phone card replaces ViewerBar; mute/hide captions during step 0 (baked loop plays under the narration).
 Gotchas: macOS is case-insensitive — `narration.ts` next to `Narration.tsx` breaks tsc (TS1261). Step 0 can't be snapped (`tour=0` = off): drive with `window.__tour.start(0)` in a fresh Playwright profile. Front view: VNC projects under the brain → its label goes right (RU phone falls back to below). Back-to-back `pnpm snap` can fail on port 5199 — kill the leftover vite.
-
-## 2026-10-05 — 7.3 Tour engine
-Done: `state/tour.ts` pure `tourNext` (0 narration → 1 see → 2 scare running/done → 3 break idle/running/done → 4 sheet → null; `next`/`again`/`ended`/`skip`), `startStep` (`?tour=0|1..4`, snap/seen/non-escape = off), `panicRows`, `TourStore` (effects on playback/experiment; `preparing`, `outcome`; seen in localStorage `fly_ui.tour`) + tests; `ui/tour/boot.ts` (start, DNp01 rows, step 0→1 at intro done, DEV `window.__tour`). `state/playback.ts` `once`/`ended`/`last`/`finish`/`restart({baked,paused})` (`restartReq`). `scene/playback.ts` play-once stops `HOLD_MS`=15 after the script's last beat (Narrator), else at `run`. `Stage.tsx`: Worker cached, `reaction(touched)` re-enters live, restart → live from rest / back to baked; `experiment.warmLive()` prefetches at step 2; `[sim] live switch: N ms` log.
-State: 414 tests, typecheck, lint, smoke 6/6 green. Measured (Playwright, localhost, M-series): scare run 4.3 s at ¼× (takeoff 29.7 ms); live switch 213 ms (CPU×4: 370–540 ms), with prewarm the step-3 wait is ~50 ms; broken run 11.6 s (noTakeoff due at 100 ms). No baked GF-silenced variant needed for CPU; network is the real cost (graph-full 38.4 MB + meta-full 3.5 MB ≈ 17 s at 20 Mbps) — covered by prewarm + `tour.preparing`.
-Next: 7.4 loading narration (`ui/tour/Narration.tsx`) + anatomy labels + count line; drive with `?tour=0..1` and `window.__tour`.
-Gotchas: the broken run spends ~7 s at ¼× after the GF-silent beat (15 ms) waiting for the 100 ms noTakeoff — consider speeding up after it in 7.5 (ask the user). CDP network throttling does not reach Worker fetches. Escape baked loop ≈ 360 ms sim (36 s at ¼×) — never play-once without `lastBeat`. Playwright `page.evaluate` with tsx: pass strings (esbuild `__name`).
