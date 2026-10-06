@@ -9,7 +9,6 @@ import { app } from '@/state/app';
 import { playback, playbackKey, SPEEDS } from '@/state/playback';
 import { ACCENT, TEXT } from '@/ui/palette';
 import { bandTop, paintCounts, type RasterGeom, rasterCounts, rasterHeight } from '@/ui/raster';
-import { toggleSound } from '@/ui/Sound';
 
 /** Band height and gap, CSS px. */
 const BAND_PX = 14;
@@ -49,10 +48,6 @@ export const Timeline = observer(function Timeline() {
       if (!e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) {
         if (hotkey(e) === 'd') {
           app.toggleDirector();
-          return;
-        }
-        if (hotkey(e) === 'm') {
-          toggleSound();
           return;
         }
       }
@@ -278,20 +273,6 @@ export const Timeline = observer(function Timeline() {
         <svg viewBox="0 0 16 16" aria-hidden className="size-3 fill-none stroke-current" strokeWidth={1.5}>
           <path d="M2 5.5V2h3.5M10.5 2H14v3.5M14 10.5V14h-3.5M5.5 14H2v-3.5" />
           <circle cx="8" cy="8" r="1.5" className="fill-current stroke-none" />
-        </svg>
-      </Button>
-      <Button
-        aria-label={tr('sound.label')}
-        aria-pressed={app.sound}
-        aria-keyshortcuts="M"
-        title={tr('sound.title')}
-        onClick={toggleSound}
-        className="size-6 shrink-0 rounded-full p-0 aria-pressed:bg-accent aria-pressed:text-bone"
-      >
-        {/* speaker; waves when on */}
-        <svg viewBox="0 0 16 16" aria-hidden className="size-3 fill-none stroke-current" strokeWidth={1.5}>
-          <path d="M2 6h2.5L8 3v10L4.5 10H2z" className="fill-current stroke-none" />
-          {app.sound ? <path d="M10.5 5.5a3.5 3.5 0 0 1 0 5" /> : <path d="M11 6.5l3 3M14 6.5l-3 3" />}
         </svg>
       </Button>
     </section>

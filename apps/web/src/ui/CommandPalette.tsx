@@ -7,7 +7,6 @@ import { findBodyIds, typeIndex } from '@/data/typeIndex';
 import { type Key, t, tOr } from '@/i18n';
 import { app } from '@/state/app';
 import { experiment, paletteKey } from '@/state/experiment';
-import { toggleSound } from '@/ui/Sound';
 import { shareExperiment } from '@/ui/share';
 import { scenarioTitle } from '@/ui/viewer';
 
@@ -108,18 +107,6 @@ export const CommandPalette = observer(function CommandPalette() {
           >
             <span className="flex-1">{t('follow.label')}</span>
             {app.director && <span className="text-caption text-mist">{t('palette.on')}</span>}
-          </Command.Item>
-          <Command.Item
-            value={t('sound.label')}
-            keywords={['audio', 'mute', 'clicks', 'song', 'sound']}
-            onSelect={() => {
-              toggleSound();
-              close();
-            }}
-            className={ITEM}
-          >
-            <span className="flex-1">{t('sound.label')}</span>
-            {app.sound && <span className="text-caption text-mist">{t('palette.on')}</span>}
           </Command.Item>
           <Command.Item
             value={t('palette.captions')}

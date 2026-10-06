@@ -16,7 +16,6 @@ import { LangSwitch } from '@/ui/LangSwitch';
 import { Legend } from '@/ui/Legend';
 import { NeuronTooltip } from '@/ui/NeuronTooltip';
 import { Scopes } from '@/ui/Scopes';
-import { Sound } from '@/ui/Sound';
 import { Stats } from '@/ui/Stats';
 import { Timeline } from '@/ui/Timeline';
 import { Toolbar } from '@/ui/Toolbar';
@@ -50,7 +49,6 @@ export const App = observer(function App() {
       <Inspector />
       {!touring && <Legend />}
       <FlyCam />
-      <Sound />
       <CommandPalette />
       {/* phone = viewer without tools (PRODUCT.md); above the attribution row */}
       {!broken && (

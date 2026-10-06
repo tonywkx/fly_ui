@@ -66,8 +66,6 @@ export const ru = {
   'timeline.live': 'вживую',
   'follow.label': 'Следить за активностью',
   'follow.title': 'Следить за активностью (D)',
-  'sound.label': 'Звук',
-  'sound.title': 'Звук (M)',
 
   // neuron facts (inspector, tooltip)
   'neuron.untyped': 'без типа',

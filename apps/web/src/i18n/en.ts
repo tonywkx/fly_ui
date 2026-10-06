@@ -60,8 +60,6 @@ export const en: Shape<typeof ru> = {
   'timeline.live': 'live',
   'follow.label': 'Follow the activity',
   'follow.title': 'Follow the activity (D)',
-  'sound.label': 'Sound',
-  'sound.title': 'Sound (M)',
 
   'neuron.untyped': 'untyped',
   'neuron.ntUnknown': 'unknown transmitter',
