@@ -10,7 +10,8 @@
     "cloud": "tsx src/cloud.ts",
     "neuropil": "tsx src/neuropil.ts",
     "graph": "tsx src/graph.ts",
-    "explore:gf": "tsx src/explore/gfRoute.ts"
+    "explore:gf": "tsx src/explore/gfRoute.ts",
+    "explore:terrarium": "tsx src/explore/terrarium.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",
