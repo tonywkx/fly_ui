@@ -81,6 +81,9 @@ test('phone viewer bar links the scenarios', async ({ page }) => {
 
 // Pills only (prod build, no `window.__tour`); step 3 switches to the live sim with DNp01 silenced.
 test('tour completes', async ({ page }) => {
+  // the tour plays its runs at ¼× in wall time, and a frame advances the clock by ≤ MAX_FRAME_MS:
+  // under SwiftShader a frame takes seconds, so the runs stretch to minutes
+  test.skip(!!process.env.CI, 'wall-time playback; too slow without a GPU');
   test.setTimeout(120_000);
   const { errors } = watch(page);
   await page.goto(url({ scenario: 'escape', tour: '1' }));
