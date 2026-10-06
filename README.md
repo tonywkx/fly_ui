@@ -31,7 +31,7 @@ Tools (each has a hotkey):
 - **Trace** `T` — strongest synaptic paths between two cell types, drawn through the brain.
 - **Share** — the whole experiment (stimuli, silencing, probes) is encoded in the URL.
 
-Timeline with a spike raster by region (optic lobes / central brain / descending / nerve cord): `Space` play, `,` `.` step, `[` `]` slow-mo. `D` director camera that follows the activity front, `C` colour mode (transmitter / region / class / male-specific), `M` sound — spike clicks and synthesized courtship song (off by default). `?sim=live` swaps the pre-baked runs for the live full-graph simulation in a Worker, so your own stimuli and silencing play out in real time.
+Timeline with a spike raster by region (optic lobes / central brain / descending / nerve cord): `Space` play, `,` `.` step, `[` `]` slow-mo. `D` director camera that follows the activity front, `C` colour mode (transmitter / region / class / male-specific). `?sim=live` swaps the pre-baked runs for the live full-graph simulation in a Worker, so your own stimuli and silencing play out in real time.
 
 ## How it works
 

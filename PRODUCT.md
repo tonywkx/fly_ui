@@ -4,7 +4,7 @@
 web (desktop-first; mobile = simplified scenario viewer without tools)
 
 ## Stack
-Vite, React 19, MobX, three.js WebGPURenderer + TSL (WebGL2 fallback), Tailwind v4 + shadcn/ui (Radix), motion/react for UI, GSAP for camera, cmdk, uPlot, custom canvas raster, Tone.js. Static deploy to GitHub Pages.
+Vite, React 19, MobX, three.js WebGPURenderer + TSL (WebGL2 fallback), Tailwind v4 + shadcn/ui (Radix), motion/react for UI, GSAP for camera, cmdk, uPlot, custom canvas raster. Static deploy to GitHub Pages.
 
 ## Users
 Curious technical people (devs, designers, science fans) arriving from a video/post; secondarily neuroscience students and researchers who want to poke a real connectome. Inferred: most first visits are on a laptop, 1–3 minutes long.
