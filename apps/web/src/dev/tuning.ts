@@ -27,11 +27,17 @@ function diff(v: Values): Tuning {
   return Object.fromEntries(Object.entries(v).filter(([k, x]) => base[k as keyof Values] !== x));
 }
 
-/** Dev-only sim param panel (Tweakpane, top right); a released slider restarts the scenario. Returns dispose. */
+/**
+ * Dev-only sim param panel (Tweakpane, bottom right, collapsed: the FlyCam owns the top right);
+ * a released slider restarts the scenario. Returns dispose.
+ */
 export function mountTuning(host: TuningHost): () => void {
   const v = defaults();
   const mon = { speed: 0 };
-  const pane = new Pane({ title: 'sim' });
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;right:16px;bottom:64px;z-index:50;width:280px';
+  document.body.appendChild(box);
+  const pane = new Pane({ title: 'sim', expanded: false, container: box });
   let muted = false;
 
   const lif = pane.addFolder({ title: 'LIF (mV, ms)' });
@@ -72,5 +78,6 @@ export function mountTuning(host: TuningHost): () => void {
   return () => {
     clearInterval(timer);
     pane.dispose();
+    box.remove();
   };
 }
