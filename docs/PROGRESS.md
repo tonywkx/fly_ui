@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-06 — 8.0 FlyCam returns + phase 8 planned
+Done: `scene/behavior.ts` — the fly no longer waits for TTMn quiet: out of frame `AWAY_MS`=60 → new fly drops in (`drop`, `LAND_MS`=30) → stands ≥`HOLD_MS`=120 → may take off again; `FlyPose` + `firstJumpAt` / `jumps` / `drop`; FlyCam caption «взлёт 26,5 мс · ×3» (`flycam.takeoffs`); captions' jump beat reads `firstJumpAt`. Dev Tweakpane panel bottom-right, collapsed. Phase 8 (Simple mode, famous neurons, missions) written into PLAN.md; D/E/F → backlog "Phase 9 candidates".
+State: 443 tests, typecheck, lint, smoke 7/7 green. Live check: panic rows stimulated non-stop → fly lands back and stays; repeats when TTMn burst ≥200 Hz.
+Next: 8.1 shape — Simple vs Scientist mode, neuron card, missions: RU/EN copy + wireframes, user approves before code.
+Gotchas: baked escape loop now shows a 2nd takeoff (×2) — the TTMn burst again after the fly is back (was hidden by the old quiet rule); tour play-once stops before it. Driving live from Playwright (dev): `await import('/src/data/store.ts')` / `'/src/state/tour.ts'` share the app's module instances; `__tour.panic` is empty unless the tour is active.
+
 ## 2026-10-06 — 7.6 Tour QA
 Done: smoke `tour completes` (`e2e/smoke.spec.ts`, pills via `dispatchEvent`, prod build). `lib/keys.ts` `hotkey()` — hotkeys by `e.code` on non-latin layouts (RU «м» → V; AZERTY untouched), used by `keyAction`/`paletteKey`/`playbackKey`/Timeline d,m. TourCard: Esc skips (steps 1–3) / closes sheet (4), focus handed to the new pill on content swap, persistent sr-only `role=status`, phone Skip 44 px. Phone "?" moved beside the wordmark (ViewerBar had no room for «Сахар»). `scene/inset.ts` `sceneInset`/`insetView` + engine `ease`/`project`: while the big FlyCam is up (desktop) the projection (`setViewOffset`) fits the whole frame left of it; FlyCam writes the inset. Copy: plainer step 3, «Заглушить» for the X tool (toolbar too), synced in `docs/TOUR.md`.
 State: 441 tests, typecheck, lint, smoke 7/7 green. Full snap set RU/EN 1600/390 in `snaps/tour/` (driver: Playwright + `window.__tour`, dev server 5199).
@@ -23,9 +29,3 @@ Done: `state/tour.ts` pure `tourNext` (0 narration → 1 see → 2 scare running
 State: 414 tests, typecheck, lint, smoke 6/6 green. Measured (Playwright, localhost, M-series): scare run 4.3 s at ¼× (takeoff 29.7 ms); live switch 213 ms (CPU×4: 370–540 ms), with prewarm the step-3 wait is ~50 ms; broken run 11.6 s (noTakeoff due at 100 ms). No baked GF-silenced variant needed for CPU; network is the real cost (graph-full 38.4 MB + meta-full 3.5 MB ≈ 17 s at 20 Mbps) — covered by prewarm + `tour.preparing`.
 Next: 7.4 loading narration (`ui/tour/Narration.tsx`) + anatomy labels + count line; drive with `?tour=0..1` and `window.__tour`.
 Gotchas: the broken run spends ~7 s at ¼× after the GF-silent beat (15 ms) waiting for the 100 ms noTakeoff — consider speeding up after it in 7.5 (ask the user). CDP network throttling does not reach Worker fetches. Escape baked loop ≈ 360 ms sim (36 s at ¼×) — never play-once without `lastBeat`. Playwright `page.evaluate` with tsx: pass strings (esbuild `__name`).
-
-## 2026-10-05 — 7.2 Plain-language captions
-Done: `scene/captions.ts` `Beat.term` / `missing.term` / `CaptionEvent.term` (dataset name, untranslated) + test; `cap.*` RU/EN rewritten from TOUR.md; `ui/Captions.tsx` suffix `· <term>`, else `· <t> ms` for body beats, none for a missed body beat. Removed `ui/IntroHint.tsx`, `hint.escape`, app `hint*` state, `intro.ts` `hint`/`hintDelayMs`; `Stage.tsx` runs `afterIntro` right at `phase === 'done'`.
-State: 397 tests, typecheck, lint, smoke 6/6 green. visual-qa escape t=5/40 EN 1600, RU 390, sugar RU OK.
-Next: 7.3 tour engine — `state/tour.ts` step machine + `?tour=`, play-once in `state/playback.ts`, DNp01-silence preset → live sim; measure the live switch time.
-Gotchas: `app.setIntro(phase)` now takes only the phase. visual-qa can misread Cyrillic «мс» as «ms» in the mono suffix — crop and look before "fixing".
