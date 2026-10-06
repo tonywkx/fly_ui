@@ -182,6 +182,7 @@ export const ru = {
   'flycam.title': 'Поведение',
   'flycam.rest': 'покой',
   'flycam.takeoff': 'взлёт {ms} мс',
+  'flycam.takeoffs': 'взлёт {ms} мс · ×{n}',
   'flycam.proboscis': 'хоботок выдвинут',
   'flycam.wing': 'песня крылом',
 

@@ -60,6 +60,35 @@ describe('Behavior', () => {
     expect(b.update(log(s.t, s.row), 500)).toMatchObject({ jumpAt: null, lift: 0 });
   });
 
+  it('comes back after a while out of frame even under drive, then takes off again', () => {
+    const s = train(0, 8, 250, 4); // 250 Hz for 1 s
+    const l = log(s.t, s.row, 2000);
+    const b = new Behavior(mask);
+    const first = b.update(l, 50);
+    expect(first.jumps).toBe(1);
+    const at = first.jumpAt as number;
+    expect(first.firstJumpAt).toBe(at);
+    // out of frame, then a new fly lands and stands a moment while the TTMn still fire…
+    const standing = b.update(l, at + 200);
+    expect(standing).toMatchObject({ jumpAt: null, lift: 0, jumps: 1 });
+    // …then it is off again
+    const again = b.update(l, 600);
+    expect(again.jumps).toBeGreaterThanOrEqual(2);
+    expect(again.jumpAt).toBeGreaterThan(at + 200);
+    expect(again.firstJumpAt).toBe(at);
+  });
+
+  it('a returning fly drops in from above', () => {
+    const s = train(0, 8, 20, 4);
+    const l = log(s.t, s.row);
+    const b = new Behavior(mask);
+    const at = b.update(l, 50).jumpAt as number;
+    const back = b.update(l, at + 125);
+    expect(back).toMatchObject({ jumpAt: null, lift: 0, jumps: 1 });
+    expect(back.drop).toBeGreaterThan(0);
+    expect(b.update(l, at + 300).drop).toBe(0);
+  });
+
   it('does not jump on a lone TTMn spike', () => {
     const b = new Behavior(mask);
     expect(b.update(log([10], [0]), 30).jumpAt).toBeNull();

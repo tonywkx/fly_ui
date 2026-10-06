@@ -17,7 +17,11 @@ const INSET_GAP = 16;
 /** What the fly is doing; empty at rest. */
 function caption(p: FlyPose): string {
   const parts: string[] = [];
-  if (p.jumpAt !== null) parts.push(t('flycam.takeoff', { ms: num(p.jumpAt, undefined, 1) }));
+  // the run's escape latency; repeat escapes under steady drive are counted
+  if (p.firstJumpAt !== null) {
+    const ms = num(p.firstJumpAt, undefined, 1);
+    parts.push(p.jumps > 1 ? t('flycam.takeoffs', { ms, n: p.jumps }) : t('flycam.takeoff', { ms }));
+  }
   if (p.proboscis > SHOWN) parts.push(t('flycam.proboscis'));
   if (p.wing > SHOWN) parts.push(t('flycam.wing'));
   return parts.join(' · ');

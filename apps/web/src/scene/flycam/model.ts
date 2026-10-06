@@ -36,6 +36,8 @@ const PUSH = 0.12;
 const PUSH_RISE = 0.3;
 /** Flight path (body units / rad) over the whole flight part of the jump. */
 const FLIGHT = { up: 5, forward: 1.6, pitch: 0.6, roll: 1.2 };
+/** A new fly is set down from this high (body units). */
+const DROP = 1.5;
 /** Proboscis: folded back under the head … pointing forward-down at the food, and its length. */
 const PROBOSCIS = { fold: -0.95, out: 0.35, len0: 0.7, len1: 1.25 };
 /** Far wing yaw: folded over the abdomen … held out to the side (song, up the frame); flick lifts the tip. */
@@ -181,14 +183,25 @@ export class FlyModel {
     );
     this.shadow.position.set(-0.2, 0.001, 0);
     this.root.add(this.shadow, this.body);
-    this.pose({ jumpAt: null, lift: 0, proboscis: 0, wing: 0, flick: 0 });
+    this.pose({
+      jumpAt: null,
+      firstJumpAt: null,
+      jumps: 0,
+      lift: 0,
+      drop: 0,
+      proboscis: 0,
+      wing: 0,
+      flick: 0,
+    });
   }
 
   pose(p: FlyPose): void {
     const push = Math.min(1, p.lift / PUSH);
     const fly = Math.max(0, (p.lift - PUSH) / (1 - PUSH));
     const b = this.body;
-    b.position.set(FLIGHT.forward * fly, STAND + PUSH_RISE * push + FLIGHT.up * fly, 0);
+    // ease-in fall: slow at the top, lands with a little speed
+    const drop = DROP * p.drop * p.drop;
+    b.position.set(FLIGHT.forward * fly, STAND + PUSH_RISE * push + FLIGHT.up * fly + drop, 0);
     b.rotation.set(FLIGHT.roll * fly, 0, FLIGHT.pitch * fly);
     b.visible = p.lift < 1;
     this.shadow.scale.setScalar(1 / (1 + b.position.y));

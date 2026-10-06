@@ -169,6 +169,7 @@ export const en: Shape<typeof ru> = {
   'flycam.title': 'Behaviour',
   'flycam.rest': 'at rest',
   'flycam.takeoff': 'takeoff {ms} ms',
+  'flycam.takeoffs': 'takeoff {ms} ms · ×{n}',
   'flycam.proboscis': 'proboscis out',
   'flycam.wing': 'wing song',
 

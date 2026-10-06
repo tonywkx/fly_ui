@@ -21,7 +21,16 @@ const beats: Beat[] = [
 ];
 const mask = beatMask(meta, beats);
 
-const rest: FlyPose = { jumpAt: null, lift: 0, proboscis: 0, wing: 0, flick: 0 };
+const rest: FlyPose = {
+  jumpAt: null,
+  firstJumpAt: null,
+  jumps: 0,
+  lift: 0,
+  drop: 0,
+  proboscis: 0,
+  wing: 0,
+  flick: 0,
+};
 /** Body that never moves. */
 const still = { update: () => rest };
 /** Proboscis out from `from` ms on; records the times it was read at. */
@@ -92,7 +101,7 @@ describe('Narrator', () => {
   });
 
   it('takes the jump beat at the takeoff time', () => {
-    const body = { update: () => ({ ...rest, jumpAt: 29.5 }) };
+    const body = { update: () => ({ ...rest, jumpAt: 29.5, firstJumpAt: 29.5, jumps: 1 }) };
     const n = new Narrator(beats, mask, body);
     n.update(log([0.25], [0]), 40);
     expect(n.events.at(-1)).toMatchObject({ text: 'takeoff', at: 29.5, missed: false });

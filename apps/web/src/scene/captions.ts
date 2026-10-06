@@ -118,7 +118,7 @@ export const POSE_STEP_MS = 0.5;
 
 /** Sim time a pose beat is reached at, or null (rates have no onset spike: the read time `t`). */
 function poseAt(pose: FlyPose, part: 'jump' | 'proboscis' | 'wing', t: number): number | null {
-  if (part === 'jump') return pose.jumpAt;
+  if (part === 'jump') return pose.firstJumpAt;
   return pose[part] > SHOWN ? t : null;
 }
 

@@ -19,9 +19,15 @@ const TAU = { jump: 20, proboscis: 40, wing: 50 };
  * at ≈30 ms (peak ≈290); Giant Fiber silenced: a brief TTMn burst peaks at ≈176 (live) → no jump.
  */
 const JUMP_HZ = 200;
-/** Below this the TTMn are quiet; quiet for `REARM_MS` after landing → the fly is back. */
-const REARM_HZ = 20;
-const REARM_MS = 150;
+/**
+ * Out of frame this long (sim ms) → a new fly is set down, whatever the TTMn do: under steady
+ * drive it takes off again (repeat escapes), never an empty frame.
+ */
+const AWAY_MS = 60;
+/** The new fly drops in from above over this long, sim ms. */
+const LAND_MS = 30;
+/** …and stands at least this long (sim ms) before it can take off again: the frame is mostly fly. */
+const HOLD_MS = 120;
 /** Takeoff to out of frame, sim ms (the camera is high-speed: sim time, not wall time). */
 const JUMP_MS = 60;
 /** Rate (Hz) of full extension. */
@@ -34,10 +40,16 @@ const FLICK_MS = 3;
 export const SHOWN = 0.2;
 
 export interface FlyPose {
-  /** Sim time of takeoff, null while standing. */
+  /** Sim time of the current takeoff, null while standing. */
   jumpAt: number | null;
+  /** Sim time of the first takeoff of the run (the escape latency), null before it. */
+  firstJumpAt: number | null;
+  /** Takeoffs so far in the run. */
+  jumps: number;
   /** 0 standing … 1 out of frame. */
   lift: number;
+  /** 1 a new fly just set down above its spot … 0 landed. */
+  drop: number;
   /** 0 retracted … 1 extended. */
   proboscis: number;
   /** 0 folded … 1 held out (song). */
@@ -90,12 +102,6 @@ class Kernel {
   hz(t: number, n: number): number {
     return n ? (this.value(t) / (n * this.tau)) * 1000 : 0;
   }
-
-  /** When the rate fell (or will fall) below `hz`, given no further spikes. */
-  below(hz: number, n: number): number {
-    const thr = (hz * n * this.tau) / 1000;
-    return this.s > thr ? this.at + this.tau * Math.log(this.s / thr) : this.at;
-  }
 }
 
 /**
@@ -110,6 +116,10 @@ export class Behavior {
   private wing = new Kernel(TAU.wing);
   private lastWing = Number.NEGATIVE_INFINITY;
   private jumpAt: number | null = null;
+  private firstJumpAt: number | null = null;
+  private jumps = 0;
+  /** When the last new fly was set down. */
+  private backAt = Number.NEGATIVE_INFINITY;
   /** Events up to here are in; −∞ = nothing yet (the log holds only what is replayable). */
   private t = Number.NEGATIVE_INFINITY;
 
@@ -136,7 +146,8 @@ export class Behavior {
       if (e === EFFECTOR.jump) {
         this.rearm(ti);
         this.jump.add(ti);
-        if (this.jumpAt === null && this.jump.hz(ti, this.n[e] ?? 0) >= JUMP_HZ) this.jumpAt = ti;
+        const ready = this.jumpAt === null && ti >= this.backAt + LAND_MS + HOLD_MS;
+        if (ready && this.jump.hz(ti, this.n[e] ?? 0) >= JUMP_HZ) this.takeoff(ti);
       } else if (e === EFFECTOR.proboscis) this.proboscis.add(ti);
       else {
         this.wing.add(ti);
@@ -149,18 +160,29 @@ export class Behavior {
     const lift = this.jumpAt === null ? 0 : Math.min(1, (t - this.jumpAt) / JUMP_MS);
     return {
       jumpAt: this.jumpAt,
+      firstJumpAt: this.firstJumpAt,
+      jumps: this.jumps,
       lift,
+      drop: Math.max(0, 1 - (t - this.backAt) / LAND_MS),
       proboscis: Math.min(1, this.proboscis.hz(t, this.n[EFFECTOR.proboscis] ?? 0) / PROBOSCIS_HZ),
       wing: Math.min(1, this.wing.hz(t, this.n[EFFECTOR.wing] ?? 0) / WING_HZ),
       flick: Math.exp(-(t - this.lastWing) / FLICK_MS),
     };
   }
 
-  /** Landed out of frame and the TTMn have been quiet long enough → standing again. */
+  private takeoff(t: number) {
+    this.jumpAt = t;
+    this.firstJumpAt ??= t;
+    this.jumps++;
+  }
+
+  /** Out of frame long enough → a new fly is standing there. */
   private rearm(t: number) {
-    if (this.jumpAt === null || t < this.jumpAt + JUMP_MS) return;
-    const quiet = this.jump.below(REARM_HZ, this.n[EFFECTOR.jump] ?? 0);
-    if (t - Math.max(quiet, this.jumpAt + JUMP_MS) >= REARM_MS) this.jumpAt = null;
+    if (this.jumpAt === null) return;
+    const back = this.jumpAt + JUMP_MS + AWAY_MS;
+    if (t < back) return;
+    this.jumpAt = null;
+    this.backAt = back;
   }
 
   private reset() {
@@ -169,6 +191,9 @@ export class Behavior {
     this.wing = new Kernel(TAU.wing);
     this.lastWing = Number.NEGATIVE_INFINITY;
     this.jumpAt = null;
+    this.firstJumpAt = null;
+    this.jumps = 0;
+    this.backAt = Number.NEGATIVE_INFINITY;
     this.t = Number.NEGATIVE_INFINITY;
   }
 }
