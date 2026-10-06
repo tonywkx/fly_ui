@@ -3,7 +3,7 @@
 ## 2026-10-06 — 8.0 FlyCam returns + phase 8 planned
 Done: `scene/behavior.ts` — the fly no longer waits for TTMn quiet: out of frame `AWAY_MS`=60 → new fly drops in (`drop`, `LAND_MS`=30) → stands ≥`HOLD_MS`=120 → may take off again; `FlyPose` + `firstJumpAt` / `jumps` / `drop`; FlyCam caption «взлёт 26,5 мс · ×3» (`flycam.takeoffs`); captions' jump beat reads `firstJumpAt`. Dev Tweakpane panel bottom-right, collapsed. Phase 8 (Simple mode, famous neurons, missions) written into PLAN.md; D/E/F → backlog "Phase 9 candidates".
 State: 7.7 hallway test done by the user — "more or less fine", phase 7 closed. 443 tests, typecheck, lint, smoke 7/7 green. Live check: panic rows stimulated non-stop → fly lands back and stays; repeats when TTMn burst ≥200 Hz.
-Next: 8.1 shape — Simple vs Scientist mode, neuron card, missions: RU/EN copy + wireframes, user approves before code.
+Next: 8.0b remove sound everywhere, then 8.1 feasibility in Node (Terrarium go / no-go). Phase 8 was re-planned as the Terrarium (see PLAN.md, DECISIONS.md).
 Gotchas: baked escape loop now shows a 2nd takeoff (×2) — the TTMn burst again after the fly is back (was hidden by the old quiet rule); tour play-once stops before it. Driving live from Playwright (dev): `await import('/src/data/store.ts')` / `'/src/state/tour.ts'` share the app's module instances; `__tour.panic` is empty unless the tour is active.
 
 ## 2026-10-06 — 7.6 Tour QA

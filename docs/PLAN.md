@@ -94,19 +94,34 @@ First-visit tour (escape only): (0) narration over the dust while loading — "t
 - [x] 7.7 Hallway test with 3–5 non-scientists (do they know what they see after the tour?) — user-run; fix what they trip on.
 Done when: a first visit on desktop and phone walks through the tour in Russian, English is complete via the switch, and smoke is green.
 
-## Phase 8 — Pop-sci layer (≈2 weeks)
-Goal: an ordinary visitor (not a scientist) knows what to do after the tour and has a reason to stay. Default UI speaks plain language; the instrument stays one switch away. Done when: a first visit lands in Simple mode, every hovered "famous" neuron explains itself in one human sentence, and at least 3 missions can be completed on desktop and phone, RU + EN, smoke green.
+## Phase 8 — Terrarium (≈3–5 weeks)
+Goal: the hallway test showed "switch a neuron off" changes nothing visible — no wow. The Terrarium: a glass Petri dish floating in the void where a glass fly lives on the real connectome. The visitor places things (sugar, bitter, banana odor, shadow, swatter, a female) and operates on the brain; behaviour visibly changes ("panic neuron off → the swatter lands"). Same visual language as the brain view (void, glass, glowing dots, bloom). No sound anywhere. Done when: on desktop a visitor can place items, run the 4 surgeon operations and see each change the fly's behaviour, RU + EN, smoke green; phone has a working fallback.
 - [x] 8.0 FlyCam: the fly always returns (`AWAY_MS` out of frame, drops in, `HOLD_MS` standing, then may take off again under drive), caption counts takeoffs; dev sim panel bottom-right, collapsed.
-- [ ] 8.1 Shape: Simple vs Scientist mode (what is hidden / renamed), neuron card, mission panel + success moment — RU/EN copy + wireframes (1600, 390) via `impeccable` shape; user approves before code. **[S]** **[UI]**
-- [ ] 8.2 Simple mode: `app.mode: 'simple' | 'pro'` (MobX, `?mode=`, localStorage try/catch, default simple; smoke/snap/film pin `mode=pro`). Simple hides the raster bands, colorBy legend (→ "what glows" by body part: eyes / brain / nerve cord), stim Hz/gain, Electrode + Trace; tools become "Wake up" (S) / "Switch off" (X); switch in the HUD; tour step 4 sheet follows the mode. **[T]** **[V]** **[UI]**
-- [ ] 8.3 Famous neurons, data: `apps/web/src/content/famous.ts` — 15–20 cell types (escape: LC4, LPLC2, DNp01, TTMn; sugar: sugar GRNs, MN9; song: P1, pIP10, vPR…) → RU/EN plain name, one-line role, one fact, scenario; verify every type exists in male-cns via `neuprint-scout`; pure lookup by type + test. **[T]**
-- [ ] 8.4 Famous neurons, UI: hover tooltip + Inspector lead with the plain name/role (type code as mono suffix, like captions); "find me" pins on the brain for the current scenario's famous neurons (DOM labels, positions in `engine.onFrame`, as `AnatomyLabels`); famous names searchable in ⌘K. **[V]** **[UI]**
-- [ ] 8.5 Missions engine: `state/missions.ts` pure goal predicates over `FlyPose` + experiment state (e.g. "make the fly take off with no shadow" = jump in the Song run via Wake up; "make it eat" = proboscis via Wake up; "break the song" = no wing song after Switch off), progress + done set in localStorage; check first whether live runs can drop the scenario input — else phrase goals around runs without it. **[T]**
-- [ ] 8.6 Missions UI: mission list (from tour step 4 and a HUD button), active mission card with a hint ladder (nudge → which neuron → highlight it), success moment (FlyCam + card, motion ≤200 ms, motion-reduce = opacity), phone variant. **[V]** **[UI]**
-- [ ] 8.7 QA: visual-qa RU/EN 1600/390 of Simple mode, cards, missions; ui-critic; smoke: Simple-mode load + one mission completes. **[V]** **[UI]**
+- [ ] 8.0b Remove sound everywhere: Tone.js dep, `scene/sound.ts` / `scene/audio.ts`, `ui/Sound.tsx`, Timeline sound button + `m` key, i18n strings, README mentions. Tests + smoke green; note the bundle drop.
+
+Stage 1 — MVP wow (desktop):
+- [ ] 8.1 Feasibility in Node (go / no-go): `neuprint-scout` picks sensory groups (sugar GRNs Gr5a, bitter Gr66a, odor ORNs L/R, LC4/LPLC2 per side, female cues, grooming mechanosensors) and command neurons (DNp01, MDN, turning DNs L/R, walking, grooming, MN9, P1). A script runs `packages/sim` headless per input → table "input → command neurons → behaviour" in `docs/TERRARIUM.md`. Decide odor steering: if it doesn't emerge, the fly wanders on its own (labelled simplification) and the connectome decides at encounters. **[T]**
+- [ ] 8.2 Shape: dish look, items, trail, brain hologram, item palette, operation card, RU/EN copy, wireframes 1600/390; where the Terrarium lives (own view vs home) and how a newcomer gets there (tour → Terrarium). User approves before code. **[S]** **[UI]**
+- [ ] 8.3 Bridge world ↔ brain (pure + tests): world → per-side rates of sensory groups; command neurons → action (forward, turn, back, stop, eat, groom, jump, court); live Worker API for time-varying input (`lif.ts` `stimulate(i, hz, gain)` per tick); row groups via `packages/data` if a format change is needed. **[T]**
+- [ ] 8.4 World model (pure, deterministic, tests): 2D fly kinematics; items (sugar, bitter, odor plume field, shadow, swatter, wandering female); contact + sensing. **[T]**
+- [ ] 8.5 Dish scene (three.js): glass dish in the void, camera 35–45°; glass fly (reuse `scene/flycam/model.ts`) with tripod gait; light trail coloured by state; items as glowing specimens (saffron crystals, acid drop, drifting particle plume); "×1/6 · high-speed camera" timecode; closed loop with the live sim. **[V]**
+- [ ] 8.6 Placement: item palette, drag / remove / reset; tap on phones. **[V]** **[UI]**
+- [ ] 8.7 Neurosurgeon: 4 operations — panic neuron off → no escape from the swatter; MDN on → moonwalk; sugar GRNs off → won't eat; P1 off → ignores the female; famous-neuron cards (plain name, role, fact); before/after verdict; mark on the fly's body. **[V]** **[UI]**
+- [ ] 8.8 Brain hologram + decision thread: the brain floats above the fly and follows it; on a decision a thread of light runs sense organ → path (from `sim/trace.ts`) → legs. **[V]**
+- [ ] 8.9 "From fly to neuron" zoom: click the fly → one continuous camera flight into its head → full brain view → operate → back to the dish. **[V]**
+
+Stage 2 — deeper:
+- [ ] 8.10 Odor navigation (only if 8.1 allows; else drop).
+- [ ] 8.11 "Why did she do that?" — explanation card for the last decision. **[UI]**
+- [ ] 8.12 Puzzle levels (3–5) with a hint ladder and a success moment. **[V]** **[UI]**
+- [ ] 8.13 Puppet mode: arrow keys → command neurons.
+- [ ] 8.14 Phone: tabbed layout; if the live brain is too slow → baked clips instead of the live dish. Simple / Scientist mode on the home view if still needed after the Terrarium. **[V]** **[UI]**
+
+Stage 3 — release:
+- [ ] 8.15 Perf (live sim + dish, 60 fps at "high"), visual-qa RU/EN 1600/390, ui-critic, smoke "Terrarium loads + an operation changes behaviour", clip for the video. **[V]** **[UI]**
 
 ## Backlog / spin-offs (not scheduled)
-- Phase 9 candidates (pop-sci, deeper): fly-first layout (big fly, brain as "what happens inside"); sensory actions instead of neuron poking ("Show a shadow", "Give sugar", "Show a female" — the deferred "Poke the fly"); 3-step mini tours for Sugar and Song.
+- Phase 9 candidates: fly-first home layout (big fly, brain as "what happens inside"); 3-step mini tours for Sugar and Song. (Simple mode + missions of the old phase 8 are absorbed by 8.7 / 8.12 / 8.14.)
 - Tablet widths (768–1151 px): the open Inspector still overlaps the tool stack (the stack only shifts aside from 72rem). Make the Inspector a bottom sheet there, or show tools from `lg` up.
 - Dust close-up: sprites are sized in µm, so at deep zoom they become big discs that clutter the view (seen in a live recording). Clamp on-screen size and fade dust near the camera.
 - Cheap dense dust: lod1/lod2 (+900k sprites) halve fps on M4 whatever the pixel ratio (primitive-bound instanced quads). Try one triangle per sprite, native 1 px points, or a baked density volume; then raise `QUALITY.high.dustTiers` (`apps/web/src/scene/quality.ts`).
