@@ -91,7 +91,7 @@ First-visit tour (escape only): (0) narration over the dust while loading — "t
 - [x] 7.4 Loading narration (`ui/tour/Narration.tsx`, timed from `app.introPhase` / `introTimeline`) + anatomy labels (`ui/tour/AnatomyLabels.tsx`: anchors = centres of `CentralBrain` / `OpticL/R` / `VNC` shells, DOM positions written in `engine.onFrame`, no React state per frame) + "N glowing of 176,000" line. **[V]**
 - [x] 7.5 Tour UI: step card (one violet pill per view, rest ghost), Skip, large FlyCam during the tour, final cheat sheet, "?" button; motion per the HUD rule (`starting:` ≤200 ms, motion-reduce = opacity only); phone variant in the ViewerBar layout (no tools). **[V]** **[UI]**
 - [x] 7.6 QA: visual-qa snaps of every step RU + EN at 1600 and 390; ui-critic on the tour; smoke: `tour=0` keeps existing tests unblocked + one "tour completes" test. **[V]** **[UI]**
-- [ ] 7.7 Hallway test with 3–5 non-scientists (do they know what they see after the tour?) — user-run; fix what they trip on.
+- [x] 7.7 Hallway test with 3–5 non-scientists (do they know what they see after the tour?) — user-run; fix what they trip on.
 Done when: a first visit on desktop and phone walks through the tour in Russian, English is complete via the switch, and smoke is green.
 
 ## Phase 8 — Pop-sci layer (≈2 weeks)
