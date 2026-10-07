@@ -7,7 +7,9 @@ import { type Key, num, t } from '@/i18n';
 import type { DishRun, DishStatus } from '@/scene/dish/run';
 import { QUALITY } from '@/scene/quality';
 import { app } from '@/state/app';
+import { dish } from '@/state/dish';
 import { Credit } from './Credit';
+import { DishOps } from './DishOps';
 import { DishPalette } from './DishPalette';
 import { LangSwitch } from './LangSwitch';
 import { ViewSwitch } from './ViewSwitch';
@@ -46,7 +48,11 @@ export const Dish = observer(function Dish() {
       app.markReady('frame');
       return;
     }
-    const { snap, t: until, items, gl } = app.params;
+    const { snap, t: until, items, ops, gl } = app.params;
+    if (ops?.[0]) {
+      dish.setOps(ops);
+      dish.setOpen(ops[0]);
+    }
     if (snap) app.waitFor('sim');
     let disposed = false;
     let dispose = () => {};
@@ -59,6 +65,8 @@ export const Dish = observer(function Dish() {
         metaUrl: data.url(meta),
         until: snap ? (until ?? 0) : undefined,
         onReady: () => app.markReady('sim'),
+        onCells: (n) => dish.setCells(n),
+        onVerdict: (op, o) => dish.setNow(op, o),
         onStatus: (s) => {
           const text = timecode(s);
           if (line.current && line.current.textContent !== text) line.current.textContent = text;
@@ -76,8 +84,14 @@ export const Dish = observer(function Dish() {
         () => app.quality,
         (q) => run.applyQuality(QUALITY[q]),
       );
+      const surgery = reaction(
+        () => [...dish.ops],
+        (on) => run.setOps(on),
+        { fireImmediately: true },
+      );
       dispose = () => {
         quality();
+        surgery();
         run.dispose();
         setRun(null);
       };
@@ -119,6 +133,7 @@ export const Dish = observer(function Dish() {
         ×
       </Button>
       {run && <DishPalette input={run.input} />}
+      {run && <DishOps />}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-1 p-4 md:flex-row md:items-end md:justify-between md:p-8">
         <div className="flex items-center justify-between md:block">
           <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
