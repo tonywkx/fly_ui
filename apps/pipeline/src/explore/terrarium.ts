@@ -6,8 +6,10 @@ import { clientFromEnv } from '../neuprint/fromEnv';
 import { firstSpike } from '../process/drive';
 import { buildGraph, orderNeurons, toRecord } from '../process/graph';
 import { buildNet } from '../process/spikes';
+import { runBridge } from './bridge';
 
 // 8.1 Terrarium feasibility: sensory input → command neurons (rate, L/R), surgeon operations. Prints markdown.
+// --bridge: 8.3 closed-loop calibration of the bridge thresholds instead.
 const HZ = 150;
 const MS = 300;
 const SEEDS = [1, 2, 3];
@@ -62,6 +64,10 @@ const full = buildGraph(orderNeurons(g.neurons.map(toRecord)), g.edges);
 const { meta } = full;
 const net = buildNet(full);
 const rows = (pick: Pick) => meta.flatMap((r, i) => (r.type !== null && pick(r.type) ? [i] : []));
+if (process.argv.includes('--bridge')) {
+  runBridge(net, meta); // 8.3: closed loop through packages/sim/bridge; no neuPrint needed
+  process.exit(0);
+}
 
 // Side: somaSide from the graph; sensory cells have none → rootSide from neuPrint.
 const side = new Map<number, string>();
