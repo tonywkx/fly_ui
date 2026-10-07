@@ -1,14 +1,17 @@
+import type { ChunkEntry, Manifest } from '@fly/data';
 import { reaction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { data } from '@/data/store';
 import { type Key, num, t } from '@/i18n';
+import type { BrainData } from '@/scene/dish/holo';
 import type { DishRun, DishStatus } from '@/scene/dish/run';
 import { QUALITY } from '@/scene/quality';
 import { app } from '@/state/app';
 import { dish } from '@/state/dish';
 import { Credit } from './Credit';
+import { DishCaption } from './DishCaption';
 import { DishOps } from './DishOps';
 import { DishPalette } from './DishPalette';
 import { LangSwitch } from './LangSwitch';
@@ -53,7 +56,10 @@ export const Dish = observer(function Dish() {
       dish.setOps(ops);
       dish.setOpen(ops[0]);
     }
-    if (snap) app.waitFor('sim');
+    if (snap) {
+      app.waitFor('sim');
+      app.waitFor('holo');
+    }
     let disposed = false;
     let dispose = () => {};
     void import('@/scene/dish/run').then(({ DishRun }) => {
@@ -67,6 +73,7 @@ export const Dish = observer(function Dish() {
         onReady: () => app.markReady('sim'),
         onCells: (n) => dish.setCells(n),
         onVerdict: (op, o) => dish.setNow(op, o),
+        onDecision: (d) => dish.setDecision(d),
         onStatus: (s) => {
           const text = timecode(s);
           if (line.current && line.current.textContent !== text) line.current.textContent = text;
@@ -101,6 +108,11 @@ export const Dish = observer(function Dish() {
           app.setBackend(backend);
           run.applyQuality(QUALITY[app.quality]);
           app.markReady('frame');
+          return loadBrain(manifest);
+        })
+        .then((brain) => {
+          if (brain && !disposed) run.setBrain(brain);
+          app.markReady('holo');
         })
         .catch((e) => {
           console.error('[dish] renderer failed', e);
@@ -134,6 +146,7 @@ export const Dish = observer(function Dish() {
       </Button>
       {run && <DishPalette input={run.input} />}
       {run && <DishOps />}
+      <DishCaption />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-1 p-4 md:flex-row md:items-end md:justify-between md:p-8">
         <div className="flex items-center justify-between md:block">
           <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
@@ -149,3 +162,23 @@ export const Dish = observer(function Dish() {
     </>
   );
 });
+
+/** The hologram's chunks (dust sample, shells, neuropil centres), fetched after the first frame. */
+async function loadBrain(m: Manifest): Promise<BrainData | null> {
+  const ids = { cloud: 'cloud-lod0', shells: 'neuropil-shells', regions: 'neuropil-regions' } as const;
+  const chunks = Object.values(ids).map((id) => m.chunks.find((c) => c.id === id));
+  if (chunks.some((c) => !c)) {
+    console.error('[dish] hologram chunks missing from the manifest');
+    return null;
+  }
+  try {
+    await Promise.all(chunks.map((c) => data.loadChunk(c as ChunkEntry)));
+  } catch (e) {
+    console.error('[dish] hologram failed', e);
+    return null;
+  }
+  const cloud = data.get(ids.cloud, 'cloud');
+  const shells = data.get(ids.shells, 'neuropil');
+  const regions = data.get(ids.regions, 'neuropil');
+  return cloud && shells && regions ? { cloud, shells, regions, bbox: m.bbox } : null;
+}

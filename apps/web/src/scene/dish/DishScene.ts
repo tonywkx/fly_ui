@@ -1,7 +1,16 @@
-import { type Action, ARENA_R, type ItemKind, SWAT_MS, SWAT_R, type World, type WorldEvent } from '@fly/sim';
+import {
+  type Action,
+  ARENA_R,
+  type ItemKind,
+  PATHS,
+  SWAT_MS,
+  SWAT_R,
+  type World,
+  type WorldEvent,
+} from '@fly/sim';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
-import { pass } from 'three/tsl';
+import { length, oneMinus, pass, smoothstep, color as tint, uniform, uv } from 'three/tsl';
 import {
   AdditiveBlending,
   AgXToneMapping,
@@ -18,6 +27,8 @@ import {
   RenderPipeline,
   RingGeometry,
   Scene,
+  Sprite,
+  SpriteNodeMaterial,
   Vector2,
   Vector3,
   WebGPURenderer,
@@ -26,10 +37,15 @@ import type { Backend } from '../engine';
 import type { Preset } from '../quality';
 import { arena } from './arena';
 import { FlyView } from './fly';
+import { type BrainData, HoloView } from './holo';
+import type { Vec3 } from './hologram';
 import { type ItemView, itemView } from './items';
-import { BONE, dark, glow } from './materials';
+import type { DecisionEvent } from './loop';
+import { BONE, dark, glow, SAFFRON } from './materials';
 import { floorHit, type Spot } from './place';
+import { cut, RUN_MS, threadAt } from './thread';
 import { Trail } from './trail';
+import type { Op } from './verdict';
 
 const FOV = 30;
 /** Start pitch and its clamp (deg above the floor). */
@@ -53,10 +69,16 @@ const AIM_R = 1;
 const GHOST = 0.6;
 /** The ghost's plume runs on wall time at ×1/6, like the dish. */
 const SLOW_GHOST = 6;
+/** Decision thread: most points it can have, its brightness (> 1 blooms) and the head's diameter (mm). */
+const THREAD_MAX = 16;
+const THREAD_GAIN = 1.4;
+const HEAD_MM = 0.18;
 
 export interface DishSceneOptions {
   forceWebGL: boolean;
   reducedMotion: boolean;
+  /** Snaps: a decision's thread stays drawn whole instead of running and fading. */
+  still?: boolean;
 }
 
 /** The Terrarium view: dish, glass fly, trail, items and hands, bloom; draws a `World` each frame. */
@@ -82,6 +104,14 @@ export class DishScene {
   private readonly swatter = disc();
   private readonly aimRing = new Mesh(new RingGeometry(0.9, 1, 64).rotateX(-Math.PI / 2), glow(BONE, 0.35));
   private ghost: { kind: ItemKind; view: ItemView } | null = null;
+  private holo: HoloView | null = null;
+  private marks = new Set<Op>();
+  /** The running thread: its decision and wall ms since. */
+  private thread: { e: DecisionEvent; age: number } | null = null;
+  private readonly threadPos = new BufferAttribute(new Float32Array(THREAD_MAX * 3), 3);
+  private readonly threadLine: LineSegments;
+  private readonly threadAlpha = uniform(0);
+  private readonly head: Sprite;
   private readonly ray = new Raycaster();
   private readonly ndc = new Vector2();
   private readonly v = new Vector3();
@@ -92,7 +122,7 @@ export class DishScene {
 
   constructor(
     private readonly host: HTMLElement,
-    opts: DishSceneOptions,
+    private readonly opts: DishSceneOptions,
   ) {
     this.renderer = new WebGPURenderer({ antialias: false, forceWebGL: opts.forceWebGL });
     this.renderer.setClearColor(0x000000, 1);
@@ -133,6 +163,25 @@ export class DishScene {
     );
     this.aimRing.visible = false;
     this.aimRing.scale.setScalar(AIM_R);
+
+    const tg = new BufferGeometry();
+    tg.setAttribute('position', this.threadPos);
+    const tm = new LineBasicNodeMaterial({
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    tm.colorNode = tint(SAFFRON).mul(THREAD_GAIN);
+    tm.opacityNode = this.threadAlpha;
+    this.threadLine = new LineSegments(tg, tm);
+    this.threadLine.frustumCulled = false;
+    const hm = new SpriteNodeMaterial({ transparent: true, depthWrite: false, blending: AdditiveBlending });
+    hm.colorNode = tint(SAFFRON).mul(2.5);
+    hm.opacityNode = oneMinus(smoothstep(0.1, 0.5, length(uv().sub(0.5)))).mul(this.threadAlpha);
+    this.head = new Sprite(hm);
+    this.head.scale.setScalar(HEAD_MM);
+    this.threadLine.visible = this.head.visible = false;
+    this.scene.add(this.threadLine, this.head);
 
     const scenePass = pass(this.scene, this.camera, { samples: 4 });
     const color = scenePass.getTextureNode('output');
@@ -225,6 +274,58 @@ export class DishScene {
     this.swatter.show(sw ? { x: sw.x, y: sw.y, r: (SWAT_R * sw.t) / SWAT_MS } : null);
   }
 
+  /** The brain hologram, once its chunks are in. */
+  setBrain(d: BrainData): void {
+    if (this.disposed || this.holo) return;
+    this.holo = new HoloView(d);
+    this.holo.setMarks(this.marks);
+    this.scene.add(this.holo.root);
+  }
+
+  /** Operations in force (hologram marks). */
+  setMarks(on: ReadonlySet<Op>): void {
+    this.marks = new Set(on);
+    this.holo?.setMarks(this.marks);
+  }
+
+  /** A decision: its thread runs sense organ → hologram path → legs. */
+  decide(e: DecisionEvent): void {
+    this.thread = { e, age: 0 };
+  }
+
+  /** Wall-clock animation (`dt` ms; 0 while paused): hologram follow and node flashes, the thread. */
+  animate(dt: number, heat: ReadonlyMap<string, number>): void {
+    const f = this.fly.root;
+    this.holo?.follow(f.position.x, f.position.z, f.rotation.y, dt);
+    this.holo?.heat(heat);
+    const th = this.thread;
+    if (th) th.age = this.opts.still ? RUN_MS : th.age + dt;
+    const look = th && this.holo ? threadAt(th.age, this.opts.reducedMotion) : null;
+    this.threadLine.visible = this.head.visible = !!look;
+    if (!th || !look || !this.holo) {
+      if (!look) this.thread = null;
+      return;
+    }
+    const { action, side, ms } = th.e;
+    const hops = this.holo.path(action, side);
+    // a sensed decision starts at the organ; forced cells (no sense) start at the command neuron
+    const sensed = ms !== null;
+    const from = sensed ? this.fly.organ(PATHS[action].organ, side) : hops.at(-1);
+    const pts = [from, ...(sensed ? hops : []), this.fly.organ('legs', null)]
+      .filter((p) => !!p)
+      .map((p) => p.toArray() as Vec3);
+    const line = cut(pts, look.drawn).slice(0, THREAD_MAX / 2 + 1);
+    const a = this.threadPos.array as Float32Array;
+    for (let i = 1; i < line.length; i++) {
+      a.set(line[i - 1] as Vec3, (i - 1) * 6);
+      a.set(line[i] as Vec3, (i - 1) * 6 + 3);
+    }
+    this.threadLine.geometry.setDrawRange(0, Math.max(0, line.length - 1) * 2);
+    this.threadPos.needsUpdate = true;
+    this.head.position.fromArray(line.at(-1) ?? [0, 0, 0]);
+    this.threadAlpha.value = look.alpha;
+  }
+
   /** The canvas (pointer input target). */
   get canvas(): HTMLCanvasElement {
     return this.renderer.domElement;
@@ -274,6 +375,7 @@ export class DishScene {
 
   /** Forget the trail and the fly's flight (dish reset). */
   clear(): void {
+    this.thread = null;
     this.trail.clear();
     this.lastTrail = null;
     this.fly.reset();
@@ -284,6 +386,7 @@ export class DishScene {
     this.resize.disconnect();
     this.renderer.setAnimationLoop(null);
     this.controls.dispose();
+    this.holo?.dispose();
     void Promise.resolve(this.initialized)
       .catch(() => {})
       .then(() => this.renderer.dispose());

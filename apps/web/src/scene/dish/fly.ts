@@ -1,5 +1,5 @@
-import { type Action, FLY_LEN } from '@fly/sim';
-import { Mesh, RingGeometry } from 'three/webgpu';
+import { type Action, FLY_LEN, type Organ } from '@fly/sim';
+import { Mesh, RingGeometry, Vector3 } from 'three/webgpu';
 import { FlyModel } from '../flycam/model';
 import { feet, STRIDE } from './gait';
 import { glow, SAFFRON } from './materials';
@@ -18,6 +18,13 @@ const SONG_MS = 35;
 const TURN_STEP = 0.4;
 /** Operated-on mark: a thin halo over the head (body units; head centre ≈ (0.6, 0.7)). */
 const MARK = { r: 0.22, w: 0.035, at: [0.6, 1.1, 0] as const };
+
+/** Where the decision thread leaves and lands on the body (body units; x forward, y up, z to her right). */
+const ORGANS = {
+  eye: [0.68, 0.78, 0.16],
+  mouth: [0.82, 0.4, 0],
+  legs: [0.05, 0.28, 0],
+} as const;
 
 export interface Placed {
   x: number;
@@ -53,6 +60,13 @@ export class FlyView {
     this.mark.position.set(...MARK.at);
     this.mark.visible = false;
     this.root.add(this.mark);
+  }
+
+  /** An organ's point in world space; `side` picks the eye (left eye = −z). */
+  organ(o: Organ | 'legs', side: 'L' | 'R' | null): Vector3 {
+    const [x, y, z] = ORGANS[o];
+    this.root.updateMatrixWorld();
+    return this.root.localToWorld(new Vector3(x, y, side === 'L' ? -z : z));
   }
 
   takeoffAt(t: number): void {

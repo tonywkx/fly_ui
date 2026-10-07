@@ -4,6 +4,7 @@ import {
   type Group,
   mulberry32,
   OPERATIONS,
+  PATHS,
   SENSE_HZ,
   SENSES,
   World,
@@ -13,8 +14,9 @@ import { LiveClient, type Pace } from '@/sim/client';
 import type { Backend } from '../engine';
 import type { Preset } from '../quality';
 import { DishScene, type DishSceneOptions } from './DishScene';
+import type { BrainData } from './holo';
 import { DishInput } from './input';
-import { DishLoop } from './loop';
+import { type DecisionEvent, DishLoop } from './loop';
 import { OPS, type Op, type Outcome } from './verdict';
 
 const SEED = 1;
@@ -26,6 +28,14 @@ const PACE: Pace = { aheadMs: 20, chunkMs: 5 };
 const MAX_FRAME_MS = 100;
 /** How long a hand's outcome holds the status word, sim ms (≈ 2 s at ×1/6). */
 const FLASH_MS = 330;
+/** Hologram nodes glow with the spikes of the last few sim ms; full at `HEAT_HZ` per cell. */
+const HEAT_MS = 8;
+const HEAT_HZ = 100;
+
+/** Cell types on the decision paths past the sense (their spikes flash the hologram nodes). */
+const PATH_TYPES = [...new Set(Object.values(PATHS).flatMap((p) => p.hops.slice(1).map((h) => h.type)))];
+/** Each path's sense, by its first hop's type. */
+const SENSE_OF = new Map(Object.values(PATHS).map((p) => [p.hops[0]?.type ?? '', p.sense]));
 
 /** Status words a hand's strike leaves for a moment. */
 export type Flash = 'miss' | 'dodge' | 'back_again';
@@ -54,6 +64,8 @@ export interface DishRunOptions extends DishSceneOptions {
   onCells?: (n: Record<Op, number>) => void;
   /** An operation's last encounter changed (the card's «now» line). */
   onVerdict?: (op: Op, o: Outcome) => void;
+  /** The fly just decided (the decision caption); null on a reset. */
+  onDecision?: (e: DecisionEvent | null) => void;
 }
 
 /** Owns the dish scene, the world, the live sim and the ×1/6 clock. */
@@ -69,6 +81,9 @@ export class DishRun {
   private ops = new Set<Op>();
   private applied = new Set<Op>();
   private opRows: Record<Op, Group> | null = null;
+  /** Log rows of each path cell type; spikes per type in the heat window. */
+  private pathRows: { type: string; cells: number; has: Uint8Array }[] = [];
+  private readonly heat = new Map<string, number>();
   private clock = 0;
   private last = 0;
   private ready = false;
@@ -78,7 +93,7 @@ export class DishRun {
     host: HTMLElement,
     private readonly o: DishRunOptions,
   ) {
-    this.scene = new DishScene(host, o);
+    this.scene = new DishScene(host, { ...o, still: o.until !== undefined });
     this.input = new DishInput(host, this.scene, this.world, this);
   }
 
@@ -94,6 +109,11 @@ export class DishRun {
 
   applyQuality(p: Preset): void {
     this.scene.applyQuality(p);
+  }
+
+  /** The hologram's chunks arrived. */
+  setBrain(d: BrainData): void {
+    this.scene.setBrain(d);
   }
 
   togglePause(): void {
@@ -117,6 +137,7 @@ export class DishRun {
     this.clock = 0;
     this.flash = null;
     this.scene.clear();
+    this.o.onDecision?.(null);
   }
 
   dispose(): void {
@@ -141,11 +162,21 @@ export class DishRun {
       );
       if (this.disposed) return c.dispose();
       const senses = await c.groups(SENSES);
-      const commands = await c.watch(COMMANDS);
+      const watched = await c.watch({
+        ...COMMANDS,
+        ...Object.fromEntries(PATH_TYPES.map((t) => [t, new RegExp(`^${t}$`)])),
+      });
+      const n = Math.max(0, ...Object.values<Group>(watched).flatMap((g) => [...g.all])) + 1;
+      this.pathRows = PATH_TYPES.map((type) => {
+        const g = (watched as Record<string, Group>)[type] ?? { all: new Uint32Array(0) };
+        const has = new Uint8Array(n);
+        for (const r of g.all) has[r] = 1;
+        return { type, cells: g.all.length, has };
+      });
       this.opRows = await c.groups(
         Object.fromEntries(OPS.map((op) => [op, OPERATIONS[op].types])) as Record<Op, RegExp>,
       );
-      this.loop = new DishLoop(this.world, senses, commands, { drive: (d) => void c.drive(d) });
+      this.loop = new DishLoop(this.world, senses, watched, { drive: (d) => void c.drive(d) });
       this.client = c;
       this.o.onCells?.(
         Object.fromEntries(OPS.map((op) => [op, this.opRows?.[op].all.length ?? 0])) as Record<Op, number>,
@@ -172,6 +203,7 @@ export class DishRun {
       if (on) this.applied.add(op);
       else this.applied.delete(op);
     }
+    this.scene.setMarks(this.applied);
   }
 
   private frame(now: number): void {
@@ -191,6 +223,13 @@ export class DishRun {
         if (o) this.o.onVerdict?.(op, o);
       }
       l.changed.clear();
+      const d = l.decisions.at(-1);
+      if (d) {
+        this.scene.decide(d);
+        this.o.onDecision?.(d);
+      }
+      l.decisions.length = 0;
+      this.measureHeat(l.t, c.log);
       if (until !== undefined && l.t >= until && !this.ready) {
         this.ready = true;
         this.o.onReady?.();
@@ -206,6 +245,7 @@ export class DishRun {
     }
     if (this.flash && (t - this.flash.t > FLASH_MS || t < this.flash.t)) this.flash = null;
     this.scene.sync(this.world, l?.action ?? 'walk', t, ev, this.applied.size > 0);
+    this.scene.animate(this.paused ? 0 : dt, this.heat);
     const id = this.input.hover;
     const it = id === null ? undefined : this.world.items.find((i) => i.id === id);
     this.o.onStatus({
@@ -216,5 +256,21 @@ export class DishRun {
       flash: this.flash?.word ?? null,
       hover: it ? { id: it.id, ...this.scene.project(it.x, it.y) } : null,
     });
+  }
+
+  /** Hologram node levels: path cells' recent spikes, and what the fly senses for the first hops. */
+  private measureHeat(t: number, log: LiveClient['log']): void {
+    const [i0, i1] = log.span(t - HEAT_MS, t);
+    const full = (HEAT_HZ * HEAT_MS) / 1000;
+    for (const p of this.pathRows) {
+      let k = 0;
+      for (let i = i0; i < i1; i++) k += p.has[log.rows[i] as number] ?? 0;
+      this.heat.set(p.type, Math.min(1, k / Math.max(1, p.cells) / full));
+    }
+    const s = this.world.sense();
+    for (const [type, sense] of SENSE_OF) {
+      const v = s[sense];
+      this.heat.set(type, typeof v === 'number' ? v : Math.max(v.L, v.R));
+    }
   }
 }

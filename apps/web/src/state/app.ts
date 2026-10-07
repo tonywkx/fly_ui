@@ -16,7 +16,8 @@ export type ReadyFlag =
   | 'pick'
   | 'trace'
   | 'flycam'
-  | 'captions';
+  | 'captions'
+  | 'holo';
 
 const LANG_KEY = 'fly_ui.lang';
 
