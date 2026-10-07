@@ -13,6 +13,7 @@ import { startAnatomy } from './anatomy';
 import { Behavior, effectorMask } from './behavior';
 import { beatMask, Narrator, SCRIPTS } from './captions';
 import { startDirector } from './director';
+import { ARRIVE } from './dish/zoom';
 import { Engine } from './engine';
 import { startFocus } from './focus';
 import { onFrameSample } from './frameStats';
@@ -112,9 +113,12 @@ function stageDust(engine: Engine, stops: (() => void)[]): Intro {
   if (!m || !lod0) throw new Error('manifest or cloud lod0 missing');
   engine.setFrame(m);
 
-  const { snap, debug, intro: frozen } = app.params;
+  const { snap, debug, intro: frozen, from } = app.params;
   // snaps, debug modes and reduced motion show the final state
   const skip = (snap && frozen === undefined) || !!debug || app.reducedMotion;
+  // zoomed in from the dish: the dust is already assembled and the camera starts where the dish's dive ended
+  const zoomed = from === 'dish';
+  const offset = zoomed ? INTRO.assembleMs : 0;
 
   const s = m.unitNm / 1000;
   const min = new Vector3().fromArray(m.bbox.min);
@@ -140,17 +144,19 @@ function stageDust(engine: Engine, stops: (() => void)[]): Intro {
   });
   const off = engine.onFrame((now) => {
     t0 ??= now;
-    const t = skip ? Number.POSITIVE_INFINITY : (frozen ?? now - t0);
+    const t = skip ? Number.POSITIVE_INFINITY : (frozen ?? now - t0) + offset;
     const st = introTimeline(t, readyAt);
     clock.value = st.assembleMs;
     reveal.value = st.reveal;
     if (!userTook && !skip) {
       const diveStart = Math.max(INTRO.assembleMs, readyAt);
-      const far: Pose = {
-        radius: rest.radius * FAR_RADIUS,
-        azimuth: FAR_AZIMUTH + (DRIFT_PER_S * Math.min(t, diveStart)) / 1000,
-        elevation: FAR_ELEVATION,
-      };
+      const far: Pose = zoomed
+        ? { radius: rest.radius * ARRIVE, azimuth: 0, elevation: 0 }
+        : {
+            radius: rest.radius * FAR_RADIUS,
+            azimuth: FAR_AZIMUTH + (DRIFT_PER_S * Math.min(t, diveStart)) / 1000,
+            elevation: FAR_ELEVATION,
+          };
       engine.setPose(lerpPose(far, rest, st.dive));
     }
     if (st.phase !== phase) {
@@ -168,7 +174,7 @@ function stageDust(engine: Engine, stops: (() => void)[]): Intro {
     cloud,
     reveal,
     ready: () => {
-      if (t0 !== undefined && readyAt === Number.POSITIVE_INFINITY) readyAt = performance.now() - t0;
+      if (t0 !== undefined && readyAt === Number.POSITIVE_INFINITY) readyAt = performance.now() - t0 + offset;
       else if (t0 === undefined) readyAt = 0;
     },
   };

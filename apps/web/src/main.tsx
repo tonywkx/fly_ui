@@ -35,7 +35,8 @@ const dish = app.params.view === 'dish';
   })
   .finally(() => app.markReady('data'));
 
-if (!dish) bootTour();
+// zoomed in from the dish: the visitor came to operate, not for the tour
+if (!dish && app.params.from !== 'dish') bootTour();
 
 when(
   () => app.ready,

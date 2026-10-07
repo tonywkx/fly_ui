@@ -6,6 +6,7 @@ import { Stage } from '@/scene/Stage';
 import { app } from '@/state/app';
 import { experiment } from '@/state/experiment';
 import { tour } from '@/state/tour';
+import { BackToDish } from '@/ui/BackToDish';
 import { Captions } from '@/ui/Captions';
 import { CommandPalette } from '@/ui/CommandPalette';
 import { Credit } from '@/ui/Credit';
@@ -51,6 +52,7 @@ export const App = observer(function App() {
     >
       <Stage />
       <Fatal />
+      <BackToDish />
       <AnatomyLabels />
       <Narration />
       <TourSkip />

@@ -9,22 +9,29 @@ export const shareNote = observable.box<'copied' | 'address' | null>(null);
 const NOTE_MS = 1800;
 let timer: ReturnType<typeof setTimeout> | undefined;
 
-/** The current experiment as a link: scenario, stimuli + silencing + drive (`x`), electrodes, colour mode. */
-export function experimentLink(): string {
+/** Scenario rows → bodyIds (none before the scenario's meta is in). */
+function bodyIds(rows: Iterable<number | null>): number[] {
   const meta = data.scenario ? data.get(`${data.scenario}-meta`, 'meta') : undefined;
-  const ids = (rows: Iterable<number | null>) =>
-    [...rows].flatMap((r) => (r === null || !meta ? [] : [meta.bodyIds[r] as number]));
-  const x = experiment.touched
+  return [...rows].flatMap((r) => (r === null || !meta ? [] : [meta.bodyIds[r] as number]));
+}
+
+/** Stimuli + silencing + drive as the `?x=` code; undefined when the circuit is untouched. */
+export function experimentCode(): string | undefined {
+  return experiment.touched
     ? encodeExperiment({
-        stimulated: ids(experiment.stimulated),
-        silenced: ids(experiment.silenced),
+        stimulated: bodyIds(experiment.stimulated),
+        silenced: bodyIds(experiment.silenced),
         stim: experiment.stim,
       })
     : undefined;
+}
+
+/** The current experiment as a link: scenario, stimuli + silencing + drive (`x`), electrodes, colour mode. */
+export function experimentLink(): string {
   const search = shareSearch({
     scenario: data.scenario ?? undefined,
-    x,
-    probes: ids(experiment.probes),
+    x: experimentCode(),
+    probes: bodyIds(experiment.probes),
     color: app.colorBy === 'nt' ? undefined : app.colorBy,
   });
   return `${location.origin}${location.pathname}${search}`;

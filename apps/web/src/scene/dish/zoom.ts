@@ -11,6 +11,11 @@ import { EASE_IN_OUT, EASE_OUT } from '../intro';
 export const ZOOM_MS = 1600;
 /** Reduced motion: a plain fade through black, no travel. */
 export const FADE_MS = 300;
+/**
+ * The seam's framing, × the brain view's rest distance (`frameDistance` of the CNS box): the dish
+ * flight ends there and the brain view's intro starts there, so the dust lines up across the cut.
+ */
+export const ARRIVE = 0.6;
 /** Shares of the flight: the dish fades over `veil`, the hologram to black over `black`. */
 const VEIL = [0.3, 0.75] as const;
 const BLACK = [0.85, 1] as const;

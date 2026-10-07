@@ -4,14 +4,27 @@ import { t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { app } from '@/state/app';
 
-/** A view's address: the dish is `?view=dish`, the brain the bare page; a pinned language stays. */
-function href(dish: boolean): string {
+/**
+ * A view's address: the dish is `?view=dish`, the brain the bare page; a pinned language stays.
+ * The zoom adds where it came `from`, the brain's scenario and the experiment code (`x`) it carries.
+ */
+export function viewHref(o: {
+  dish: boolean;
+  from?: 'dish' | 'brain';
+  scenario?: string;
+  x?: string;
+}): string {
   const q = new URLSearchParams();
-  if (dish) q.set('view', 'dish');
+  if (o.dish) q.set('view', 'dish');
+  if (o.scenario) q.set('scenario', o.scenario);
+  if (o.from) q.set('from', o.from);
+  if (o.x) q.set('x', o.x);
   if (app.params.lang) q.set('lang', app.lang);
   const s = q.toString();
   return s ? `?${s}` : window.location.pathname;
 }
+
+const href = (dish: boolean) => viewHref({ dish });
 
 /**
  * «Мозг · Террариум»: two ghost words, the current one bone, the other ash (like Dala nav). The
