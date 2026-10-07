@@ -78,6 +78,17 @@ export interface Senses {
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 
+/**
+ * Per-eye intensity of a stimulus at `bearing` (rad from the heading, + = left): the near eye gets `x`,
+ * the far eye at least `3x/4` (ahead/behind: both `x`). One eye alone is too weak in the model (8.3
+ * calibration: loom one side → TTMn ≤ 187 Hz, no jump; female one side → MDN bursts, late courtship;
+ * far eye ½ → loom from the right misses on some seeds, LC4 R has fewer cells).
+ */
+export function eyes(bearing: number, x: number): Sided {
+  const s = Math.sin(bearing);
+  return { L: x * (1 - Math.max(0, -s) / 4), R: x * (1 - Math.max(0, s) / 4) };
+}
+
 /** Row → Poisson Hz for the sensed stimuli; rows not driven are absent. */
 export function senseDrive(
   s: Senses,
@@ -166,14 +177,14 @@ export class CommandMeter {
 export type Action = 'walk' | 'jump' | 'back' | 'eat' | 'court';
 
 /**
- * Enter at `on`, hold the current action down to `off` (Hz per cell). 8.1: loom → TTMn 227, panic
- * neuron off → 44; bitter → MDN 81, other inputs ≤ 16; sugar → MN9 224, banana odor 78; female →
- * pIP10 90 with pC1 13, P1 off → pIP10 63 with pC1 0.
+ * Enter at `on`, hold the current action down to `off` (kernel Hz per cell). Peaks in the 8.3 closed
+ * loop (docs/TERRARIUM.md): loom → TTMn ≥ 204, panic neuron off ≤ 134; bitter → MDN ≥ 129, female ≤ 45;
+ * sugar → MN9 ≥ 249, female/odor ≤ 104; female → pC1 ≥ 16, P1 off → 0 (pIP10 alone stays high).
  */
 export const THRESHOLDS: Record<Command, { on: number; off: number }> = {
-  jump: { on: 200, off: 120 },
-  back: { on: 40, off: 25 },
-  eat: { on: 120, off: 80 },
+  jump: { on: 170, off: 110 },
+  back: { on: 60, off: 35 },
+  eat: { on: 150, off: 100 },
   court: { on: 50, off: 30 },
   gate: { on: 3, off: 1.5 },
 };

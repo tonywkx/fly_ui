@@ -5,6 +5,7 @@ import {
   CommandMeter,
   decide,
   diffDrive,
+  eyes,
   type Rates,
   resolveGroups,
   SENSES,
@@ -64,6 +65,19 @@ describe('senseDrive', () => {
   it('clamps intensity to 0…1', () => {
     const d = senseDrive({ ...senses, bitter: 3, female: { L: -1, R: 0 } }, g, 100);
     expect(Object.fromEntries(d)).toEqual({ 2: 100 });
+  });
+});
+
+describe('eyes', () => {
+  it('sees ahead and behind with both eyes', () => {
+    expect(eyes(0, 1)).toEqual({ L: 1, R: 1 });
+    expect(eyes(Math.PI, 0.5).L).toBeCloseTo(0.5, 9);
+    expect(eyes(Math.PI, 0.5).R).toBeCloseTo(0.5, 9);
+  });
+
+  it('gives the far eye three quarters at the side', () => {
+    expect(eyes(Math.PI / 2, 1)).toEqual({ L: 1, R: 0.75 });
+    expect(eyes(-Math.PI / 2, 2)).toEqual({ L: 1.5, R: 2 });
   });
 });
 
@@ -150,8 +164,9 @@ describe('decide', () => {
 
   it('stays below thresholds (8.1 cases)', () => {
     expect(at({ jump: 44 })).toBe('walk'); // panic neuron off
-    expect(at({ eat: 78 })).toBe('walk'); // banana odor
-    expect(at({ back: 16 })).toBe('walk'); // background MDN
+    expect(at({ jump: 134 })).toBe('walk'); // panic neuron off
+    expect(at({ eat: 104 })).toBe('walk'); // female, P1 off
+    expect(at({ back: 45 })).toBe('walk'); // female
   });
 
   it('courts only with the P1 gate open', () => {
