@@ -20,6 +20,7 @@ export const DishLevels = observer(function DishLevels() {
   const was = useRef({ level, won });
   // «Дальше →» / «Ещё раз» / «Свободный режим» unmount the focused button: keep focus on the line
   // (compared, not counted: StrictMode runs the effect twice on mount)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs on level / win changes
   useEffect(() => {
     if (was.current.level === level && was.current.won === won) return;
     was.current = { level, won };
