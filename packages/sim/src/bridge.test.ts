@@ -6,6 +6,8 @@ import {
   decide,
   diffDrive,
   eyes,
+  OPERATIONS,
+  PATHS,
   PREEMPT_BACK,
   type Rates,
   resolveGroups,
@@ -201,5 +203,24 @@ describe('decide', () => {
     const court = (T.court.on + T.court.off) / 2;
     expect(at({ court, gate: T.gate.on }, 'court')).toBe('court');
     expect(at({ court, gate: T.gate.on }, 'walk')).toBe('walk');
+  });
+});
+
+describe('PATHS', () => {
+  it("runs from the sense to the decision's command neuron", () => {
+    for (const [d, p] of Object.entries(PATHS)) {
+      const first = p.hops[0];
+      const last = p.hops.at(-1);
+      expect(SENSES[p.sense].test(first?.type ?? ''), d).toBe(true);
+      expect(COMMANDS[d as keyof typeof COMMANDS].test(last?.type ?? ''), d).toBe(true);
+      for (const h of p.hops) expect(h.region, `${d} ${h.type}`).toMatch(/^[A-Za-z]/);
+    }
+  });
+
+  it('passes the operated cells on their decision', () => {
+    expect(PATHS.jump.hops.map((h) => h.type)).toContain('DNp01');
+    expect(PATHS.back.hops.map((h) => h.type)).toContain('MDN');
+    expect(PATHS.eat.sense).toBe('sugar');
+    for (const op of Object.values(OPERATIONS)) expect(op.region).toMatch(/^[A-Z]/);
   });
 });

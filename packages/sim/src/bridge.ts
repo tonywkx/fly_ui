@@ -23,13 +23,74 @@ export const COMMANDS = {
   gate: /^pC1/,
 } as const;
 
-/** Surgeon operations: target cells and what the switch does to them. */
+/** Surgeon operations: target cells, what the switch does to them, and their main neuropil (hologram mark). */
 export const OPERATIONS = {
-  panic: { types: /^DNp01$/, mode: 'off' },
-  moon: { types: /^MDN$/, mode: 'on' },
-  sugar: { types: SENSES.sugar, mode: 'off' },
-  p1: { types: COMMANDS.gate, mode: 'off' },
+  panic: { types: /^DNp01$/, mode: 'off', region: 'PVLP' },
+  moon: { types: /^MDN$/, mode: 'on', region: 'LAL' },
+  sugar: { types: SENSES.sugar, mode: 'off', region: 'GNG' },
+  p1: { types: COMMANDS.gate, mode: 'off', region: 'AVLP' },
 } as const;
+
+/** What the fly decided (anything but walking on). */
+export type Decision = Exclude<Action, 'walk'>;
+/** Where a sense enters the body: compound eye or labellum. */
+export type Organ = 'eye' | 'mouth';
+/** One cell type on a decision path and its main neuropil (side from the stimulus when it has one). */
+export interface PathHop {
+  type: string;
+  region: string;
+}
+export interface DecisionPath {
+  sense: keyof typeof SENSES;
+  organ: Organ;
+  hops: readonly PathHop[];
+}
+
+/**
+ * The strongest type path sense → command per decision (k-best over `typegraph-full`, input
+ * fractions; `apps/pipeline/src/explore/paths.ts`), shown as the decision thread.
+ */
+export const PATHS: Record<Decision, DecisionPath> = {
+  jump: {
+    sense: 'loom',
+    organ: 'eye',
+    hops: [
+      { type: 'LC4', region: 'LO' },
+      { type: 'DNp01', region: 'PVLP' },
+      { type: 'TTMn', region: 'LegNp(T2)' },
+    ],
+  },
+  eat: {
+    sense: 'sugar',
+    organ: 'mouth',
+    hops: [
+      { type: 'LB3', region: 'GNG' },
+      { type: 'GNG042', region: 'GNG' },
+      { type: 'GNG015', region: 'GNG' },
+      { type: 'MN9', region: 'GNG' },
+    ],
+  },
+  back: {
+    sense: 'bitter',
+    organ: 'mouth',
+    hops: [
+      { type: 'LB1', region: 'GNG' },
+      { type: 'GNG016', region: 'GNG' },
+      { type: 'LgAG1', region: 'FLA' },
+      { type: 'GNG519', region: 'GNG' },
+      { type: 'MDN', region: 'LAL' },
+    ],
+  },
+  court: {
+    sense: 'female',
+    organ: 'eye',
+    hops: [
+      { type: 'LC10a', region: 'LO' },
+      { type: 'AOTU101m', region: 'AOTU' },
+      { type: 'pIP10', region: 'SIP' },
+    ],
+  },
+};
 
 /** Poisson rate (Hz) of a fully sensed stimulus, as in 8.1. */
 export const SENSE_HZ = 150;
