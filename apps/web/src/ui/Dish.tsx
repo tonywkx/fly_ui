@@ -16,8 +16,9 @@ import { dish } from '@/state/dish';
 import { Credit } from './Credit';
 import { DishCaption } from './DishCaption';
 import { DishLevels } from './DishLevels';
-import { DishOps } from './DishOps';
+import { DishOps, OpsStatus } from './DishOps';
 import { DishPalette } from './DishPalette';
+import { DishSheet } from './DishSheet';
 import { DishWhy } from './DishWhy';
 import { LangSwitch } from './LangSwitch';
 import { ViewSwitch, viewHref } from './ViewSwitch';
@@ -43,6 +44,44 @@ export const Dish = observer(function Dish() {
   const remove = useRef<HTMLButtonElement>(null);
   const hovered = useRef<number | null>(null);
   const [run, setRun] = useState<DishRun | null>(null);
+  const chrome = useRef<HTMLDivElement>(null);
+  const foot = useRef<HTMLDivElement>(null);
+
+  // phone: the dish centres in the band the chrome leaves (the sheet grows per tab)
+  useEffect(() => {
+    const el = host.current;
+    const box = chrome.current;
+    const bottom = foot.current;
+    if (!run || !el || !box || !bottom) return;
+    const wide = matchMedia('(width >= 48rem)');
+    let raf = 0;
+    const measure = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        if (wide.matches) return run.frameBand(0, 0);
+        const r = el.getBoundingClientRect();
+        let top = r.top;
+        for (const t of box.querySelectorAll<HTMLElement>('[data-band-top]'))
+          if (t.offsetParent) top = Math.max(top, t.getBoundingClientRect().bottom);
+        box.style.setProperty('--band-top', `${Math.round(top - r.top)}px`);
+        run.frameBand(top - r.top + CAPTION_SLOT, r.bottom - bottom.getBoundingClientRect().top);
+      });
+    };
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    ro.observe(bottom);
+    wide.addEventListener('change', measure);
+    // the puzzle strip remounts as it changes
+    const strip = reaction(() => [dish.level, dish.hint, dish.won, app.lang], measure, {
+      fireImmediately: true,
+    });
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      wide.removeEventListener('change', measure);
+      strip();
+    };
+  }, [run]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: the manifest arriving starts the dish
   useEffect(() => {
@@ -181,16 +220,26 @@ export const Dish = observer(function Dish() {
     };
   }, [manifest]);
 
+  const clearBrain = () => {
+    run?.clearBrain();
+    // a reload must not bring it back
+    const q = new URLSearchParams(location.search);
+    q.delete('x');
+    history.replaceState(null, '', `?${q}`);
+  };
+
   return (
     <>
       <div ref={host} className="absolute inset-0" role="img" aria-label={t('dish.label')} />
       {/* not positioned: the chrome still lays out against the page; it steps aside while the zoom flies */}
       <div
+        ref={chrome}
         inert={dish.zooming}
         className={cn('transition-opacity duration-300 ease-out', dish.zooming && 'opacity-0')}
       >
         <p
           ref={line}
+          data-band-top
           aria-live="off"
           className="pointer-events-none absolute inset-x-0 top-6 text-center font-mono text-caption text-mist tabular-nums md:top-10"
         />
@@ -206,21 +255,16 @@ export const Dish = observer(function Dish() {
           ×
         </Button>
         {run && <DishPalette input={run.input} />}
-        {run && (
-          <DishOps
-            onClearBrain={() => {
-              run.clearBrain();
-              // a reload must not bring it back
-              const q = new URLSearchParams(location.search);
-              q.delete('x');
-              history.replaceState(null, '', `?${q}`);
-            }}
-          />
-        )}
+        {run && <DishOps onClearBrain={clearBrain} />}
+        <OpsStatus />
         <DishLevels />
         <DishCaption />
         <DishWhy />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-1 p-4 md:flex-row md:items-end md:justify-between md:p-8">
+        <div
+          ref={foot}
+          className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-1 p-4 md:flex-row md:items-end md:justify-between md:p-8"
+        >
+          {run && <DishSheet input={run.input} onClearBrain={clearBrain} />}
           <div className="flex items-center justify-between md:block">
             <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
               fly_ui
@@ -236,6 +280,9 @@ export const Dish = observer(function Dish() {
     </>
   );
 });
+
+/** Phone: px kept under the top chrome for the decision caption. */
+const CAPTION_SLOT = 56;
 
 /** The hologram's chunks (dust sample, shells, neuropil centres), fetched after the first frame. */
 async function loadBrain(m: Manifest): Promise<BrainData | null> {

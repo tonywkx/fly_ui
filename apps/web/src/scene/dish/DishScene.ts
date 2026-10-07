@@ -70,6 +70,8 @@ const PITCH_MAX = 60;
 /** Share of the viewport the dish fills: its (foreshortened) height on desktop, its width on phones. */
 const FILL_H = 0.6;
 const FILL_W = 0.92;
+/** Time constant (ms) of the picture's glide when the phone chrome changes height. */
+const LIFT_MS = 90;
 /** Zoom range as distance factors of the fitted one (fly ≈ 200 … 60 px around ≈ 90). */
 const ZOOM_IN = 0.45;
 const ZOOM_OUT = 1.5;
@@ -160,6 +162,10 @@ export class DishScene {
   private readonly v = new Vector3();
   private lastTrail: { x: number; y: number; a: Action } | null = null;
   private fitted = 0;
+  /** Screen px the picture is raised by (phone chrome, `frameBand`), easing toward `liftTo`. */
+  private lift = 0;
+  private liftTo = 0;
+  private lastNow = 0;
   private disposed = false;
   private initialized: Promise<unknown> | null = null;
 
@@ -270,6 +276,8 @@ export class DishScene {
   loop(fn: (now: number) => void): void {
     this.renderer.setAnimationLoop((now) => {
       fn(now);
+      this.ease(now - this.lastNow);
+      this.lastNow = now;
       if (!this.zoom) this.controls.update();
       this.pipeline.render();
     });
@@ -532,6 +540,30 @@ export class DishScene {
     this.rings.push({ mesh, t });
   }
 
+  /**
+   * Centres the dish in the band the chrome leaves free (px covered at the top and the bottom):
+   * the phone's sheet grows per tab, so the picture glides up rather than hiding the fly.
+   */
+  frameBand(top: number, bottom: number): void {
+    this.liftTo = Math.round((bottom - top) / 2);
+    if (this.opts.still || this.opts.reducedMotion) this.ease(Number.POSITIVE_INFINITY);
+  }
+
+  private ease(dt: number): void {
+    if (this.lift === this.liftTo) return;
+    const k = Number.isFinite(dt) ? 1 - Math.exp(-Math.max(dt, 0) / LIFT_MS) : 1;
+    this.lift += (this.liftTo - this.lift) * k;
+    if (Math.abs(this.liftTo - this.lift) < 0.5) this.lift = this.liftTo;
+    this.offset();
+  }
+
+  private offset(): void {
+    const { clientWidth: w, clientHeight: h } = this.host;
+    if (!w || !h) return;
+    if (this.lift) this.camera.setViewOffset(w, h, 0, this.lift, w, h);
+    else this.camera.clearViewOffset();
+  }
+
   /** Sizes the canvas and frames the dish; the user's zoom range follows the fitted distance. */
   private fit(): void {
     const { clientWidth: w, clientHeight: h } = this.host;
@@ -539,6 +571,7 @@ export class DishScene {
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
+    this.offset();
     const tan = Math.tan((FOV * Math.PI) / 360);
     const pitch = (PITCH * Math.PI) / 180;
     const d = 2 * ARENA_R;

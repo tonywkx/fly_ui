@@ -133,6 +133,11 @@ export class DishRun {
     return backend;
   }
 
+  /** Px of chrome over the top and the bottom of the picture (phone): the dish centres between. */
+  frameBand(top: number, bottom: number): void {
+    this.scene.frameBand(top, bottom);
+  }
+
   applyQuality(p: Preset): void {
     this.scene.applyQuality(p);
   }

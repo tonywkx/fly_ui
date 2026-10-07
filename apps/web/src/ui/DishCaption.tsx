@@ -42,8 +42,8 @@ export const DishCaption = observer(function DishCaption() {
   return (
     <div
       className={cn(
-        // phones: under the timecode (the palette owns the bottom); desktop: the Captions slot
-        'pointer-events-none absolute inset-x-4 top-16 z-10 mx-auto flex max-w-[32rem] flex-col items-center gap-1 text-center md:top-auto md:bottom-8 md:max-w-[max(16rem,min(32rem,100vw-44rem))]',
+        // phones: under the timecode / puzzle strip (`--band-top`, Dish); desktop: the Captions slot
+        'pointer-events-none absolute inset-x-4 top-[calc(var(--band-top,6rem)+0.25rem)] z-10 mx-auto flex max-w-[32rem] flex-col items-center gap-1 text-center md:top-auto md:bottom-8 md:max-w-[max(16rem,min(32rem,100vw-44rem))]',
       )}
     >
       <p
