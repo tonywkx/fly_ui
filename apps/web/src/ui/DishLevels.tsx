@@ -69,22 +69,17 @@ export const DishLevels = observer(function DishLevels() {
       <h2 id="level-goal" className="text-label text-bone">
         {t(k('goal'))}
       </h2>
-      {hint > 0 && !won && (
-        <ol className="flex flex-col gap-1">
-          {Array.from({ length: hint }, (_, i) => (
-            <li
-              // biome-ignore lint/suspicious/noArrayIndexKey: rungs only grow, the index is the rung
-              key={i}
-              className={cn(
-                'text-caption motion-safe:transition-opacity motion-safe:duration-200 motion-safe:starting:opacity-0',
-                i === hint - 1 ? 'text-bone' : 'text-mist',
-              )}
-            >
-              {t(k(`h${i + 1}`))}
-            </li>
-          ))}
-        </ol>
-      )}
+      {/* the latest rung only: each one says more than the last, and the strip stays short */}
+      <p aria-live="polite" className={cn('text-caption text-bone', (hint === 0 || won) && 'hidden')}>
+        {hint > 0 && !won && (
+          <span
+            key={hint}
+            className="block motion-safe:transition-opacity motion-safe:duration-200 motion-safe:starting:opacity-0"
+          >
+            {t(k(`h${hint}`))}
+          </span>
+        )}
+      </p>
       <p role="status" className={cn('text-caption text-saffron', !won && 'sr-only')}>
         {won && `${t('level.won')} · ${nowLine(l.op, won)}`}
       </p>
