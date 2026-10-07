@@ -50,6 +50,10 @@ export interface Params {
   lang?: Lang;
   /** Own view: the Terrarium dish instead of the brain. */
   view?: 'dish';
+  /** Arrived by the fly ↔ neuron zoom from this view: the page opens with the second half of the flight. */
+  from?: 'dish' | 'brain';
+  /** Freeze the dish's zoom flight at this many ms (snaps; with `from=brain` the way out, else the way in). */
+  zoom?: number;
   /** Dish items at mm positions (`kind@x,y;…`) — snaps and debugging until the palette (8.6). */
   items?: { kind: ItemKind; x: number; y: number }[];
   /** Dish operations switched on at start (`panic,moon,…`). */
@@ -75,7 +79,7 @@ export function parseParams(search: string): { params: Params; warnings: string[
     else warnings.push(`scenario: invalid id "${scenario}"`);
   }
 
-  const ms = (key: 't' | 'intro') => {
+  const ms = (key: 't' | 'intro' | 'zoom') => {
     const v = q.get(key);
     if (v === null) return;
     const n = Number(v);
@@ -84,6 +88,7 @@ export function parseParams(search: string): { params: Params; warnings: string[
   };
   ms('t');
   ms('intro');
+  ms('zoom');
 
   const debug = q.get('debug');
   if (debug !== null) {
@@ -170,6 +175,12 @@ export function parseParams(search: string): { params: Params; warnings: string[
   if (view !== null) {
     if (view === 'dish') params.view = view;
     else warnings.push(`view: expected "dish", got "${view}"`);
+  }
+
+  const from = q.get('from');
+  if (from !== null) {
+    if (from === 'dish' || from === 'brain') params.from = from;
+    else warnings.push(`from: expected "dish" | "brain", got "${from}"`);
   }
 
   const items = q.get('items');

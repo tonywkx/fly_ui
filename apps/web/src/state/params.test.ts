@@ -177,4 +177,14 @@ describe('parseParams', () => {
     expect(bad.params.ops).toBeUndefined();
     expect(bad.warnings).toHaveLength(1);
   });
+
+  it('reads the zoom arrival and a frozen flight', () => {
+    const { params, warnings } = parseParams('?view=dish&from=brain&zoom=700');
+    expect(params).toMatchObject({ view: 'dish', from: 'brain', zoom: 700 });
+    expect(warnings).toEqual([]);
+    const bad = parseParams('?from=pond&zoom=-1');
+    expect(bad.params.from).toBeUndefined();
+    expect(bad.params.zoom).toBeUndefined();
+    expect(bad.warnings).toHaveLength(2);
+  });
 });
