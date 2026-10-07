@@ -170,4 +170,11 @@ describe('parseParams', () => {
     expect(params.items).toBeUndefined();
     expect(warnings).toHaveLength(2);
   });
+
+  it('reads dish operations, dropping a bad list', () => {
+    expect(parseParams('?view=dish&ops=panic,p1').params.ops).toEqual(['panic', 'p1']);
+    const bad = parseParams('?ops=panic,lobotomy');
+    expect(bad.params.ops).toBeUndefined();
+    expect(bad.warnings).toHaveLength(1);
+  });
 });

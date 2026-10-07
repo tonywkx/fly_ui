@@ -171,8 +171,8 @@ export class DishScene {
     });
   }
 
-  /** Mirrors the world at sim time `t` (after `events` happened on the way there). */
-  sync(world: World, action: Action, t: number, events: readonly WorldEvent[]): void {
+  /** Mirrors the world at sim time `t` (after `events` happened on the way there); `marked` = an operation is on. */
+  sync(world: World, action: Action, t: number, events: readonly WorldEvent[], marked = false): void {
     const f = world.fly;
     for (const e of events) {
       if (e.kind === 'takeoff') {
@@ -183,7 +183,7 @@ export class DishScene {
       else if (e.kind === 'hit' || e.kind === 'reassemble') this.trail.gap();
     }
     if (f.air === 0 && f.down === 0) this.pushTrail(t, f.x, f.y, action);
-    this.fly.update(f, action, t, f.down > 0);
+    this.fly.update(f, action, t, f.down > 0, marked);
 
     const live = new Set<number>();
     for (const it of world.items) {

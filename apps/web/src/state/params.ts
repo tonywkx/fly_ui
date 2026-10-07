@@ -1,6 +1,7 @@
 import type { ItemKind } from '@fly/sim';
 import { COLOR_BY, type ColorBy, isColorBy } from '../data/colorBy';
 import { isLang, LANGS, type Lang } from '../i18n';
+import { OPS, type Op } from '../scene/dish/verdict';
 import { isQuality, QUALITIES, type Quality } from '../scene/quality';
 import { MAX_PROBES } from './experiment';
 import { decodeExperiment, type SharedExperiment } from './share';
@@ -51,6 +52,8 @@ export interface Params {
   view?: 'dish';
   /** Dish items at mm positions (`kind@x,y;…`) — snaps and debugging until the palette (8.6). */
   items?: { kind: ItemKind; x: number; y: number }[];
+  /** Dish operations switched on at start (`panic,moon,…`). */
+  ops?: Op[];
   /** First-visit tour: 0 = off, 1..4 = open at that step (see `state/tour.ts`). */
   tour?: TourStep;
 }
@@ -181,6 +184,13 @@ export function parseParams(search: string): { params: Params; warnings: string[
     });
     if (list.every((v): v is NonNullable<typeof v> => v !== null)) params.items = list;
     else warnings.push(`items: expected "kind@x,y;…" (${ITEM_KINDS.join(' | ')}), got "${items}"`);
+  }
+
+  const ops = q.get('ops');
+  if (ops !== null) {
+    const list = ops.split(',').map((v) => v.trim());
+    if (list.every((v): v is Op => (OPS as readonly string[]).includes(v))) params.ops = list;
+    else warnings.push(`ops: expected a list of ${OPS.join(' | ')}, got "${ops}"`);
   }
 
   return { params, warnings };

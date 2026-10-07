@@ -11,6 +11,7 @@ import {
   type World,
   type WorldEvent,
 } from '@fly/sim';
+import { type Op, Verdicts } from './verdict';
 
 /** World step and decision tick, sim ms (as the 8.3 calibration in `explore/bridge.ts`). */
 const TICK = 1;
@@ -31,6 +32,9 @@ export class DishLoop {
   /** Sim time reached, ms. */
   t = 0;
   action: Action = 'walk';
+  /** Each op's last encounter; ops changed since the caller last drained `changed`. */
+  readonly verdicts = new Verdicts();
+  readonly changed = new Set<Op>();
   private readonly meter: CommandMeter;
   private prev = new Map<number, number>();
 
@@ -53,9 +57,13 @@ export class DishLoop {
       const [i0, i1] = log.span(this.t, this.t + TICK);
       if (i1 > i0) this.meter.add({ t: log.times.subarray(i0, i1), row: log.rows.subarray(i0, i1) });
       this.t += TICK;
-      this.action = decide(this.meter.rates(this.t), this.action);
-      ev.push(...this.world.step(TICK, this.action));
-      this.send(senseDrive(this.world.sense(), this.senses));
+      const r = this.meter.rates(this.t);
+      this.action = decide(r, this.action);
+      const step = this.world.step(TICK, this.action);
+      ev.push(...step);
+      const s = this.world.sense();
+      for (const op of this.verdicts.tick(this.t, s, r, this.action, step)) this.changed.add(op);
+      this.send(senseDrive(s, this.senses));
     }
     return ev;
   }
@@ -66,6 +74,8 @@ export class DishLoop {
     this.t = 0;
     this.action = 'walk';
     this.meter.reset();
+    this.verdicts.reset();
+    this.changed.clear();
     this.send(new Map());
   }
 

@@ -1,6 +1,8 @@
 import { type Action, FLY_LEN } from '@fly/sim';
+import { Mesh, RingGeometry } from 'three/webgpu';
 import { FlyModel } from '../flycam/model';
 import { feet, STRIDE } from './gait';
+import { glow, SAFFRON } from './materials';
 
 /** FlyModel body length in its own units → world mm. */
 const BODY_UNITS = 2.6;
@@ -14,6 +16,8 @@ const WING_RATE = 1 / 60;
 const SONG_MS = 35;
 /** Turning in place still steps: body units of foot travel per radian. */
 const TURN_STEP = 0.4;
+/** Operated-on mark: a thin halo over the head (body units; head centre ≈ (0.6, 0.7)). */
+const MARK = { r: 0.22, w: 0.035, at: [0.6, 1.1, 0] as const };
 
 export interface Placed {
   x: number;
@@ -30,6 +34,10 @@ const approach = (v: number, to: number, d: number) => (v < to ? Math.min(to, v 
 export class FlyView {
   readonly model = new FlyModel();
   readonly root = this.model.root;
+  private readonly mark = new Mesh(
+    new RingGeometry(MARK.r - MARK.w, MARK.r, 48).rotateX(-Math.PI / 2),
+    glow(SAFFRON, 1.6),
+  );
   private readonly scale: number;
   private phase = 0;
   private last: Placed | null = null;
@@ -42,6 +50,9 @@ export class FlyView {
   constructor(size = 1) {
     this.scale = (FLY_LEN / BODY_UNITS) * size;
     this.root.scale.setScalar(this.scale);
+    this.mark.position.set(...MARK.at);
+    this.mark.visible = false;
+    this.root.add(this.mark);
   }
 
   takeoffAt(t: number): void {
@@ -59,8 +70,11 @@ export class FlyView {
     Object.assign(this, { takeoff: null, landed: -Infinity, last: null, t: 0, proboscis: 0, wing: 0 });
   }
 
-  /** Pose at sim time `t`; `hidden` = shattered. Position is kept while airborne (she leaves from there). */
-  update(p: Placed, action: Action, t: number, hidden = false): void {
+  /**
+   * Pose at sim time `t`; `hidden` = shattered, `marked` = an operation is on (halo over the head).
+   * Position is kept while airborne (she leaves from there).
+   */
+  update(p: Placed, action: Action, t: number, hidden = false, marked = false): void {
     const dt = Math.max(0, t - this.t);
     this.t = t;
     this.root.visible = !hidden;
@@ -81,6 +95,7 @@ export class FlyView {
     this.wing = approach(this.wing, action === 'court' ? 1 : 0, WING_RATE * dt);
     const lift = air ? Math.min(1, (t - (this.takeoff as number)) / LIFT_MS) : 0;
     const drop = Math.max(0, 1 - (t - this.landed) / DROP_MS);
+    this.mark.visible = marked && !air && drop === 0;
     this.model.gait(air || drop > 0 ? null : feet(this.phase));
     this.model.pose({
       jumpAt: this.takeoff,

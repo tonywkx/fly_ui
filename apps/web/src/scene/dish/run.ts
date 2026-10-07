@@ -1,10 +1,21 @@
-import { type Action, COMMANDS, mulberry32, SENSES, World, type WorldEvent } from '@fly/sim';
+import {
+  type Action,
+  COMMANDS,
+  type Group,
+  mulberry32,
+  OPERATIONS,
+  SENSE_HZ,
+  SENSES,
+  World,
+  type WorldEvent,
+} from '@fly/sim';
 import { LiveClient, type Pace } from '@/sim/client';
 import type { Backend } from '../engine';
 import type { Preset } from '../quality';
 import { DishScene, type DishSceneOptions } from './DishScene';
 import { DishInput } from './input';
 import { DishLoop } from './loop';
+import { OPS, type Op, type Outcome } from './verdict';
 
 const SEED = 1;
 /** Shown at ×1/6: a sim ms takes 6 wall ms ("high-speed camera"). */
@@ -39,6 +50,10 @@ export interface DishRunOptions extends DishSceneOptions {
   until?: number;
   onReady?: () => void;
   onStatus: (s: DishStatus) => void;
+  /** Cells per operation, once the live brain is up. */
+  onCells?: (n: Record<Op, number>) => void;
+  /** An operation's last encounter changed (the card's «now» line). */
+  onVerdict?: (op: Op, o: Outcome) => void;
 }
 
 /** Owns the dish scene, the world, the live sim and the ×1/6 clock. */
@@ -50,6 +65,10 @@ export class DishRun {
   private flash: { word: Flash; t: number } | null = null;
   private client: LiveClient | null = null;
   private loop: DishLoop | null = null;
+  /** Operations wanted by the visitor / applied to the sim, and their full-graph rows. */
+  private ops = new Set<Op>();
+  private applied = new Set<Op>();
+  private opRows: Record<Op, Group> | null = null;
   private clock = 0;
   private last = 0;
   private ready = false;
@@ -81,11 +100,20 @@ export class DishRun {
     this.paused = !this.paused;
   }
 
-  /** Items, fly, trail, clock and the brain back to t = 0 (operations stay with the sim). */
+  /** Switches operations on (in the set) and off (not in it); applied once the live brain is up. */
+  setOps(ops: Iterable<Op>): void {
+    this.ops = new Set(ops);
+    this.applyOps();
+  }
+
+  /** Items, fly, trail, clock and the brain back to t = 0; operations stay on. */
   reset(): void {
     this.loop?.reset();
     if (!this.loop) this.world.reset();
+    // the sim's reset clears silencing and drive: queue the operations again right behind it
     void this.client?.reset();
+    this.applied.clear();
+    this.applyOps();
     this.clock = 0;
     this.flash = null;
     this.scene.clear();
@@ -114,12 +142,35 @@ export class DishRun {
       if (this.disposed) return c.dispose();
       const senses = await c.groups(SENSES);
       const commands = await c.watch(COMMANDS);
+      this.opRows = await c.groups(
+        Object.fromEntries(OPS.map((op) => [op, OPERATIONS[op].types])) as Record<Op, RegExp>,
+      );
       this.loop = new DishLoop(this.world, senses, commands, { drive: (d) => void c.drive(d) });
       this.client = c;
+      this.o.onCells?.(
+        Object.fromEntries(OPS.map((op) => [op, this.opRows?.[op].all.length ?? 0])) as Record<Op, number>,
+      );
+      this.applyOps();
       console.info(`[dish] live brain in ${(performance.now() - t0).toFixed(0)} ms`);
     } catch (e) {
       console.error('[dish] live sim failed', e);
       this.o.onReady?.();
+    }
+  }
+
+  /** Brings the sim's operations in line with `ops` (silence for «off», full drive for «on»). */
+  private applyOps(): void {
+    const c = this.client;
+    const g = this.opRows;
+    if (!c || !g) return;
+    for (const op of OPS) {
+      const on = this.ops.has(op);
+      if (on === this.applied.has(op)) continue;
+      const rows = g[op].all;
+      if (OPERATIONS[op].mode === 'off') void c.silenceRows(rows, on);
+      else void c.drive({ rows: rows.slice(), hz: new Float32Array(rows.length).fill(on ? SENSE_HZ : 0) });
+      if (on) this.applied.add(op);
+      else this.applied.delete(op);
     }
   }
 
@@ -135,6 +186,11 @@ export class DishRun {
       else if (!this.paused) this.clock = Math.min(this.clock + dt / SLOW, c.log.until + 1);
       c.pump(this.clock);
       ev = l.advance(this.clock, c.log);
+      for (const op of l.changed) {
+        const o = l.verdicts.now[op];
+        if (o) this.o.onVerdict?.(op, o);
+      }
+      l.changed.clear();
       if (until !== undefined && l.t >= until && !this.ready) {
         this.ready = true;
         this.o.onReady?.();
@@ -149,7 +205,7 @@ export class DishRun {
       else if (e.kind === 'reassemble') this.flash = { word: 'back_again', t: e.t };
     }
     if (this.flash && (t - this.flash.t > FLASH_MS || t < this.flash.t)) this.flash = null;
-    this.scene.sync(this.world, l?.action ?? 'walk', t, ev);
+    this.scene.sync(this.world, l?.action ?? 'walk', t, ev, this.applied.size > 0);
     const id = this.input.hover;
     const it = id === null ? undefined : this.world.items.find((i) => i.id === id);
     this.o.onStatus({
