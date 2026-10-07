@@ -96,3 +96,6 @@ Findings:
 | female left + P1 off | walk | walk; walk; walk | 0–0 / 0–0 / 81–104 / 112–120 / 0–0 | yes |
 | female ahead + P1 off | walk | walk; walk; walk | 0–0 / 0–0 / 39–103 / 129–140 / 0–0 | yes |
 | banana odor | walk | walk; walk; walk | 29–40 / 6–19 / 91–93 / 45–53 / 3–3 | yes |
+
+### Long run (8.5, world + sim headless, 1.5 s, seeds 1–3)
+The 300 ms table above misses a slow drift: under sustained sugar or female drive MDN creeps to 47–135 Hz after 450–600 ms and broke off eating / courting into `back`. Fixes: an ongoing eat / court yields to back only at `PREEMPT_BACK` = 150 Hz (bitter from walk still uses 60); court + gate kernels τ = 120 ms (pIP10 fires in bursts; 40 ms dropped courtship between them); female seen at full strength within 3 mm (world `FEMALE_FULL`; at 3 mm to the side the old linear falloff gave pC1 ≈ 2 Hz < gate 3). After: sugar → eat for the whole run on all seeds; female ahead / left → court (seed 3 hesitates once into back ≈ 300 ms when court dips below its off level); bitter → back; empty dish → walk.

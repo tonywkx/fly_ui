@@ -10,6 +10,7 @@ import {
   resolveGroups,
   SENSES,
   senseDrive,
+  PREEMPT_BACK,
   THRESHOLDS,
 } from './bridge';
 
@@ -150,6 +151,14 @@ describe('CommandMeter', () => {
 describe('decide', () => {
   const T = THRESHOLDS;
   const at = (r: Partial<Rates>, prev: Action = 'walk') => decide({ ...rest, ...r }, prev);
+
+  it('lets only a strong back command break off eating or courting', () => {
+    expect(at({ back: 100, eat: 200 }, 'eat')).toBe('eat');
+    expect(at({ back: 100, court: 60, gate: 5 }, 'court')).toBe('court');
+    expect(at({ back: PREEMPT_BACK, eat: 200 }, 'eat')).toBe('back');
+    expect(at({ back: 100, eat: 200 }, 'walk')).toBe('back');
+    expect(at({ jump: 200, eat: 200 }, 'eat')).toBe('jump');
+  });
 
   it('walks at rest', () => {
     expect(at({})).toBe('walk');

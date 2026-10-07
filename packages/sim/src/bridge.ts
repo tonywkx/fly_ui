@@ -137,7 +137,7 @@ export type Command = keyof typeof COMMANDS;
 export type Rates = Record<Command, number>;
 
 /** Kernel time constants (sim ms): jump as in FlyCam's `Behavior`, the rest smoother. */
-const TAU: Rates = { jump: 20, back: 40, eat: 40, court: 40, gate: 40 };
+const TAU: Rates = { jump: 20, back: 40, eat: 40, court: 120, gate: 120 };
 const NAMES = Object.keys(COMMANDS) as Command[];
 
 /** Running per-cell rate of each command group from spike batches (rows in the batch's own indexing). */
@@ -189,10 +189,19 @@ export const THRESHOLDS: Record<Command, { on: number; off: number }> = {
   gate: { on: 3, off: 1.5 },
 };
 
-/** Action from command rates; priority jump > back > eat > court, else the scripted walk. */
+/**
+ * MDN rate that breaks off eating or courting. Under sustained sugar / female drive MDN creeps up to
+ * 47–91 Hz after 450–600 ms (8.5 live loop; the 300 ms calibration missed it) — not a reason to back off.
+ */
+export const PREEMPT_BACK = 150;
+
+/** Action from command rates; priority jump > back > eat > court (an ongoing eat/court needs `PREEMPT_BACK`), else the scripted walk. */
 export function decide(r: Rates, prev: Action): Action {
   const over = (c: Command, held: boolean) => r[c] >= THRESHOLDS[c][held ? 'off' : 'on'];
-  for (const a of ['jump', 'back', 'eat'] as const) if (over(a, prev === a)) return a;
+  if (over('jump', prev === 'jump')) return 'jump';
+  const busy = prev === 'eat' || prev === 'court';
+  if (busy ? r.back >= PREEMPT_BACK : over('back', prev === 'back')) return 'back';
+  if (over('eat', prev === 'eat')) return 'eat';
   const court = prev === 'court';
   return over('court', court) && over('gate', court) ? 'court' : 'walk';
 }

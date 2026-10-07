@@ -36,6 +36,8 @@ const SUGAR_FORGET = 5;
 const CONTACT = 1;
 /** Female seen within this range and ±`FOV` of the heading. */
 const FEMALE_RANGE = 6;
+/** …and at full strength from this close (one eye at half strength is too weak to court, 8.5). */
+const FEMALE_FULL = 3;
 const FOV = (5 * Math.PI) / 6;
 const FEMALE_V = 0.003;
 const FEMALE_CIRCLE = 2;
@@ -48,7 +50,7 @@ const SHADOW_MAX = 8;
 const SHADOW_GROW = 0.006; // mm/ms
 const SHADOW_SHRINK = 0.012;
 export const SWAT_MS = 120;
-const SWAT_R = 5;
+export const SWAT_R = 5;
 /** Strikes farther than 4 fly lengths go unnoticed. */
 const SWAT_REACH = 4 * FLY_LEN;
 const HIT_R = 2.5;
@@ -165,7 +167,8 @@ export class World {
       } else if (i.kind === 'female') {
         const d = Math.hypot(i.x - f.x, i.y - f.y);
         const b = this.bearing(i.x, i.y);
-        if (d < FEMALE_RANGE && Math.abs(b) < FOV) s.female = eyes(b, 1 - d / FEMALE_RANGE);
+        if (d < FEMALE_RANGE && Math.abs(b) < FOV)
+          s.female = eyes(b, Math.min(1, (FEMALE_RANGE - d) / (FEMALE_RANGE - FEMALE_FULL)));
       }
     }
     let loom = 0;
