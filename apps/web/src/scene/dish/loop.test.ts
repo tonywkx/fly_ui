@@ -69,6 +69,24 @@ describe('DishLoop', () => {
     expect([...(drives[1]?.hz ?? [])]).toEqual([0, 0]);
   });
 
+  it('reports a decision with the time since its sense came on', () => {
+    const { loop } = setup();
+    loop.world.add('sugar', 1.6, 0);
+    loop.world.fly.heading = 0;
+    loop.advance(200, log([3], 30, 300));
+    const d = loop.decisions[0];
+    expect(loop.action).toBe('eat');
+    expect(d?.action).toBe('eat');
+    expect(d?.ms).toBe((d?.t ?? 0) - 1);
+    expect(d?.side).toBeNull();
+  });
+
+  it('reports a decision without a sense (forced cells) with no latency', () => {
+    const { loop } = setup();
+    loop.advance(100, log([0, 1], 20, 200));
+    expect(loop.decisions.map((d) => [d.action, d.ms])).toEqual([['jump', null]]);
+  });
+
   it('resets world, clock and drive', () => {
     const { loop, drives } = setup();
     loop.world.add('sugar', 1.6, 0);
@@ -77,6 +95,7 @@ describe('DishLoop', () => {
     expect(loop.t).toBe(0);
     expect(loop.world.items).toHaveLength(0);
     expect(loop.action).toBe('walk');
+    expect(loop.decisions).toHaveLength(0);
     expect([...(drives.at(-1)?.hz ?? [])]).toEqual([0, 0]);
   });
 });

@@ -2,19 +2,42 @@ import {
   type Action,
   type Command,
   CommandMeter,
+  type Decision,
   type Drive,
   decide,
   diffDrive,
   type Group,
+  PATHS,
   type SENSES,
+  type Senses,
   senseDrive,
   type World,
   type WorldEvent,
 } from '@fly/sim';
-import { type Op, Verdicts } from './verdict';
+import { type Op, TAIL_MS, Verdicts } from './verdict';
 
 /** World step and decision tick, sim ms (as the 8.3 calibration in `explore/bridge.ts`). */
 const TICK = 1;
+
+type Sense = keyof typeof SENSES;
+type Side = 'L' | 'R';
+
+/** A switch into a decision: what, when, how long after its sense came on, and from which side. */
+export interface DecisionEvent {
+  action: Decision;
+  t: number;
+  /** Sense onset → decision, sim ms; null when the sense was off (forced cells). */
+  ms: number | null;
+  /** The stronger eye for loom / female; null for taste or without a sense. */
+  side: Side | null;
+}
+
+/** A sense's level and stronger side. */
+function level(s: Senses, k: Sense): { on: boolean; side: Side | null } {
+  const v = s[k];
+  if (typeof v === 'number') return { on: v > 0, side: null };
+  return { on: v.L > 0 || v.R > 0, side: v.L >= v.R ? 'L' : 'R' };
+}
 
 /** Spike source by time: the live client's `SpikeLog` (log rows = the watched command groups). */
 export interface Spikes {
@@ -35,7 +58,11 @@ export class DishLoop {
   /** Each op's last encounter; ops changed since the caller last drained `changed`. */
   readonly verdicts = new Verdicts();
   readonly changed = new Set<Op>();
+  /** Decisions since the caller last drained this list. */
+  readonly decisions: DecisionEvent[] = [];
   private readonly meter: CommandMeter;
+  /** Per sense: rising edge, last tick on and side (null = off for longer than `TAIL_MS`). */
+  private onset: Partial<Record<Sense, { t0: number; last: number; side: Side | null }>> = {};
   private prev = new Map<number, number>();
 
   constructor(
@@ -58,10 +85,13 @@ export class DishLoop {
       if (i1 > i0) this.meter.add({ t: log.times.subarray(i0, i1), row: log.rows.subarray(i0, i1) });
       this.t += TICK;
       const r = this.meter.rates(this.t);
-      this.action = decide(r, this.action);
+      const prev = this.action;
+      this.action = decide(r, prev);
+      if (this.action !== prev && this.action !== 'walk') this.decided(this.action);
       const step = this.world.step(TICK, this.action);
       ev.push(...step);
       const s = this.world.sense();
+      this.track(s);
       for (const op of this.verdicts.tick(this.t, s, r, this.action, step)) this.changed.add(op);
       this.send(senseDrive(s, this.senses));
     }
@@ -76,7 +106,23 @@ export class DishLoop {
     this.meter.reset();
     this.verdicts.reset();
     this.changed.clear();
+    this.decisions.length = 0;
+    this.onset = {};
     this.send(new Map());
+  }
+
+  private track(s: Senses): void {
+    for (const k of Object.keys(PATHS).map((d) => PATHS[d as Decision].sense)) {
+      const { on, side } = level(s, k);
+      const o = this.onset[k];
+      if (on) this.onset[k] = { t0: o?.t0 ?? this.t, last: this.t, side };
+      else if (o && this.t - o.last > TAIL_MS) delete this.onset[k];
+    }
+  }
+
+  private decided(action: Decision): void {
+    const o = this.onset[PATHS[action].sense];
+    this.decisions.push({ action, t: this.t, ms: o ? this.t - o.t0 : null, side: o?.side ?? null });
   }
 
   private send(next: Map<number, number>): void {
