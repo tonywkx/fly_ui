@@ -7,6 +7,10 @@ import type { WhyHop } from '../scene/dish/why';
 /** The visitor's own strikes (TERRARIUM-SHAPE §Hands): tools in hand, not items in the dish. */
 export type Hand = 'shadow' | 'swatter';
 
+/** The phone sheet's tabs (8.14); the desktop shows all three at once. */
+export const TABS = ['items', 'ops', 'puppet'] as const;
+export type Tab = (typeof TABS)[number];
+
 /**
  * Terrarium UI state that React shows: the tool in hand, whether the dish is empty, the surgeon's
  * operations and their last outcomes. Never per frame (outcomes change once per encounter).
@@ -20,6 +24,8 @@ export class DishStore {
   pulls = new Set<Pull>();
   /** The open operation card. */
   open: Op | null = 'panic';
+  /** The phone sheet's tab; opening a card shows the operations. */
+  tab: Tab = 'items';
   /** Cells per operation, once the live brain is up. */
   cells: Record<Op, number> | null = null;
   /** Each operation's last live encounter. */
@@ -72,6 +78,7 @@ export class DishStore {
     this.ops.clear();
     this.open = null;
     this.hand = l.hand;
+    this.tab = 'items';
     this.round++;
   }
 
@@ -83,12 +90,12 @@ export class DishStore {
   showHint(): void {
     if (this.level === null) return;
     this.hint = nextHint(this.hint);
-    if (this.hint === HINTS) this.open = LEVELS[this.level]?.op ?? null;
+    if (this.hint === HINTS) this.setOpen(LEVELS[this.level]?.op ?? null);
   }
 
   setHint(h: number): void {
     this.hint = Math.min(Math.max(h, 0), HINTS);
-    if (this.hint === HINTS && this.level !== null) this.open = LEVELS[this.level]?.op ?? null;
+    if (this.hint === HINTS && this.level !== null) this.setOpen(LEVELS[this.level]?.op ?? null);
   }
 
   /** Free play; remembered, so the strip stays closed on the next visit. */
@@ -138,6 +145,11 @@ export class DishStore {
 
   setOpen(op: Op | null): void {
     this.open = op;
+    if (op) this.tab = 'ops';
+  }
+
+  setTab(tab: Tab): void {
+    this.tab = tab;
   }
 
   /** Open a card; the open one again closes it. */

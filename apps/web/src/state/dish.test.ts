@@ -71,3 +71,24 @@ describe('DishStore puppet', () => {
     expect(s.pulls.size).toBe(0);
   });
 });
+
+describe('DishStore phone sheet', () => {
+  it('opening a card shows the operations tab; a puzzle goes back to the tools', () => {
+    const { s } = store();
+    expect(s.tab).toBe('items');
+    s.setTab('puppet');
+    s.setOpen('moon');
+    expect(s.tab).toBe('ops');
+    s.setOpen(null);
+    expect(s.tab).toBe('ops');
+    s.startLevel(0);
+    expect(s.tab).toBe('items');
+  });
+
+  it('the last hint rung shows the operations tab', () => {
+    const { s } = store();
+    s.startLevel(1);
+    s.setHint(3);
+    expect(s.tab).toBe('ops');
+  });
+});

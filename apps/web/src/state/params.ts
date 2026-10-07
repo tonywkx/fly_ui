@@ -5,6 +5,7 @@ import { HINTS, LEVELS } from '../scene/dish/levels';
 import { PULLS, type Pull } from '../scene/dish/loop';
 import { OPS, type Op } from '../scene/dish/verdict';
 import { isQuality, QUALITIES, type Quality } from '../scene/quality';
+import { TABS, type Tab } from './dish';
 import { MAX_PROBES } from './experiment';
 import { decodeExperiment, type SharedExperiment } from './share';
 import type { TourStep } from './tour';
@@ -68,6 +69,8 @@ export interface Params {
   level?: number;
   /** Hint rungs shown for that puzzle, 0..3 (snaps). */
   hint?: number;
+  /** Dish, phone: the sheet's tab (snaps). */
+  sheet?: Tab;
   /** First-visit tour: 0 = off, 1..4 = open at that step (see `state/tour.ts`). */
   tour?: TourStep;
 }
@@ -110,6 +113,12 @@ export function parseParams(search: string): { params: Params; warnings: string[
   };
   int('level', LEVELS.length);
   int('hint', HINTS);
+
+  const sheet = q.get('sheet');
+  if (sheet !== null) {
+    if ((TABS as readonly string[]).includes(sheet)) params.sheet = sheet as Tab;
+    else warnings.push(`sheet: unknown tab "${sheet}" (${TABS.join(' | ')})`);
+  }
 
   const debug = q.get('debug');
   if (debug !== null) {

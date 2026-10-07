@@ -118,6 +118,7 @@ export const Dish = observer(function Dish() {
         dish.startLevel(first);
         dish.setHint(p.hint ?? 0);
       }
+      if (p.sheet) dish.setTab(p.sheet);
       const quality = reaction(
         () => app.quality,
         (q) => run.applyQuality(QUALITY[q]),

@@ -200,4 +200,11 @@ describe('parseParams', () => {
     expect(bad.params.hint).toBeUndefined();
     expect(bad.warnings).toHaveLength(2);
   });
+
+  it('reads the phone sheet tab', () => {
+    expect(parseParams('?sheet=ops').params.sheet).toBe('ops');
+    const bad = parseParams('?sheet=x');
+    expect(bad.params.sheet).toBeUndefined();
+    expect(bad.warnings).toHaveLength(1);
+  });
 });
