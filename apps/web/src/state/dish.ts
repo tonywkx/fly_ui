@@ -1,4 +1,5 @@
 import { makeAutoObservable } from 'mobx';
+import type { DecisionEvent } from '@/scene/dish/loop';
 import type { Op, Outcome } from '@/scene/dish/verdict';
 
 /** The visitor's own strikes (TERRARIUM-SHAPE §Hands): tools in hand, not items in the dish. */
@@ -21,6 +22,8 @@ export class DishStore {
   now: Partial<Record<Op, Outcome>> = {};
   /** The operation whose outcome changed last (announced). */
   last: Op | null = null;
+  /** The fly's last decision (the caption under the dish); null after a reset. */
+  decision: DecisionEvent | null = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -50,6 +53,10 @@ export class DishStore {
 
   setCells(n: Record<Op, number>): void {
     this.cells = n;
+  }
+
+  setDecision(d: DecisionEvent | null): void {
+    this.decision = d;
   }
 
   setNow(op: Op, o: Outcome): void {
