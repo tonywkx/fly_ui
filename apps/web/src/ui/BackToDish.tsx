@@ -13,11 +13,11 @@ import { viewHref } from './ViewSwitch';
 export const BackToDish = observer(function BackToDish() {
   if (app.params.from !== 'dish') return null;
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex flex-col items-center md:top-8">
+    <div className="pointer-events-none absolute top-4 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center rounded-xl bg-panel p-1 backdrop-blur md:top-8">
       <Button variant="ghost" asChild className="pointer-events-auto h-8 px-2 text-caption text-bone md:h-6">
         <a href={viewHref({ dish: true, from: 'brain', x: experimentCode() })}>{t('view.back')}</a>
       </Button>
-      <p className="hidden px-2 text-caption text-ash md:block">{t('view.backHint')}</p>
+      <p className="hidden px-2 pb-1 text-caption text-mist md:block">{t('view.backHint')}</p>
     </div>
   );
 });
