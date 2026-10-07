@@ -105,6 +105,25 @@ test('tour completes', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+// The live brain: MDN switched on makes the fly back off with nothing bitter around.
+test('terrarium loads + an operation changes behaviour', async ({ page }) => {
+  // the dish clock runs in wall time on the live sim; without a GPU the frames crawl
+  test.skip(!!process.env.CI, 'live sim in wall time; too slow without a GPU');
+  const { errors } = watch(page);
+  await page.goto(url({ view: 'dish', snap: '0' }));
+  await ready(page);
+  await expect(page.locator('canvas').first()).toBeVisible();
+  const ops = page.getByRole('region', { name: 'Neurosurgeon' });
+  await expect(page.getByText(/backs off for no reason/)).toHaveCount(0);
+
+  await ops.getByRole('button', { name: /Retreat neuron/ }).dispatchEvent('click');
+  await ops.getByRole('button', { name: 'Switch on' }).dispatchEvent('click');
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Retreat neuron: backs off for no reason' }),
+  ).toHaveCount(1, { timeout: 30_000 });
+  expect(errors).toEqual([]);
+});
+
 test('data error shows the fatal screen', async ({ page }) => {
   await page.route('**/data/manifest.json', (r) => r.fulfill({ status: 500, body: 'down' }));
   await page.goto(url({ scenario: 'escape' }));
