@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-07 — 8.7 Neurosurgeon
+Done: `scene/dish/verdict.ts` (+ test) `Verdicts`: encounters per op (panic = loom, sugar = sugar, p1 = female, moon = a `back` episode; tail 60 ms, ongoing publishes at 200 ms + on line flip), `USUAL` = 8.1 baked numbers; `DishLoop.verdicts/changed`; `DishRun.setOps` (off = `silenceRows`, moon = `drive` at `SENSE_HZ`) + `onCells/onVerdict`; `state/dish.ts` ops/open/cells/now/last; `ui/DishOps.tsx` (right column, accordion, violet pill = primary, sr-only status); halo over the fly's head (`fly.ts` `MARK`); `?ops=panic,moon,sugar,p1`; i18n `op.*`.
+State: all 4 ops change behaviour in the browser (sugar: eats → walks over, MN9 0; p1: courts → ignores, pIP10 78; moon: backs off for no reason, MDN 161; panic + swatter: jump → no jump, TTMn 110). R keeps ops, «Undo all» restores. Desktop only (panel `hidden md:flex`); hologram mark waits for 8.8.
+Next: 8.8 brain hologram + decision thread. Leftover from 8.6/8.7: tour step 4 «В террариум →» + swatter in hand on arrival; phone ops tab (8.14).
+Gotchas: `client.reset()` clears silence AND drive → `DishRun.reset` re-queues ops right behind it (comlink keeps order, no await needed). `drive` transfers its arrays — pass fresh copies (`rows.slice()`). Live «now» latencies (sugar ~72 ms, panic ~54 ms) are longer than «usually» (8/22 ms first spike at full stimulus from t = 0) — they include the sense ramp; honest but different. Unit spaces in `op.*` copy are NBSP (no orphan «Hz» in the 342 px panel).
+
 ## 2026-10-07 — 8.6 Placement
 Done: `World.move` (+ test); `scene/dish/place.ts` (+ test: floor ray, `itemAt`, `ahead`); `DishScene.pick/project/aim` (aim ring + 60 % ghost); `scene/dish/input.ts` `DishInput` (capture-phase pointer on host: item drag / off-dish remove, shadow hold, swatter click; keys 1–6, Esc, R, Space); `DishRun.reset()` + flash words (miss / dodge / back_again); `state/dish.ts` (hand, empty); `ui/DishPalette.tsx`, `ui/ViewSwitch.tsx`, `ui/Credit.tsx`; dish chrome (wordmark, switch, RU/EN, credit); i18n `dish.*`, `view.*`.
 State: desktop placement fully works (verified by a Playwright script: key place, palette drag, tap, hover ×, swatter → «dodged», R). Phone: one row of 6 glyph buttons (tap = ahead of the fly) + reset; no way to remove a single item on touch yet. View switch = full page navigation (view is picked at boot in `main.tsx`), no crossfade.
@@ -23,9 +29,3 @@ Done: `docs/TERRARIUM-SHAPE.md` (approved): brief, world (24 mm arena, fly ≈ 9
 State: docs only, no code. User approved with edits: hands instead of one-shot items, MDN = «Нейрон отступления», fact lines verified.
 Next: 8.3 bridge world ↔ brain (pure + tests): per-side sensory rates in, command-neuron thresholds out (TTMn jump, MDN back, MN9 eat, pIP10 + pC1 gate court); live Worker `stimulate` per tick.
 Gotchas: GF axon is the largest in the *thoracic* ganglia, not the whole CNS; MDN ↔ Michael Jackson is folklore (not in Bidaye 2014) — copy avoids both. LB3 is labellar, so leg-taste facts don't fit the sugar card. Cell counts on op cards come from the dataset at runtime. `/handoff` cannot be invoked by the model — user runs it.
-
-## 2026-10-06 — 8.1 Terrarium feasibility
-Done: `apps/pipeline/src/explore/terrarium.ts` (`pnpm -C apps/pipeline explore:terrarium [--ops]`): sensory input → command-neuron rates (L/R) + surgeon ops on the full graph; results + verdict in `docs/TERRARIUM.md`; DECISIONS line; 8.10 marked "drop unless model changes".
-State: GO. Connectome-driven: loom → DNp01 → TTMn (GF off → TTMn 44 Hz, no jump), sugar LB3 → MN9, bitter LB1 → MDN, LC10a → pIP10. Scripted: forward walk, turning, odor approach (L/R ORN input gives identical output). P1 off only cuts pIP10 by 30 %. Grooming dropped.
-Next: 8.2 Shape (dish look, items, operation card, RU/EN copy, wireframes 1600/390, where the Terrarium lives); user approves before code.
-Gotchas: sensory cells have no `somaSide`, so the L/R split needs neuPrint `rootSide` (the script queries it, token needed). Full run ≈ 4.5 min (≈3 s per 300 ms full-graph run). neuPrint has no Gr/ppk labels: LB3 = sugar, LB1 = bitter, pC1_* = P1 are inferred. There is no "P1"/"oDN1"/"aDN" type. DNb06 fires L ≫ R for any input (artefact). DNg11 fires 20–30 Hz for almost any input.
