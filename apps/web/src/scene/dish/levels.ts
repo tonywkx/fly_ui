@@ -1,5 +1,5 @@
 import type { ItemKind } from '@fly/sim';
-import type { Hand } from '@/state/dish';
+import type { Hand } from '../../state/dish';
 import type { Op, Outcome } from './verdict';
 
 /**
