@@ -1,26 +1,38 @@
 import { reaction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { data } from '@/data/store';
 import { type Key, num, t } from '@/i18n';
-import type { DishStatus } from '@/scene/dish/run';
+import type { DishRun, DishStatus } from '@/scene/dish/run';
 import { QUALITY } from '@/scene/quality';
 import { app } from '@/state/app';
+import { Credit } from './Credit';
+import { DishPalette } from './DishPalette';
+import { LangSwitch } from './LangSwitch';
+import { ViewSwitch } from './ViewSwitch';
 
 function timecode(s: DishStatus): string {
   if (s.loading) return t('dish.loading');
-  const word = s.paused ? t('dish.paused') : t(`dish.state.${s.action}` as Key);
+  const word = s.paused ? t('dish.paused') : t(`dish.state.${s.flash ?? s.action}` as Key);
   return `${t('dish.timecode', { t: num(s.t / 1000, undefined, 3) })} · ${word}`;
 }
 
+/** The remove button sits this far (px) up-right of the hovered item's centre. */
+const REMOVE_OFFSET = { x: 24, y: -30 };
+
 /**
- * The Terrarium (`?view=dish`): the dish scene with its live brain, and the timecode line. The
- * line is written from the frame loop straight into the DOM — no React renders per frame.
+ * The Terrarium (`?view=dish`): the dish scene with its live brain, the timecode line, the palette
+ * and the hovered item's remove button. The line and the button are written from the frame loop
+ * straight into the DOM — no React renders per frame.
  */
 export const Dish = observer(function Dish() {
   const { manifest } = data;
   const host = useRef<HTMLDivElement>(null);
   const line = useRef<HTMLParagraphElement>(null);
+  const remove = useRef<HTMLButtonElement>(null);
+  const hovered = useRef<number | null>(null);
+  const [run, setRun] = useState<DishRun | null>(null);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: the manifest arriving starts the dish
   useEffect(() => {
@@ -50,23 +62,24 @@ export const Dish = observer(function Dish() {
         onStatus: (s) => {
           const text = timecode(s);
           if (line.current && line.current.textContent !== text) line.current.textContent = text;
+          const b = remove.current;
+          hovered.current = s.hover?.id ?? null;
+          if (!b) return;
+          b.hidden = !s.hover;
+          if (s.hover)
+            b.style.transform = `translate(${s.hover.x + REMOVE_OFFSET.x}px, ${s.hover.y + REMOVE_OFFSET.y}px) translate(-50%, -50%)`;
         },
       });
-      for (const it of items ?? []) run.world.add(it.kind, it.x, it.y);
+      for (const it of items ?? []) run.input.place(it.kind, it);
+      setRun(run);
       const quality = reaction(
         () => app.quality,
         (q) => run.applyQuality(QUALITY[q]),
       );
-      const onKey = (e: KeyboardEvent) => {
-        if (e.code !== 'Space' || e.repeat || (e.target as HTMLElement).closest('input, textarea')) return;
-        e.preventDefault();
-        run.togglePause();
-      };
-      window.addEventListener('keydown', onKey);
       dispose = () => {
         quality();
-        window.removeEventListener('keydown', onKey);
         run.dispose();
+        setRun(null);
       };
       run
         .start()
@@ -94,6 +107,30 @@ export const Dish = observer(function Dish() {
         aria-live="off"
         className="pointer-events-none absolute inset-x-0 top-6 text-center font-mono text-caption text-mist tabular-nums md:top-10"
       />
+      <Button
+        ref={remove}
+        hidden
+        aria-label={t('dish.remove')}
+        className="absolute top-0 left-0 z-10 size-8 rounded-full bg-panel font-mono text-label text-mist backdrop-blur hover:text-bone"
+        onClick={() => {
+          if (hovered.current !== null) run?.input.remove(hovered.current);
+        }}
+      >
+        ×
+      </Button>
+      {run && <DishPalette input={run.input} />}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-1 p-4 md:flex-row md:items-end md:justify-between md:p-8">
+        <div className="flex items-center justify-between md:block">
+          <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
+            fly_ui
+          </h1>
+          <div className="-mx-1 flex items-center gap-1 md:mt-1">
+            <ViewSwitch />
+            <LangSwitch />
+          </div>
+        </div>
+        <Credit />
+      </div>
     </>
   );
 });
