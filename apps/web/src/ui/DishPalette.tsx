@@ -1,11 +1,13 @@
-import type { ItemKind } from '@fly/sim';
+import { type ItemKind, PUPPET, type PuppetKey } from '@fly/sim';
 import { observer } from 'mobx-react-lite';
-import type { ReactNode } from 'react';
+import type { ReactNode, PointerEvent as ReactPointerEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { HAND_KEYS, ITEM_KEYS } from '@/scene/dish/input';
+import type { Pull } from '@/scene/dish/loop';
 import { dish, type Hand } from '@/state/dish';
+import { PULL_GLYPH, puppetHops } from './puppet';
 
 /** What the palette needs from the dish input. */
 export interface PaletteInput {
@@ -86,6 +88,23 @@ function Row({ id, keyHint, children }: { id: ItemKind | Hand; keyHint: number; 
   );
 }
 
+/** Held while the pointer is down on it (as an arrow key is held). */
+function holdProps(keys: readonly Pull[]) {
+  const set = (on: boolean) => {
+    for (const k of keys) dish.pull(k, on);
+  };
+  return {
+    onPointerDown: (e: ReactPointerEvent<HTMLButtonElement>) => {
+      if (e.button !== 0) return;
+      e.currentTarget.setPointerCapture(e.pointerId);
+      set(true);
+    },
+    onPointerUp: () => set(false),
+    onPointerCancel: () => set(false),
+    onLostPointerCapture: () => set(false),
+  };
+}
+
 const ROW =
   'pointer-events-auto size-8 justify-center gap-3 rounded-full text-mist md:h-8 md:w-44 md:justify-start md:rounded-md md:px-2';
 
@@ -151,6 +170,7 @@ export const DishPalette = observer(function DishPalette({ input }: { input: Pal
             </Button>
           ))}
         </section>
+        <Puppet heading={heading} />
       </div>
       <div className="hidden h-16 flex-col items-start gap-1 md:flex">
         {hint && <p className="max-w-44 px-2 text-caption text-ash">{hint}</p>}
@@ -165,5 +185,57 @@ export const DishPalette = observer(function DishPalette({ input }: { input: Pal
         )}
       </div>
     </div>
+  );
+});
+
+const PUPPET_KEYS = Object.keys(PUPPET) as PuppetKey[];
+
+/** Puppet mode (8.13): the arrows drive command cells while held; ← → steer (scripted). Desktop only. */
+const Puppet = observer(function Puppet({ heading }: { heading: string }) {
+  const pressed =
+    'aria-pressed:bg-bone/15 aria-pressed:text-bone aria-pressed:ring-1 aria-pressed:ring-bone/40';
+  const glyph = 'w-6 shrink-0 text-center font-mono text-label';
+  const steering = dish.pulls.has('left') || dish.pulls.has('right');
+  return (
+    <section aria-label={t('puppet.title')} className="hidden flex-col gap-0.5 md:flex">
+      <h2 className={heading}>{t('puppet.title')}</h2>
+      {PUPPET_KEYS.map((k) => {
+        const type = puppetHops(k)[0]?.type ?? '';
+        return (
+          <Button
+            key={k}
+            aria-label={t('puppet.hold', { key: PULL_GLYPH[k], act: t(`puppet.${k}`), type })}
+            aria-pressed={dish.pulls.has(k)}
+            className={cn(ROW, 'touch-none select-none', pressed)}
+            {...holdProps([k])}
+          >
+            <kbd className={glyph}>{PULL_GLYPH[k]}</kbd>
+            <span className="flex-1 text-left text-label">{t(`puppet.${k}`)}</span>
+            <span className="font-mono text-caption text-ash">{type}</span>
+          </Button>
+        );
+      })}
+      <div
+        title={t('puppet.steer.note')}
+        className={cn(ROW, 'flex items-center text-mist', steering && 'text-bone')}
+      >
+        {(['left', 'right'] as const).map((k) => (
+          <Button
+            key={k}
+            aria-label={`${PULL_GLYPH[k]} ${t('puppet.steer')}`}
+            aria-pressed={dish.pulls.has(k)}
+            className={cn(
+              'pointer-events-auto -mx-1.5 size-6 touch-none rounded-sm font-mono text-label',
+              pressed,
+            )}
+            {...holdProps([k])}
+          >
+            {PULL_GLYPH[k]}
+          </Button>
+        ))}
+        <span className="flex-1 pl-1.5 text-left text-label">{t('puppet.steer')}</span>
+        <span className="font-mono text-caption text-ash">{t('puppet.scripted')}</span>
+      </div>
+    </section>
   );
 });

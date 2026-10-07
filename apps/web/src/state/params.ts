@@ -2,6 +2,7 @@ import type { ItemKind } from '@fly/sim';
 import { COLOR_BY, type ColorBy, isColorBy } from '../data/colorBy';
 import { isLang, LANGS, type Lang } from '../i18n';
 import { HINTS, LEVELS } from '../scene/dish/levels';
+import { PULLS, type Pull } from '../scene/dish/loop';
 import { OPS, type Op } from '../scene/dish/verdict';
 import { isQuality, QUALITIES, type Quality } from '../scene/quality';
 import { MAX_PROBES } from './experiment';
@@ -59,6 +60,8 @@ export interface Params {
   items?: { kind: ItemKind; x: number; y: number }[];
   /** Dish operations switched on at start (`panic,moon,…`). */
   ops?: Op[];
+  /** Dish: puppet keys held (snaps). */
+  puppet?: Pull[];
   /** Dish: open the «why?» card on the last decision (snaps). */
   why?: true;
   /** Dish puzzle to open, 1..4 (0 = free play, no puzzle strip). */
@@ -220,6 +223,12 @@ export function parseParams(search: string): { params: Params; warnings: string[
     const list = ops.split(',').map((v) => v.trim());
     if (list.every((v): v is Op => (OPS as readonly string[]).includes(v))) params.ops = list;
     else warnings.push(`ops: expected a list of ${OPS.join(' | ')}, got "${ops}"`);
+  }
+  const puppet = q.get('puppet');
+  if (puppet !== null) {
+    const list = puppet.split(',').map((v) => v.trim());
+    if (list.every((v): v is Pull => (PULLS as readonly string[]).includes(v))) params.puppet = list;
+    else warnings.push(`puppet: expected a list of ${PULLS.join(' | ')}, got "${puppet}"`);
   }
 
   return { params, warnings };

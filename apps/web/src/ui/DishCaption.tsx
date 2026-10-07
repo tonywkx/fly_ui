@@ -6,6 +6,7 @@ import { num, t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { app } from '@/state/app';
 import { dish } from '@/state/dish';
+import { PULL_GLYPH, puppetHops } from './puppet';
 
 /** Wall ms a decision's caption stays up (snaps keep it). */
 const SHOW_MS = 4000;
@@ -28,8 +29,14 @@ export const DishCaption = observer(function DishCaption() {
 
   const path = d && PATHS[d.action];
   const sensed = d?.ms !== null && d?.ms !== undefined;
-  const why = path ? t(sensed ? `dish.why.${path.sense}` : 'dish.why.forced') : '';
-  const hops = path ? (sensed ? path.hops : path.hops.slice(-1)).map((h) => h.type).join(' → ') : '';
+  const pull = d?.pull;
+  const why = !path
+    ? ''
+    : pull
+      ? t('dish.why.puppet', { key: PULL_GLYPH[pull] })
+      : t(sensed ? `dish.why.${path.sense}` : 'dish.why.forced');
+  const shownHops = !path ? [] : pull ? puppetHops(pull) : sensed ? path.hops : path.hops.slice(-1);
+  const hops = shownHops.map((h) => h.type).join(' → ');
   const term = d && sensed ? `${hops} · ${t('unit.ms', { v: num(d.ms as number) })}` : hops;
 
   return (

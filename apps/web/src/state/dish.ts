@@ -1,6 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 import { HINTS, LEVELS, nextHint, solves } from '../scene/dish/levels';
-import type { DecisionEvent } from '../scene/dish/loop';
+import type { DecisionEvent, Pull } from '../scene/dish/loop';
 import type { Op, Outcome } from '../scene/dish/verdict';
 import type { WhyHop } from '../scene/dish/why';
 
@@ -16,6 +16,8 @@ export class DishStore {
   empty = true;
   /** Operations switched on. */
   ops = new Set<Op>();
+  /** Puppet keys held (arrows). */
+  pulls = new Set<Pull>();
   /** The open operation card. */
   open: Op | null = 'panic';
   /** Cells per operation, once the live brain is up. */
@@ -121,6 +123,17 @@ export class DishStore {
 
   clearOps(): void {
     this.ops.clear();
+  }
+
+  /** A puppet key pressed (`on`) or let go. */
+  pull(k: Pull, on: boolean): void {
+    if (on) this.pulls.add(k);
+    else this.pulls.delete(k);
+  }
+
+  /** Let go of all keys (window blur); a list holds them (snaps). */
+  setPulls(keys: Iterable<Pull> = []): void {
+    this.pulls = new Set(keys);
   }
 
   setOpen(op: Op | null): void {

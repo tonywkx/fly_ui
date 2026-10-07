@@ -1,10 +1,13 @@
 import {
   type Action,
   COMMANDS,
+  diffDrive,
   type Group,
   mulberry32,
   OPERATIONS,
   PATHS,
+  PUPPET,
+  type PuppetKey,
   SENSE_HZ,
   SENSES,
   World,
@@ -17,7 +20,7 @@ import type { Preset } from '../quality';
 import { DishScene, type DishSceneOptions } from './DishScene';
 import type { BrainData } from './holo';
 import { DishInput } from './input';
-import { type DecisionEvent, DishLoop } from './loop';
+import { type DecisionEvent, DishLoop, type Pull } from './loop';
 import { OPS, type Op, type Outcome } from './verdict';
 import { explain, type PathRow, type WhyHop } from './why';
 
@@ -38,6 +41,8 @@ const HEAT_HZ = 100;
 const PATH_TYPES = [...new Set(Object.values(PATHS).flatMap((p) => p.hops.slice(1).map((h) => h.type)))];
 /** Each path's sense, by its first hop's type. */
 const SENSE_OF = new Map(Object.values(PATHS).map((p) => [p.hops[0]?.type ?? '', p.sense]));
+
+const PUPPET_KEYS = Object.keys(PUPPET) as PuppetKey[];
 
 /** Status words a hand's strike leaves for a moment. */
 export type Flash = 'miss' | 'dodge' | 'back_again';
@@ -91,6 +96,11 @@ export class DishRun {
   private ops = new Set<Op>();
   private applied = new Set<Op>();
   private opRows: Record<Op, Group> | null = null;
+  /** Keys held (puppet mode) and the puppet cells' full-graph rows. */
+  private pulls = new Set<Pull>();
+  private puppetRows: Record<PuppetKey, Group> | null = null;
+  /** Row → Hz sent for «on» operations and puppet keys (one map: ↓ and «moon» share MDN). */
+  private driven = new Map<number, number>();
   /** The brain view's experiment in full-graph rows (kept across resets, like the operations). */
   private brain: { off: Uint32Array; on: Uint32Array; hz: number; gain: number } | null = null;
   /** Log rows of each path cell type; spikes per type in the heat window. */
@@ -169,13 +179,22 @@ export class DishRun {
     this.applyOps();
   }
 
-  /** Items, fly, trail, clock and the brain back to t = 0; operations stay on. */
+  /** Puppet mode: the keys held now (cells driven, steering); applied once the live brain is up. */
+  setPulls(keys: Iterable<Pull>): void {
+    this.pulls = new Set(keys);
+    this.steer();
+    this.applyDrive();
+  }
+
+  /** Items, fly, trail, clock and the brain back to t = 0; operations and held keys stay on. */
   reset(): void {
     this.loop?.reset();
     if (!this.loop) this.world.reset();
+    this.steer();
     // the sim's reset clears silencing and drive: queue the operations again right behind it
     void this.client?.reset();
     this.applied.clear();
+    this.driven = new Map();
     this.applyOps();
     this.applyBrain(true);
     this.clock = 0;
@@ -220,6 +239,9 @@ export class DishRun {
       });
       this.opRows = await c.groups(
         Object.fromEntries(OPS.map((op) => [op, OPERATIONS[op].types])) as Record<Op, RegExp>,
+      );
+      this.puppetRows = await c.groups(
+        Object.fromEntries(PUPPET_KEYS.map((k) => [k, PUPPET[k].types])) as Record<PuppetKey, RegExp>,
       );
       this.loop = new DishLoop(this.world, senses, watched, { drive: (d) => void c.drive(d) });
       this.client = c;
@@ -271,13 +293,34 @@ export class DishRun {
     for (const op of OPS) {
       const on = this.ops.has(op);
       if (on === this.applied.has(op)) continue;
-      const rows = g[op].all;
-      if (OPERATIONS[op].mode === 'off') void c.silenceRows(rows, on);
-      else void c.drive({ rows: rows.slice(), hz: new Float32Array(rows.length).fill(on ? SENSE_HZ : 0) });
+      if (OPERATIONS[op].mode === 'off') void c.silenceRows(g[op].all, on);
       if (on) this.applied.add(op);
       else this.applied.delete(op);
     }
+    this.applyDrive();
     this.scene.setMarks(this.applied);
+  }
+
+  /** Full drive on the cells of «on» operations and held puppet keys; only changes are sent. */
+  private applyDrive(): void {
+    const c = this.client;
+    const ops = this.opRows;
+    const keys = this.puppetRows;
+    if (!c || !ops || !keys) return;
+    const next = new Map<number, number>();
+    const put = (rows: Uint32Array, hz: number) => {
+      for (const r of rows) next.set(r, Math.max(next.get(r) ?? 0, hz));
+    };
+    for (const op of this.applied) if (OPERATIONS[op].mode === 'on') put(ops[op].all, SENSE_HZ);
+    for (const k of PUPPET_KEYS) if (this.pulls.has(k)) put(keys[k].all, PUPPET[k].hz);
+    const d = diffDrive(this.driven, next);
+    this.driven = next;
+    if (d.rows.length) void c.drive(d);
+  }
+
+  /** ← → turn the walker (scripted: the model has no steering cells); both at once cancel. */
+  private steer(): void {
+    this.world.steer = ((this.pulls.has('left') ? 1 : 0) - (this.pulls.has('right') ? 1 : 0)) as -1 | 0 | 1;
   }
 
   private frame(now: number): void {
@@ -301,7 +344,13 @@ export class DishRun {
         if (o) this.o.onVerdict?.(op, o);
       }
       l.changed.clear();
-      const d = l.decisions.at(-1);
+      const last = l.decisions.at(-1);
+      // no sense behind it but a key held for it: the visitor's hand
+      const pull =
+        last &&
+        last.ms === null &&
+        PUPPET_KEYS.find((k) => this.pulls.has(k) && PUPPET[k].decision === last.action);
+      const d = last && pull ? { ...last, pull } : last;
       if (d) {
         this.scene.decide(d);
         this.o.onDecision?.(d, explain(d, c.log, this.pathRows, this.senseCells[PATHS[d.action].sense] ?? 0));

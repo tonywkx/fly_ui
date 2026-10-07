@@ -231,7 +231,10 @@ describe('PUPPET', () => {
   it('drives a cell on the path of its decision', () => {
     for (const [k, p] of Object.entries(PUPPET)) {
       const hops = PATHS[p.decision].hops.map((h) => h.type);
-      expect(hops.some((t) => p.types.test(t)), k).toBe(true);
+      expect(
+        hops.some((t) => p.types.test(t)),
+        k,
+      ).toBe(true);
       expect(p.hz, k).toBeGreaterThan(0);
     }
   });

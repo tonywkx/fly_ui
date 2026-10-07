@@ -59,3 +59,15 @@ describe('DishStore puzzles', () => {
     expect(mem.closed).toBe(true);
   });
 });
+
+describe('DishStore puppet', () => {
+  it('holds keys while pressed and lets all go', () => {
+    const { s } = store();
+    s.pull('up', true);
+    s.pull('left', true);
+    s.pull('up', false);
+    expect([...s.pulls]).toEqual(['left']);
+    s.setPulls();
+    expect(s.pulls.size).toBe(0);
+  });
+});

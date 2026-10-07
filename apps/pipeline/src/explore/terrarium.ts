@@ -193,7 +193,8 @@ if (process.argv.includes('--puppet')) {
       const s = sim.spikes;
       for (let k = 0; k < s.count; k++) c[s.id[k] as number] = (c[s.id[k] as number] as number) + 1;
     }
-    const hzOf = (n: string) => cmd(n).reduce((a, i) => a + (c[i] as number), 0) / cmd(n).length / SEEDS.length / (MS / 1000);
+    const hzOf = (n: string) =>
+      cmd(n).reduce((a, i) => a + (c[i] as number), 0) / cmd(n).length / SEEDS.length / (MS / 1000);
     row(`${hz} × ${gain}`, f0(hzOf('DNp01')), f0(hzOf('TTMn')), f0(hzOf('MDN')));
   }
 }

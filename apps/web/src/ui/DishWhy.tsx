@@ -6,6 +6,7 @@ import { type Key, num, plural, t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { OP_OF, type WhyHop } from '@/scene/dish/why';
 import { dish } from '@/state/dish';
+import { PULL_GLYPH, puppetHops } from './puppet';
 
 /** Path cells with a plain name; the rest are «interneuron». */
 const NAMED = new Set(['LC4', 'DNp01', 'TTMn', 'LB3', 'LB1', 'MN9', 'MDN', 'LC10a', 'pIP10']);
@@ -125,7 +126,9 @@ export const DishWhy = observer(function DishWhy() {
       </div>
       {forced ? (
         <p className="text-label text-mist">
-          {t(restore || dish.brain ? 'why.forced' : 'why.unprompted', { type: why.at(-1)?.type ?? '' })}
+          {d.pull
+            ? t('why.puppet', { key: PULL_GLYPH[d.pull], type: puppetHops(d.pull)[0]?.type ?? '' })
+            : t(restore || dish.brain ? 'why.forced' : 'why.unprompted', { type: why.at(-1)?.type ?? '' })}
         </p>
       ) : (
         <p className="flex items-baseline justify-between gap-3 text-label text-bone">

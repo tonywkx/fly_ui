@@ -127,6 +127,13 @@ export const Dish = observer(function Dish() {
         (on) => run.setOps(on),
         { fireImmediately: true },
       );
+      // puppet mode: arrows held (snaps hold them by `puppet=`)
+      if (p.puppet) dish.setPulls(p.puppet);
+      const puppet = reaction(
+        () => [...dish.pulls],
+        (keys) => run.setPulls(keys),
+        { fireImmediately: true },
+      );
       // the «why?» card freezes the dish; snaps (`why=1`) open it on the last decision
       const hold = reaction(
         () => dish.whyOpen,
@@ -140,6 +147,7 @@ export const Dish = observer(function Dish() {
         round();
         quality();
         surgery();
+        puppet();
         hold();
         ask();
         run.dispose();

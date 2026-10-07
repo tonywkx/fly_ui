@@ -8,6 +8,7 @@ import {
   diffDrive,
   type Group,
   PATHS,
+  type PuppetKey,
   type SENSES,
   type Senses,
   senseDrive,
@@ -22,6 +23,14 @@ const TICK = 1;
 type Sense = keyof typeof SENSES;
 type Side = 'L' | 'R';
 
+/** Keys the visitor holds (puppet mode): cells driven (↑ ↓) and steering (← →). */
+export const PULLS = ['up', 'down', 'left', 'right'] as const satisfies readonly (
+  | PuppetKey
+  | 'left'
+  | 'right'
+)[];
+export type Pull = (typeof PULLS)[number];
+
 /** A switch into a decision: what, when, how long after its sense came on, and from which side. */
 export interface DecisionEvent {
   action: Decision;
@@ -30,6 +39,8 @@ export interface DecisionEvent {
   ms: number | null;
   /** The stronger eye for loom / female; null for taste or without a sense. */
   side: Side | null;
+  /** No sense, but the visitor held this puppet key (set by `DishRun`). */
+  pull?: PuppetKey;
 }
 
 /** A sense's level and stronger side. */

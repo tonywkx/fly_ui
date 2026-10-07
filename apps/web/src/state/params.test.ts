@@ -173,6 +173,8 @@ describe('parseParams', () => {
 
   it('reads dish operations, dropping a bad list', () => {
     expect(parseParams('?view=dish&ops=panic,p1').params.ops).toEqual(['panic', 'p1']);
+    expect(parseParams('?view=dish&puppet=up,left').params.puppet).toEqual(['up', 'left']);
+    expect(parseParams('?puppet=jump').params.puppet).toBeUndefined();
     const bad = parseParams('?ops=panic,lobotomy');
     expect(bad.params.ops).toBeUndefined();
     expect(bad.warnings).toHaveLength(1);

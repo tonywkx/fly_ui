@@ -2,11 +2,19 @@ import { FLY_LEN, type ItemKind, type World } from '@fly/sim';
 import { reaction } from 'mobx';
 import { dish, type Hand } from '@/state/dish';
 import type { DishScene } from './DishScene';
+import type { Pull } from './loop';
 import { ahead, inDish, itemAt, type Spot } from './place';
 
 /** Keys 1–4 place, 5–6 pick up a hand (TERRARIUM-SHAPE §Layout). */
 export const ITEM_KEYS: readonly ItemKind[] = ['sugar', 'bitter', 'odor', 'female'];
 export const HAND_KEYS: readonly Hand[] = ['shadow', 'swatter'];
+/** Puppet mode: arrows held → cells driven (↑ ↓) or steering (← →). */
+export const PULL_KEYS: Readonly<Record<string, Pull>> = {
+  ArrowUp: 'up',
+  ArrowDown: 'down',
+  ArrowLeft: 'left',
+  ArrowRight: 'right',
+};
 /** A palette press that moves less than this (px) is a tap: place ahead of the fly. */
 const TAP_PX = 6;
 /** A floor point this close to the fly (mm) is on her. */
@@ -59,6 +67,12 @@ export class DishInput {
       dish.putDown();
     });
     this.listen(window, 'keydown', (e) => this.key(e));
+    this.listen(window, 'keyup', (e) => {
+      const k = PULL_KEYS[e.key];
+      if (k) dish.pull(k, false);
+    });
+    // a key let go outside the tab never comes back as a keyup
+    this.listen(window, 'blur', () => dish.setPulls());
     this.off.push(
       reaction(
         () => dish.hand,
@@ -230,6 +244,16 @@ export class DishInput {
   private key(e: KeyboardEvent): void {
     if (e.repeat || e.metaKey || e.ctrlKey || e.altKey || this.run.zooming) return;
     if ((e.target as HTMLElement).closest('input, textarea, [contenteditable]')) return;
+    const pull = PULL_KEYS[e.key];
+    // arrows still move focus inside composite widgets
+    if (
+      pull &&
+      !(e.target as HTMLElement).closest('[role=radiogroup], [role=tablist], [role=menu], [role=slider]')
+    ) {
+      dish.pull(pull, true);
+      e.preventDefault();
+      return;
+    }
     const n = Number(e.key);
     const kind = ITEM_KEYS[n - 1];
     const hand = HAND_KEYS[n - 5];
