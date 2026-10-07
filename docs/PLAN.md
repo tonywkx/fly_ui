@@ -108,7 +108,7 @@ Stage 1 — MVP wow (desktop):
 - [x] 8.6 Placement: item palette, drag / remove / reset; tap on phones. **[V]** **[UI]**
 - [x] 8.7 Neurosurgeon: 4 operations — panic neuron off → no escape from the swatter; MDN on → moonwalk; sugar GRNs off → won't eat; P1 off → ignores the female; famous-neuron cards (plain name, role, fact); before/after verdict; mark on the fly's body. **[V]** **[UI]**
 - [x] 8.8 Brain hologram + decision thread: the brain floats above the fly and follows it; on a decision a thread of light runs sense organ → path (from `sim/trace.ts`) → legs. **[V]**
-- [ ] 8.9 "From fly to neuron" zoom: click the fly → one continuous camera flight into its head → full brain view → operate → back to the dish. **[V]**
+- [x] 8.9 "From fly to neuron" zoom: click the fly → one continuous camera flight into its head → full brain view → operate → back to the dish. **[V]**
 
 Stage 2 — deeper:
 - [ ] 8.10 Odor navigation — 8.1: no L/R steering in the model → drop unless the model changes.
