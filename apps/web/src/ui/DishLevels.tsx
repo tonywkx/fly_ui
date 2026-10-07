@@ -12,20 +12,17 @@ const ghost = 'pointer-events-auto h-6 px-2 text-caption text-mist hover:text-bo
 /**
  * The puzzle line (8.12), under the timecode — the void above the dish's far rim: the behaviour to
  * bring about, one hint rung at a time, the success line. No score, no timer.
- * Desktop only until the phone gets the operations (8.14).
  */
 export const DishLevels = observer(function DishLevels() {
   const { level, hint, won } = dish;
   const head = useRef<HTMLHeadingElement>(null);
   const reopen = useRef<HTMLButtonElement>(null);
-  const moved = useRef(false);
+  const was = useRef({ level, won });
   // «Дальше →» / «Ещё раз» / «Свободный режим» unmount the focused button: keep focus on the line
-  // biome-ignore lint/correctness/useExhaustiveDependencies: a new puzzle or a win moves the focus
+  // (compared, not counted: StrictMode runs the effect twice on mount)
   useEffect(() => {
-    if (!moved.current) {
-      moved.current = true;
-      return;
-    }
+    if (was.current.level === level && was.current.won === won) return;
+    was.current = { level, won };
     const lost = !document.activeElement || document.activeElement === document.body;
     if (lost) (level === null ? reopen.current : head.current)?.focus();
   }, [level, won]);
