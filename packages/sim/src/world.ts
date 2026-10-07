@@ -126,6 +126,16 @@ export class World {
     return this.items.length < n;
   }
 
+  /** Drag a placed item to a new point; false when off the dish or no such item. */
+  move(id: number, x: number, y: number): boolean {
+    const it = this.items.find((i) => i.id === id);
+    if (!it || Math.hypot(x, y) > ARENA_R) return false;
+    Object.assign(it, { x, y });
+    if (it.kind === 'female') it.heading = femaleHeading(x, y);
+    this.tasted.delete(id);
+    return true;
+  }
+
   /** Items, fly and hands back to the start (operations live in the sim, not here). */
   reset(): void {
     this.fly = freshFly();

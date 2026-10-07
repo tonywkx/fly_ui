@@ -208,4 +208,18 @@ describe('World', () => {
     expect(w.hands).toEqual({ shadow: null, swatter: null });
     expect([w.fly.x, w.fly.y, w.fly.heading]).toEqual([0, 0, 0]);
   });
+
+  it('moves an item within the dish and re-aims the female', () => {
+    const w = world();
+    const s = w.add('sugar', 1, 0) as number;
+    const f = w.add('female', 5, 0) as number;
+    const h0 = w.items[1]?.heading;
+    expect(w.move(s, -3, 2)).toBe(true);
+    expect(w.items[0]).toMatchObject({ x: -3, y: 2 });
+    expect(w.move(s, 20, 0)).toBe(false);
+    expect(w.items[0]).toMatchObject({ x: -3, y: 2 });
+    expect(w.move(f, 0, -5)).toBe(true);
+    expect(w.items[1]?.heading).not.toBeCloseTo(h0 as number);
+    expect(w.move(999, 0, 0)).toBe(false);
+  });
 });
