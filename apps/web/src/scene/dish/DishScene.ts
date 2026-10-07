@@ -1,4 +1,4 @@
-import { type Action, ARENA_R, SWAT_MS, SWAT_R, type World, type WorldEvent } from '@fly/sim';
+import { type Action, ARENA_R, type ItemKind, SWAT_MS, SWAT_R, type World, type WorldEvent } from '@fly/sim';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import { pass } from 'three/tsl';
@@ -14,9 +14,12 @@ import {
   Mesh,
   type Node,
   PerspectiveCamera,
+  Raycaster,
   RenderPipeline,
   RingGeometry,
   Scene,
+  Vector2,
+  Vector3,
   WebGPURenderer,
 } from 'three/webgpu';
 import type { Backend } from '../engine';
@@ -25,6 +28,7 @@ import { arena } from './arena';
 import { FlyView } from './fly';
 import { type ItemView, itemView } from './items';
 import { BONE, dark, glow } from './materials';
+import { floorHit, type Spot } from './place';
 import { Trail } from './trail';
 
 const FOV = 30;
@@ -44,6 +48,11 @@ const TRAIL_STEP = 0.03;
 /** Takeoff ring: life (sim ms) and final radius (mm). */
 const RING_MS = 600;
 const RING_R = 1.6;
+/** Aim ring under the cursor (mm) and the drag ghost's opacity. */
+const AIM_R = 1;
+const GHOST = 0.6;
+/** The ghost's plume runs on wall time at ×1/6, like the dish. */
+const SLOW_GHOST = 6;
 
 export interface DishSceneOptions {
   forceWebGL: boolean;
@@ -71,6 +80,11 @@ export class DishScene {
   private readonly ringGeo = new RingGeometry(0.92, 1, 64).rotateX(-Math.PI / 2);
   private readonly shadow = disc();
   private readonly swatter = disc();
+  private readonly aimRing = new Mesh(new RingGeometry(0.9, 1, 64).rotateX(-Math.PI / 2), glow(BONE, 0.35));
+  private ghost: { kind: ItemKind; view: ItemView } | null = null;
+  private readonly ray = new Raycaster();
+  private readonly ndc = new Vector2();
+  private readonly v = new Vector3();
   private lastTrail: { x: number; y: number; a: Action } | null = null;
   private fitted = 0;
   private disposed = false;
@@ -115,7 +129,10 @@ export class DishScene {
       this.fly.root,
       this.shadow.root,
       this.swatter.root,
+      this.aimRing,
     );
+    this.aimRing.visible = false;
+    this.aimRing.scale.setScalar(AIM_R);
 
     const scenePass = pass(this.scene, this.camera, { samples: 4 });
     const color = scenePass.getTextureNode('output');
@@ -208,10 +225,58 @@ export class DishScene {
     this.swatter.show(sw ? { x: sw.x, y: sw.y, r: (SWAT_R * sw.t) / SWAT_MS } : null);
   }
 
-  /** Forget the trail and takeoff rings (dish reset). */
+  /** The canvas (pointer input target). */
+  get canvas(): HTMLCanvasElement {
+    return this.renderer.domElement;
+  }
+
+  /** Where a client point falls on the floor (world mm, possibly off the dish); null above the horizon. */
+  pick(cx: number, cy: number): Spot | null {
+    const r = this.canvas.getBoundingClientRect();
+    if (!r.width || !r.height) return null;
+    this.ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+    this.ray.setFromCamera(this.ndc, this.camera);
+    return floorHit(this.ray.ray.origin, this.ray.ray.direction);
+  }
+
+  /** A floor point in canvas px. */
+  project(x: number, y: number): { x: number; y: number } {
+    this.v.set(x, 0, -y).project(this.camera);
+    const { clientWidth: w, clientHeight: h } = this.canvas;
+    return { x: ((this.v.x + 1) / 2) * w, y: ((1 - this.v.y) / 2) * h };
+  }
+
+  /** The faint ring under the cursor, with a ghost of the item being placed; null hides both. */
+  aim(p: Spot | null, kind: ItemKind | null = null): void {
+    this.aimRing.visible = !!p;
+    if (p) this.aimRing.position.set(p.x, 0.006, -p.y);
+    if (this.ghost && (this.ghost.kind !== kind || !p)) {
+      this.scene.remove(this.ghost.view.root);
+      this.ghost = null;
+    }
+    if (!p || !kind) return;
+    if (!this.ghost) {
+      const view = itemView({ id: 0, kind, x: p.x, y: p.y, heading: 0 });
+      view.root.traverse((o) => {
+        const m = o as Mesh;
+        if (!m.isMesh) return;
+        m.material = (m.material as { clone(): Mesh['material'] }).clone();
+        (m.material as { opacity: number }).opacity = GHOST;
+      });
+      this.scene.add(view.root);
+      this.ghost = { kind, view };
+    }
+    this.ghost.view.update(
+      { id: 0, kind, x: p.x, y: p.y, heading: Math.PI / 2 },
+      performance.now() / SLOW_GHOST,
+    );
+  }
+
+  /** Forget the trail and the fly's flight (dish reset). */
   clear(): void {
     this.trail.clear();
     this.lastTrail = null;
+    this.fly.reset();
   }
 
   dispose(): void {

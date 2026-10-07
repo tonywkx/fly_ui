@@ -54,6 +54,11 @@ export class FlyView {
     this.last = null;
   }
 
+  /** Back on the floor at t = 0 (dish reset). */
+  reset(): void {
+    Object.assign(this, { takeoff: null, landed: -Infinity, last: null, t: 0, proboscis: 0, wing: 0 });
+  }
+
   /** Pose at sim time `t`; `hidden` = shattered. Position is kept while airborne (she leaves from there). */
   update(p: Placed, action: Action, t: number, hidden = false): void {
     const dt = Math.max(0, t - this.t);
