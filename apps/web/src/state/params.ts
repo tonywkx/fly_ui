@@ -1,3 +1,4 @@
+import type { ItemKind } from '@fly/sim';
 import { COLOR_BY, type ColorBy, isColorBy } from '../data/colorBy';
 import { isLang, LANGS, type Lang } from '../i18n';
 import { isQuality, QUALITIES, type Quality } from '../scene/quality';
@@ -46,9 +47,15 @@ export interface Params {
   director?: true;
   /** Interface language; overrides the stored choice (scripts pin `en`). */
   lang?: Lang;
+  /** Own view: the Terrarium dish instead of the brain. */
+  view?: 'dish';
+  /** Dish items at mm positions (`kind@x,y;…`) — snaps and debugging until the palette (8.6). */
+  items?: { kind: ItemKind; x: number; y: number }[];
   /** First-visit tour: 0 = off, 1..4 = open at that step (see `state/tour.ts`). */
   tour?: TourStep;
 }
+
+const ITEM_KINDS: readonly ItemKind[] = ['sugar', 'bitter', 'odor', 'female'];
 
 const flag = (v: string | null) => v !== null && v !== '0' && v !== 'false';
 
@@ -154,6 +161,24 @@ export function parseParams(search: string): { params: Params; warnings: string[
     const e = decodeExperiment(x);
     if (e) params.experiment = e;
     else warnings.push(`x: not a shared experiment code "${x}"`);
+  }
+
+  const view = q.get('view');
+  if (view !== null) {
+    if (view === 'dish') params.view = view;
+    else warnings.push(`view: expected "dish", got "${view}"`);
+  }
+
+  const items = q.get('items');
+  if (items !== null) {
+    const list = items.split(';').map((v) => {
+      const m = /^([a-z]+)@(-?[\d.]+),(-?[\d.]+)$/.exec(v.trim());
+      const kind = m?.[1] as ItemKind;
+      const [x, y] = [Number(m?.[2]), Number(m?.[3])];
+      return m && ITEM_KINDS.includes(kind) && Number.isFinite(x) && Number.isFinite(y) ? { kind, x, y } : null;
+    });
+    if (list.every((v): v is NonNullable<typeof v> => v !== null)) params.items = list;
+    else warnings.push(`items: expected "kind@x,y;…" (${ITEM_KINDS.join(' | ')}), got "${items}"`);
   }
 
   return { params, warnings };

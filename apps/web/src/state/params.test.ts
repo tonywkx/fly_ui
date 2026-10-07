@@ -152,4 +152,22 @@ describe('parseParams', () => {
   it('ignores unknown keys silently', () => {
     expect(parseParams('?foo=1').warnings).toEqual([]);
   });
+
+  it('reads the dish view and its items', () => {
+    const { params, warnings } = parseParams('?view=dish&items=sugar@3,0;bitter@-4.5,2;female@0,5');
+    expect(warnings).toEqual([]);
+    expect(params.view).toBe('dish');
+    expect(params.items).toEqual([
+      { kind: 'sugar', x: 3, y: 0 },
+      { kind: 'bitter', x: -4.5, y: 2 },
+      { kind: 'female', x: 0, y: 5 },
+    ]);
+  });
+
+  it('drops a bad view or item list', () => {
+    const { params, warnings } = parseParams('?view=pond&items=salt@1,1');
+    expect(params.view).toBeUndefined();
+    expect(params.items).toBeUndefined();
+    expect(warnings).toHaveLength(2);
+  });
 });
