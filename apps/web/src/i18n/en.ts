@@ -206,6 +206,8 @@ export const en: Shape<typeof ru> = {
   'why.fired': '{n} of {of} fired',
   'why.silent': 'silent',
   'why.note': 'Strongest path in the connectome · timings from this run',
+  'why.unprompted': '{type} fired with no stimulus on.',
+  'why.bypass': 'this time the signal went round the silent cells',
   'why.forced': '{type} was switched on by hand — no reason.',
   'why.test': 'Test it: {name} →',
   'dish.items': 'Things',

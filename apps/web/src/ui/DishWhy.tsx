@@ -14,8 +14,9 @@ const ms = (v: number) => t('unit.ms', { v: `+${num(Math.round(v))}` });
 
 function Hop({ h, last }: { h: WhyHop; last: boolean }) {
   const lit = h.fired === null || h.fired > 0;
+  const silent = h.fired === 0;
   return (
-    <li className="relative grid grid-cols-[1fr_auto] items-baseline gap-x-3 pl-5">
+    <li className="relative flex items-baseline justify-between gap-3 pl-5">
       <span
         aria-hidden="true"
         className={cn(
@@ -24,20 +25,25 @@ function Hop({ h, last }: { h: WhyHop; last: boolean }) {
           lit ? 'bg-saffron' : 'bg-void ring-1 ring-ash/60',
         )}
       />
-      <span className="text-label text-bone">
+      <span className="min-w-0 truncate text-label text-bone">
         <span className="font-mono">{h.type}</span> <span className="text-mist">· {name(h.type)}</span>
       </span>
-      <span className={cn('font-mono text-caption tabular-nums', h.ms === null ? 'text-ash' : 'text-bone')}>
-        {h.ms === null
-          ? h.fired === null
-            ? ''
-            : t('why.silent')
-          : h.ms === 0
-            ? t('unit.ms', { v: 0 })
-            : ms(h.ms)}
-      </span>
-      <span className="col-span-2 font-mono text-caption text-ash tabular-nums">
-        {h.fired === null ? plural('op.cells', h.cells) : t('why.fired', { n: h.fired, of: h.cells })}
+      <span className={cn('shrink-0 font-mono text-caption tabular-nums', silent ? 'text-ash' : 'text-bone')}>
+        {h.fired === null ? (
+          <span className="text-ash">{plural('op.cells', h.cells)}</span>
+        ) : silent ? (
+          t('why.silent')
+        ) : (
+          <>
+            {h.ms !== null && ms(h.ms)}
+            {/* phones: the time only, so the names fit */}
+            <span aria-hidden="true" className={cn('text-ash', h.ms !== null && 'max-md:hidden')}>
+              {h.ms !== null && ' · '}
+              {h.fired}/{h.cells}
+            </span>
+            <span className="sr-only">{t('why.fired', { n: h.fired, of: h.cells })}</span>
+          </>
+        )}
       </span>
     </li>
   );
@@ -85,6 +91,8 @@ export const DishWhy = observer(function DishWhy() {
   const forced = d.ms === null;
   const restore = forced && dish.ops.has(op) && OPERATIONS[op].mode === 'on';
   const sense = PATHS[d.action].sense;
+  // a hop on the strongest path stayed silent while the command fired: the signal went round it
+  const bypass = !forced && why.some((h) => h.fired === 0) && !!why.at(-1)?.fired;
   const side = d.side && (sense === 'loom' || sense === 'female') ? ` ${t(`why.side.${d.side}`)}` : '';
 
   return (
@@ -93,8 +101,8 @@ export const DishWhy = observer(function DishWhy() {
       role="dialog"
       aria-labelledby="why-h"
       className={cn(
-        'pointer-events-auto absolute inset-x-4 top-28 z-20 flex flex-col gap-3 rounded-xl bg-card p-4 backdrop-blur-md',
-        'md:inset-x-auto md:top-auto md:bottom-20 md:left-1/2 md:w-90 md:-translate-x-1/2',
+        'pointer-events-auto absolute inset-x-4 top-28 z-20 flex flex-col gap-2.5 rounded-xl bg-card p-4 backdrop-blur-md',
+        'md:inset-x-auto md:top-auto md:bottom-24 md:left-1/2 md:w-90 md:-translate-x-1/2',
         'motion-safe:transition-[opacity,translate] motion-safe:duration-200 motion-safe:ease-out motion-safe:starting:translate-y-1 motion-safe:starting:opacity-0',
       )}
     >
@@ -112,7 +120,9 @@ export const DishWhy = observer(function DishWhy() {
         </Button>
       </div>
       {forced ? (
-        <p className="text-label text-mist">{t('why.forced', { type: why.at(-1)?.type ?? '' })}</p>
+        <p className="text-label text-mist">
+          {t(restore || dish.brain ? 'why.forced' : 'why.unprompted', { type: why.at(-1)?.type ?? '' })}
+        </p>
       ) : (
         <p className="flex items-baseline justify-between gap-3 text-label text-bone">
           <span>
@@ -122,12 +132,17 @@ export const DishWhy = observer(function DishWhy() {
           <span className="font-mono text-caption tabular-nums">{t('unit.ms', { v: 0 })}</span>
         </p>
       )}
-      <ol className="relative flex flex-col gap-2 before:absolute before:top-2 before:bottom-2 before:left-[0.4375rem] before:w-px before:bg-ash/40">
+      <ol className="relative flex flex-col gap-1.5 before:absolute before:top-2 before:bottom-2 before:left-[0.4375rem] before:w-px before:bg-ash/40">
         {why.map((h, i) => (
-          <Hop key={h.type} h={{ ...h, ms: i === 0 && !forced ? null : h.ms }} last={i === why.length - 1} />
+          <Hop key={h.type} h={h} last={i === why.length - 1} />
         ))}
       </ol>
-      {!forced && <p className="text-caption text-ash">{t('why.note')}</p>}
+      {!forced && (
+        <p className="text-caption text-ash">
+          {t('why.note')}
+          {bypass && <> · {t('why.bypass')}</>}
+        </p>
+      )}
       {restore ? (
         <Button
           variant="primary"
