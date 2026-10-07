@@ -22,7 +22,7 @@ function reference(row: number, kicks: [step: number, id: number, mV: number][],
   for (let k = 0; k < steps; k++) {
     for (const [s, id, mV] of kicks) if (s === k) sim.inject(id, mV);
     sim.step();
-    v.push(sim.v[row] as number);
+    v.push(sim.voltage(row));
   }
   const log = new SpikeLog();
   const { count, t, id } = sim.spikes;

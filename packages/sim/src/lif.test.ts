@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { LIF_DEFAULTS } from './index';
 import { createSim, type Sim } from './lif';
-import { netFromEdges } from './net';
+import { RefSim } from './lif.ref';
+import { type Net, netFromEdges } from './net';
+import { mulberry32 } from './rng';
 
 const { vRest, tauMembrane: tm, tauSyn: ts, delay, refractory, dt } = LIF_DEFAULTS;
 
@@ -19,7 +21,7 @@ describe('lif', () => {
     const sim = createSim(netFromEdges(3, [[0, 1, 100]]));
     sim.run(100);
     expect(sim.spikes.count).toBe(0);
-    expect([...sim.v]).toEqual([vRest, vRest, vRest]);
+    expect([0, 1, 2].map((i) => sim.voltage(i))).toEqual([vRest, vRest, vRest]);
     expect(sim.t).toBeCloseTo(100, 9);
   });
 
@@ -29,7 +31,7 @@ describe('lif', () => {
     let peak = 0;
     for (let k = 1; k <= 400; k++) {
       sim.step();
-      const u = (sim.v[0] as number) - vRest;
+      const u = sim.voltage(0) - vRest;
       expect(u).toBeCloseTo(psp(40, k * dt), 3);
       peak = Math.max(peak, u);
     }
@@ -47,7 +49,7 @@ describe('lif', () => {
     above.inject(0, 50); // peak ≈ 7.9 mV > 7
     above.run(50);
     expect(above.spikes.count).toBe(1);
-    expect(above.v[0]).toBeLessThan(LIF_DEFAULTS.vThreshold);
+    expect(above.voltage(0)).toBeLessThan(LIF_DEFAULTS.vThreshold);
   });
 
   it('propagates along a 3-chain with the synaptic delay', () => {
@@ -86,7 +88,7 @@ describe('lif', () => {
     expect(spikesOf(both, 0)).toHaveLength(1);
     expect(spikesOf(both, 1)).toHaveLength(1);
     expect(spikesOf(both, 2)).toHaveLength(0);
-    expect(both.v[2]).toBeCloseTo(vRest, 6);
+    expect(both.voltage(2)).toBeCloseTo(vRest, 6);
   });
 
   it('respects the refractory period under strong drive', () => {
@@ -101,15 +103,16 @@ describe('lif', () => {
       expect((t[k] as number) - (t[k - 1] as number)).toBeGreaterThanOrEqual(refractory - 1e-4);
   });
 
-  it('drops quiet neurons from the active set and snaps them to rest', () => {
+  it('keeps neurons that cannot reach threshold out of the active set', () => {
     const sim = createSim(netFromEdges(2, [[0, 1, 10]]));
-    sim.inject(0, 40);
-    sim.inject(1, 10);
-    expect(sim.activeCount).toBe(2);
+    sim.inject(0, 40); // peak ≈ 6.3 mV < 7: decays lazily
+    sim.inject(1, 50); // peak ≈ 7.9 mV: integrated step by step
+    expect(sim.activeCount).toBe(1);
     sim.run(500);
     expect(sim.activeCount).toBe(0);
-    expect([...sim.v]).toEqual([vRest, vRest]);
-    expect([...sim.g]).toEqual([0, 0]);
+    expect(spikesOf(sim, 1)).toHaveLength(1);
+    expect([sim.voltage(0), sim.voltage(1)]).toEqual([vRest, vRest]);
+    expect([sim.conductance(0), sim.conductance(1)]).toEqual([0, 0]);
   });
 
   it('is deterministic', () => {
@@ -135,5 +138,61 @@ describe('lif', () => {
     expect([...b.spikes.id.subarray(0, b.spikes.count)]).toEqual([
       ...a.spikes.id.subarray(0, a.spikes.count),
     ]);
+  });
+  describe('matches the dense reference engine', () => {
+    /** Random signed net; weights are fractional mV, as in the real graph (synapse count · wSyn). */
+    const randomNet = (n: number, edges: number, seed: number): Net => {
+      const r = mulberry32(seed);
+      const list: [number, number, number][] = [];
+      for (let e = 0; e < edges; e++)
+        list.push([Math.floor(r() * n), Math.floor(r() * n), (r() < 0.7 ? 1 : -1) * (0.275 + r() * 12)]);
+      return netFromEdges(n, list);
+    };
+    /** (t, id) pairs sorted: order within one step is not part of the model. */
+    const train = (s: { spikes: Sim['spikes'] }) =>
+      Array.from(
+        { length: s.spikes.count },
+        (_, k) => `${(s.spikes.t[k] as number).toFixed(1)}:${s.spikes.id[k]}`,
+      ).sort();
+    const drive = (s: Sim | RefSim) => {
+      for (let i = 0; i < 12; i++) s.stimulate(i, 150, i % 3 === 0 ? 0.05 : 1);
+      s.silence(20);
+      s.run(300);
+      s.inject(30, 80);
+      s.silence(20, false);
+      s.stimulate(0, 0);
+      s.run(300);
+      s.silence(25);
+      s.run(400);
+    };
+
+    for (const seed of [1, 2, 3]) {
+      it(`seed ${seed}: same spikes over 1 s`, () => {
+        const net = randomNet(300, 6000, seed);
+        const lazy = createSim(net, {}, mulberry32(seed));
+        const ref = new RefSim(net, {}, mulberry32(seed));
+        drive(lazy);
+        drive(ref);
+        expect(ref.spikes.count).toBeGreaterThan(1000);
+        expect(train(lazy)).toEqual(train(ref));
+      });
+    }
+
+    it('integrates far fewer neurons per step under background drive', () => {
+      const net = randomNet(300, 6000, 4);
+      const lazy = createSim(net, {}, mulberry32(4));
+      const ref = new RefSim(net, {}, mulberry32(4));
+      let a = 0;
+      let b = 0;
+      for (const s of [lazy, ref]) for (let i = 0; i < 12; i++) s.stimulate(i, 150, 0.05);
+      for (let k = 0; k < 2000; k++) {
+        lazy.step();
+        ref.step();
+        a += lazy.activeCount;
+        b += ref.activeCount;
+      }
+      expect(train(lazy)).toEqual(train(ref));
+      expect(a).toBeLessThan(b / 4);
+    });
   });
 });

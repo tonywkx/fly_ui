@@ -42,7 +42,7 @@ describe('poisson stimulus', () => {
       const sim = createSim(netFromEdges(1, []), {}, mulberry32(3));
       sim.stimulate(0, 1e5, gain);
       sim.step();
-      return (sim.v[0] as number) - LIF_DEFAULTS.vRest;
+      return sim.voltage(0) - LIF_DEFAULTS.vRest;
     };
     const small = kickOf(0.05); // 3.4 mV: below threshold
     expect(small).toBeGreaterThan(0);
@@ -60,7 +60,7 @@ describe('poisson stimulus', () => {
     sim.stimulate(0, 1e5, 0.05);
     sim.step();
     expect(sim.spikes.count).toBe(0);
-    expect(sim.v[0]).toBeGreaterThan(LIF_DEFAULTS.vRest);
+    expect(sim.voltage(0)).toBeGreaterThan(LIF_DEFAULTS.vRest);
   });
 
   it('stops when the rate is set to 0', () => {
@@ -84,7 +84,7 @@ describe('silencing', () => {
     expect(spikesOf(sim, 0)).toBeGreaterThan(50);
     expect(spikesOf(sim, 1)).toBe(0);
     expect(spikesOf(sim, 2)).toBe(0);
-    expect(sim.v[1]).toBe(LIF_DEFAULTS.vRest);
+    expect(sim.voltage(1)).toBe(LIF_DEFAULTS.vRest);
     sim.silence(1, false);
     sim.run(1000);
     expect(spikesOf(sim, 2)).toBeGreaterThan(50);
