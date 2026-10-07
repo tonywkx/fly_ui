@@ -23,10 +23,16 @@ export const DishSheet = observer(function DishSheet({
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const at = TABS.indexOf(dish.tab);
   const step = (e: KeyboardEvent) => {
-    const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
-    if (!d) return;
+    const n = TABS.length;
+    const go: Record<string, number> = {
+      ArrowRight: (at + 1) % n,
+      ArrowLeft: (at - 1 + n) % n,
+      Home: 0,
+      End: n - 1,
+    };
+    const next = go[e.key];
+    if (next === undefined) return;
     e.preventDefault();
-    const next = (at + d + TABS.length) % TABS.length;
     dish.setTab(TABS[next] as Tab);
     tabs.current[next]?.focus();
   };
@@ -102,7 +108,8 @@ export const DishSheet = observer(function DishSheet({
               role="tab"
               id={`sheet-${tab}-tab`}
               aria-selected={dish.tab === tab}
-              aria-controls={`sheet-${tab}`}
+              // only the selected tab's panel is mounted
+              aria-controls={dish.tab === tab ? `sheet-${tab}` : undefined}
               tabIndex={dish.tab === tab ? 0 : -1}
               className={cn(
                 'pointer-events-auto h-8 px-2 text-caption text-ash aria-selected:text-bone',
@@ -114,7 +121,10 @@ export const DishSheet = observer(function DishSheet({
             >
               {t(LABEL[tab])}
               {tab === 'ops' && dish.ops.size > 0 && dish.tab !== 'ops' && (
-                <span aria-hidden="true" className="size-1.5 rounded-full bg-saffron" />
+                <>
+                  <span aria-hidden="true" className="size-1.5 rounded-full bg-saffron" />
+                  <span className="sr-only">{t('op.active')}</span>
+                </>
               )}
             </Button>
           </span>

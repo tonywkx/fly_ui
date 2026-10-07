@@ -545,7 +545,10 @@ export class DishScene {
    * the phone's sheet grows per tab, so the picture glides up rather than hiding the fly.
    */
   frameBand(top: number, bottom: number): void {
-    this.liftTo = Math.round((bottom - top) / 2);
+    const to = Math.round((bottom - top) / 2);
+    // a px of resize jitter must not start a glide
+    if (Math.abs(to - this.liftTo) < 2) return;
+    this.liftTo = to;
     if (this.opts.still || this.opts.reducedMotion) this.ease(Number.POSITIVE_INFINITY);
   }
 
