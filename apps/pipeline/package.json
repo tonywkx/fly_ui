@@ -11,7 +11,8 @@
     "neuropil": "tsx src/neuropil.ts",
     "graph": "tsx src/graph.ts",
     "explore:gf": "tsx src/explore/gfRoute.ts",
-    "explore:terrarium": "tsx src/explore/terrarium.ts"
+    "explore:terrarium": "tsx src/explore/terrarium.ts",
+    "explore:simperf": "tsx src/explore/simperf.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",
