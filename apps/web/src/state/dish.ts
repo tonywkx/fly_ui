@@ -19,6 +19,8 @@ export class DishStore {
   cells: Record<Op, number> | null = null;
   /** Each operation's last live encounter. */
   now: Partial<Record<Op, Outcome>> = {};
+  /** The operation whose outcome changed last (announced). */
+  last: Op | null = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -52,6 +54,7 @@ export class DishStore {
 
   setNow(op: Op, o: Outcome): void {
     this.now[op] = o;
+    this.last = op;
   }
 
   /** Pick a tool up; the same tool again puts it down. */
