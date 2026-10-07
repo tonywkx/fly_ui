@@ -6,11 +6,11 @@ import {
   decide,
   diffDrive,
   eyes,
+  PREEMPT_BACK,
   type Rates,
   resolveGroups,
   SENSES,
   senseDrive,
-  PREEMPT_BACK,
   THRESHOLDS,
 } from './bridge';
 
