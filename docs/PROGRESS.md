@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-07 — 8.2 Terrarium shape
+Done: `docs/TERRARIUM-SHAPE.md` (approved): brief, world (24 mm arena, fly ≈ 90 px at 1600, trail colours, ×1/6 timecode, brain hologram + decision thread), 4 items + 2 visitor-aimed hands (shadow = hold, swatter = click), 4 operation cards (usual vs now verdict), ASCII wireframes 1600/390, states, RU/EN copy (`dish.*`, `op.*`, tour step 4 pill «В террариум →»). DECISIONS line (own view `?view=dish`, entry from tour step 4).
+State: docs only, no code. User approved with edits: hands instead of one-shot items, MDN = «Нейрон отступления», fact lines verified.
+Next: 8.3 bridge world ↔ brain (pure + tests): per-side sensory rates in, command-neuron thresholds out (TTMn jump, MDN back, MN9 eat, pIP10 + pC1 gate court); live Worker `stimulate` per tick.
+Gotchas: GF axon is the largest in the *thoracic* ganglia, not the whole CNS; MDN ↔ Michael Jackson is folklore (not in Bidaye 2014) — copy avoids both. LB3 is labellar, so leg-taste facts don't fit the sugar card. Cell counts on op cards come from the dataset at runtime. `/handoff` cannot be invoked by the model — user runs it.
+
 ## 2026-10-06 — 8.1 Terrarium feasibility
 Done: `apps/pipeline/src/explore/terrarium.ts` (`pnpm -C apps/pipeline explore:terrarium [--ops]`): sensory input → command-neuron rates (L/R) + surgeon ops on the full graph; results + verdict in `docs/TERRARIUM.md`; DECISIONS line; 8.10 marked "drop unless model changes".
 State: GO. Connectome-driven: loom → DNp01 → TTMn (GF off → TTMn 44 Hz, no jump), sugar LB3 → MN9, bitter LB1 → MDN, LC10a → pIP10. Scripted: forward walk, turning, odor approach (L/R ORN input gives identical output). P1 off only cuts pIP10 by 30 %. Grooming dropped.
@@ -23,10 +29,3 @@ Done: smoke `tour completes` (`e2e/smoke.spec.ts`, pills via `dispatchEvent`, pr
 State: 441 tests, typecheck, lint, smoke 7/7 green. Full snap set RU/EN 1600/390 in `snaps/tour/` (driver: Playwright + `window.__tour`, dev server 5199).
 Next: 7.7 hallway test (user) — 3–5 non-scientists, after the tour ask: what is this? what did the panic neuron do? how would you switch a neuron off? Fix what they trip on.
 Gotchas: root Vitest has no `@` alias — runtime imports in `state/` must be relative (`../lib/keys`). Spacing unit in the theme is 6 px (`w-96` ≈ 576 px), measure DOM instead of assuming. Known/accepted: phone captions sit on the brain's top edge under the FlyCam strip; step-4 card overlaps the brain (translucent). Narration live region not reworked (container persists through step 0). zsh doesn't word-split `$var` in loops — call `pnpm snap` explicitly.
-
-## 2026-10-05 — 7.5 Tour UI
-Done: `ui/tour/cardView.ts` pure step→card content + test; `ui/tour/TourCard.tsx` (desktop: first child of the toolbar stack, HUD fades in under it on step 4; phone: replaces ViewerBar, Skip inside; step 1 count line moved in, `CountLine.tsx` removed; step 4 closes on pill / Esc / first `experiment.tool` change). `ui/tour/TourChrome.tsx` `TourSkip` (top-right, `md:right-108` beside the big FlyCam), `TourRestart` "?" (by LangSwitch / in ViewerBar; escape → `tour.start(1)`, else link `?tour=1`), `bigFlyCam()`. FlyCam hidden steps 0–1, `md:w-96` / phone top strip in 2–3; Captions off in step 0, phone offset under the strip; ms decimals via `num` (RU «29,7»). `tour.start(1)` now `restore()`s (drops their experiment). Play-once runs at ≥1× after a missed beat (`onceRate`, `PlayOptions.broken` from the Narrator). Anatomy labels bounded above the card (`anatomyView.bottom`, set by the card's ResizeObserver); left/right labels slide vertically.
-State: 435 tests, typecheck, lint, smoke 6/6 green. visual-qa steps 1/2-done/3/4 RU+EN 1600/390 OK after fixes.
-Next: 7.6 QA — ui-critic on the tour, smoke "tour completes" test (drive `window.__tour` / pills), full RU/EN snap set, hallway test.
-Gotchas: `git rm` stages immediately — the next `git commit` takes it along. Step 2 "done" can't be snapped with `--tour=2` (captures mid-run): Playwright + `__tour.start(2)`, wait `phase === 'done'`. Phone step 2: captions «Взлёт» sit on the brain's top edge under the strip (no free room; acceptable). Cheat sheet keys render one row per key (dt/dd grid), not the wireframe's two side-by-side columns.
-
