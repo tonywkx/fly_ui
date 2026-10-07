@@ -118,7 +118,7 @@ Stage 2 — deeper:
 - [x] 8.14 Phone: tabbed layout; if the live brain is too slow → baked clips instead of the live dish. Simple / Scientist mode on the home view if still needed after the Terrarium. **[V]** **[UI]**
 
 Stage 3 — release:
-- [ ] 8.15 Perf (live sim + dish, 60 fps at "high") — sim done (lazy LIF, 2026-10-07); left: 1280×800 rim vs palette/panel, visual-qa RU/EN 1600/390, ui-critic, smoke "Terrarium loads + an operation changes behaviour". No clip (user, 2026-10-07). **[V]** **[UI]**
+- [x] 8.15 Perf (live sim + dish, 60 fps at "high") — lazy LIF; desktop dish framed between palette and ops card; smoke "Terrarium loads + an operation changes behaviour"; visual-qa + ui-critic (no P1). No clip (user, 2026-10-07). **[V]** **[UI]**
 - [ ] 8.16 Russian copy pass: the user dislikes much of the RU text. Walk `apps/web/src/i18n/ru.ts` (~370 strings) by screen with the user (intro, tour, brain HUD, terrarium: palette, ops cards, puzzles, why-card, puppet, captions); rewrite, keep EN in step, re-snap RU 1600/390 for overflow. **[UI]**
 
 ## Backlog / spin-offs (not scheduled)
