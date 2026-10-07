@@ -26,7 +26,7 @@ import { ViewSwitch, viewHref } from './ViewSwitch';
 function timecode(s: DishStatus): string {
   if (s.loading) return t('dish.loading');
   const word = s.paused ? t('dish.paused') : t(`dish.state.${s.flash ?? s.action}` as Key);
-  return `${t('dish.timecode', { t: num(s.t / 1000, undefined, 3) })} · ${word}`;
+  return `${t('dish.timecode', { t: num(s.t / 1000, undefined, 3), slow: s.slow })} · ${word}`;
 }
 
 /** The remove button sits this far (px) up-right of the hovered item's centre. */

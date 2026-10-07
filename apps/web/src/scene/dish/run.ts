@@ -21,6 +21,7 @@ import { DishScene, type DishSceneOptions } from './DishScene';
 import type { BrainData } from './holo';
 import { DishInput } from './input';
 import { type DecisionEvent, DishLoop, type Pull } from './loop';
+import { SlowMo } from './slowmo';
 import { OPS, type Op, type Outcome } from './verdict';
 import { explain, type PathRow, type WhyHop } from './why';
 
@@ -56,6 +57,8 @@ export interface DishStatus {
   loading: boolean;
   /** A strike's outcome, shown instead of the action for a moment. */
   flash: Flash | null;
+  /** The real slow-motion denominator: 6 unless the live brain falls behind. */
+  slow: number;
   /** Hovered item: its canvas px (for the remove button), or null. */
   hover: { id: number; x: number; y: number } | null;
 }
@@ -111,6 +114,8 @@ export class DishRun {
   private held = false;
   private readonly heat = new Map<string, number>();
   private clock = 0;
+  /** The real slow-motion (the world waits for a slow brain): the timecode's «×1/N». */
+  private readonly pace = new SlowMo(SLOW);
   private last = 0;
   private ready = false;
   private disposed = false;
@@ -203,6 +208,7 @@ export class DishRun {
     this.applyOps();
     this.applyBrain(true);
     this.clock = 0;
+    this.pace.reset();
     this.flash = null;
     this.scene.clear();
     this.o.onDecision?.(null);
@@ -341,7 +347,11 @@ export class DishRun {
     if (c && l) {
       const { until } = this.o;
       if (until !== undefined) this.clock = until;
-      else if (!still) this.clock = Math.min(this.clock + dt / SLOW, c.log.until + 1);
+      else if (!still) {
+        const was = this.clock;
+        this.clock = Math.min(this.clock + dt / SLOW, c.log.until + 1);
+        this.pace.add(this.clock - was, dt);
+      }
       c.pump(this.clock);
       ev = l.advance(this.clock, c.log);
       for (const op of l.changed) {
@@ -386,6 +396,7 @@ export class DishRun {
       paused: this.paused,
       loading: !l,
       flash: this.flash?.word ?? null,
+      slow: this.pace.slow,
       hover: it ? { id: it.id, ...this.scene.project(it.x, it.y) } : null,
     });
   }

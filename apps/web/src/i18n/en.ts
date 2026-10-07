@@ -165,7 +165,7 @@ export const en: Shape<typeof ru> = {
 
   'dish.label': 'Terrarium: a fly in a dish',
   'dish.loading': 'wiring the brain…',
-  'dish.timecode': '×1/6 · high-speed camera · {t} s',
+  'dish.timecode': '×1/{slow} · high-speed camera · {t} s',
   'dish.paused': 'paused',
   'dish.state.walk': 'walking',
   'dish.state.eat': 'eating',

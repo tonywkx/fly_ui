@@ -178,7 +178,7 @@ export const ru = {
   // behaviour camera
   'dish.label': 'Террариум: муха в чашке',
   'dish.loading': 'готовлю мозг…',
-  'dish.timecode': '×1/6 · скоростная камера · {t} с',
+  'dish.timecode': '×1/{slow} · скоростная камера · {t} с',
   'dish.paused': 'пауза',
   'dish.state.walk': 'идёт',
   'dish.state.eat': 'ест',
