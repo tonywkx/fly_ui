@@ -95,6 +95,17 @@ export const PATHS: Record<Decision, DecisionPath> = {
 /** Poisson rate (Hz) of a fully sensed stimulus, as in 8.1. */
 export const SENSE_HZ = 150;
 
+/**
+ * Puppet keys (8.13): cells driven while a key is held; the decision still comes from the command
+ * read-outs. DNp01 needs ~1000 Hz for TTMn to reach the jump (150 Hz → TTMn 86, 1000 → 212; loom → 227;
+ * docs/TERRARIUM.md). Steering has no cells in the model (8.1) and stays scripted.
+ */
+export const PUPPET = {
+  up: { types: OPERATIONS.panic.types, hz: 1000, decision: 'jump' },
+  down: { types: COMMANDS.back, hz: SENSE_HZ, decision: 'back' },
+} as const satisfies Record<string, { types: RegExp; hz: number; decision: Decision }>;
+export type PuppetKey = keyof typeof PUPPET;
+
 /** Rows of one group: all cells, and by soma side (cells without a side are only in `all`). */
 export interface Group {
   all: Uint32Array;

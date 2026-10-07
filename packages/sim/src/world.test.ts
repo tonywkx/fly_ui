@@ -173,6 +173,28 @@ describe('World', () => {
     expect(off()).toBeLessThan(before / 3);
   });
 
+  it('steers left and right while walking, held by the visitor (scripted)', () => {
+    for (const steer of [1, -1] as const) {
+      const w = world(4);
+      w.steer = steer;
+      const h0 = w.fly.heading;
+      run(w, 'walk', 100);
+      const turned = Math.atan2(Math.sin(w.fly.heading - h0), Math.cos(w.fly.heading - h0));
+      expect(Math.sign(turned)).toBe(steer);
+      expect(Math.abs(turned)).toBeGreaterThan(0.3);
+    }
+  });
+
+  it('does not steer while backing off, and lets go on reset', () => {
+    const w = world(4);
+    w.steer = 1;
+    const h0 = w.fly.heading;
+    run(w, 'back', 100);
+    expect(w.fly.heading).toBe(h0);
+    w.reset();
+    expect(w.steer).toBe(0);
+  });
+
   it('drifts toward the odor source (scripted)', () => {
     let withOdor = 0;
     let without = 0;

@@ -26,6 +26,8 @@ const K_WALL = 0.006;
 const K_ODOR = 0.005;
 const K_SUGAR = 0.008;
 const K_COURT = 0.004;
+/** Puppet steering (arrow keys), rad/ms: ≈ 290°/s sim, a full circle in ≈ 7.5 s at ×1/6. */
+const STEER = 0.005;
 /** Wall steering starts this far from the rim. */
 const WALL_ZONE = 2;
 /** Sugar pulls within this head distance; a tasted crystal pulls again only after the fly leaves `SUGAR_FORGET`. */
@@ -104,6 +106,8 @@ export class World {
   hands: Hands = { shadow: null, swatter: null };
   /** World time, ms. */
   t = 0;
+  /** Visitor's steering while walking: +1 left, −1 right, 0 = the scripted wander. */
+  steer: -1 | 0 | 1 = 0;
   private omega = 0;
   private nextId = 1;
   private readonly tasted = new Set<number>();
@@ -142,6 +146,7 @@ export class World {
     this.items = [];
     this.hands = { shadow: null, swatter: null };
     this.t = 0;
+    this.steer = 0;
     this.omega = 0;
     this.tasted.clear();
   }
@@ -283,6 +288,11 @@ export class World {
     if (Math.hypot(f.x, f.y) > WALL - WALL_ZONE) {
       const b = this.bearing(0, 0);
       if (Math.abs(b) > Math.PI / 2 - 0.3) turn += K_WALL * Math.sign(b || 1);
+    }
+    // the visitor's hand replaces the wander and the pulls; contact still slows
+    if (this.steer) {
+      this.omega = 0;
+      turn = STEER * this.steer;
     }
     f.heading = wrap(f.heading + turn * dt);
     this.advance(v * dt);

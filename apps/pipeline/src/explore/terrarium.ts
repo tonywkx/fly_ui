@@ -154,6 +154,7 @@ const OPS: { op: string; stim: number[]; silence?: number[]; watch: string[] }[]
     watch: ['DNp01', 'TTMn', 'MDN', 'DNp09'],
   },
   { op: 'MDN on', stim: cmd('MDN'), watch: ['MDN', 'DNp09', 'DNa02', 'DNp01'] },
+  { op: 'DNp01 on (puppet ↑)', stim: cmd('DNp01'), watch: ['DNp01', 'TTMn', 'MDN'] },
   { op: 'sugar', stim: ids('sugar'), watch: ['MN9', 'DNp09', 'MDN'] },
   { op: 'sugar + LB3 off', stim: ids('sugar'), silence: ids('sugar'), watch: ['MN9', 'DNp09', 'MDN'] },
   { op: 'bitter (LB1)', stim: ids('bitter? LB1'), watch: ['MDN', 'MN9', 'DNp09'] },
@@ -171,4 +172,28 @@ head('operation', 'read-out');
 for (const o of OPS) {
   const r = readout({ stim: o.stim, silence: o.silence });
   row(o.op, o.watch.map((w) => `${w} ${f0(r.hz(cmd(w)))} · ${f0(r.first(cmd(w)))}`).join(', '));
+}
+
+// 8.13 puppet ↑: how hard DNp01 must be driven for TTMn to cross the jump threshold (170 Hz).
+if (process.argv.includes('--puppet')) {
+  console.log('\n## Puppet ↑: DNp01 drive → TTMn (Hz per cell, seeds 1–3)\n');
+  head('hz × gain', 'DNp01', 'TTMn', 'MDN');
+  for (const [hz, gain] of [
+    [150, 1],
+    [300, 1],
+    [600, 1],
+    [1000, 1],
+    [1500, 1],
+  ] as const) {
+    const c = new Float64Array(meta.length);
+    for (const seed of SEEDS) {
+      const sim = createSim(net, {}, mulberry32(seed));
+      for (const i of cmd('DNp01')) sim.stimulate(i, hz, gain);
+      sim.run(MS);
+      const s = sim.spikes;
+      for (let k = 0; k < s.count; k++) c[s.id[k] as number] = (c[s.id[k] as number] as number) + 1;
+    }
+    const hzOf = (n: string) => cmd(n).reduce((a, i) => a + (c[i] as number), 0) / cmd(n).length / SEEDS.length / (MS / 1000);
+    row(`${hz} × ${gain}`, f0(hzOf('DNp01')), f0(hzOf('TTMn')), f0(hzOf('MDN')));
+  }
 }

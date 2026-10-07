@@ -9,6 +9,7 @@ import {
   OPERATIONS,
   PATHS,
   PREEMPT_BACK,
+  PUPPET,
   type Rates,
   resolveGroups,
   SENSES,
@@ -31,8 +32,9 @@ const types = [
   'pIP10',
   'pC1a',
   null,
+  'DNp01',
 ];
-const sides = [null, null, null, 'L', 'R', 'R', 'L', 'R', 'L', 'R', 'L', 'L', 'R', null];
+const sides = [null, null, null, 'L', 'R', 'R', 'L', 'R', 'L', 'R', 'L', 'L', 'R', null, 'L'];
 const g = resolveGroups({ types, sides }, SENSES);
 
 const rest: Rates = { jump: 0, back: 0, eat: 0, court: 0, gate: 0 };
@@ -222,5 +224,21 @@ describe('PATHS', () => {
     expect(PATHS.back.hops.map((h) => h.type)).toContain('MDN');
     expect(PATHS.eat.sense).toBe('sugar');
     for (const op of Object.values(OPERATIONS)) expect(op.region).toMatch(/^[A-Z]/);
+  });
+});
+
+describe('PUPPET', () => {
+  it('drives a cell on the path of its decision', () => {
+    for (const [k, p] of Object.entries(PUPPET)) {
+      const hops = PATHS[p.decision].hops.map((h) => h.type);
+      expect(hops.some((t) => p.types.test(t)), k).toBe(true);
+      expect(p.hz, k).toBeGreaterThan(0);
+    }
+  });
+
+  it('resolves the puppet cells', () => {
+    const c = resolveGroups({ types, sides }, { up: PUPPET.up.types, down: PUPPET.down.types });
+    expect([...c.up.all]).toEqual([14]);
+    expect([...c.down.all]).toEqual([9]);
   });
 });
