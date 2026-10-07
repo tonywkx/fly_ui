@@ -122,71 +122,74 @@ function holdProps(k: Pull) {
 const ROW =
   'pointer-events-auto size-8 justify-center gap-3 rounded-full text-mist md:h-8 md:w-44 md:justify-start md:rounded-md md:px-2 md:[@media(max-height:860px)]:h-7';
 
+/** Things to drag into the dish (a tap drops one ahead of the fly). */
+export function ItemButtons({ input }: { input: PaletteInput }) {
+  return ITEM_KEYS.map((k, i) => (
+    <Button
+      key={k}
+      aria-label={t(`dish.item.${k}`)}
+      className={cn(ROW, 'touch-none cursor-grab active:cursor-grabbing')}
+      onPointerDown={(e) => {
+        if (e.button === 0) input.dragNew(k, e.nativeEvent);
+      }}
+      // keyboard Enter / Space (a pointer press is handled by the drag)
+      onClick={(e) => {
+        if (e.detail === 0) input.place(k);
+      }}
+    >
+      <Row id={k} keyHint={i + 1}>
+        {t(`dish.item.${k}`)}
+      </Row>
+    </Button>
+  ));
+}
+
+/** The two tools; the picked one is lit. */
+export const HandButtons = observer(function HandButtons() {
+  return HAND_KEYS.map((h, i) => (
+    <Button
+      key={h}
+      aria-label={t(`dish.hand.${h}`)}
+      aria-pressed={dish.hand === h}
+      className={cn(
+        ROW,
+        'aria-pressed:bg-bone/15 aria-pressed:text-bone aria-pressed:ring-1 aria-pressed:ring-bone/40',
+      )}
+      onClick={() => dish.toggleHand(h)}
+    >
+      <Row id={h} keyHint={i + 5}>
+        {t(`dish.hand.${h}`)}
+      </Row>
+    </Button>
+  ));
+});
+
 /**
- * The Terrarium palette (TERRARIUM-SHAPE §Layout): things to drag into the dish (a tap drops one
- * ahead of the fly) and the two hands. Desktop: the left column, no panel. Phone: one row above
- * the credit line.
+ * The Terrarium palette (TERRARIUM-SHAPE §Layout): things to drag into the dish and the two hands,
+ * the puppet keys below. Desktop only: the left column, no panel (the phone has `DishSheet`).
  */
 export const DishPalette = observer(function DishPalette({ input }: { input: PaletteInput }) {
-  const heading = 'hidden px-2 pb-1 font-mono text-caption tracking-widest text-ash uppercase md:block';
+  const heading = 'px-2 pb-1 font-mono text-caption tracking-widest text-ash uppercase';
   const hint = dish.hand ? t('dish.hand.put') : dish.empty ? t('dish.hint.empty') : null;
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-24 z-10 flex flex-col items-center gap-2 md:inset-x-auto md:top-10 md:bottom-28 md:left-8 md:items-start md:justify-center md:gap-6 md:[@media(max-height:860px)]:gap-3">
-      <div className="flex items-center gap-2 md:hidden">
-        <p className="text-caption text-ash">{dish.hand ? t('dish.hand.put') : t('dish.hint.tap')}</p>
-        {!dish.empty && (
-          <Button
-            className="pointer-events-auto h-8 px-2 text-caption text-mist"
-            onClick={() => input.reset()}
-          >
-            {t('dish.reset')}
-          </Button>
-        )}
-      </div>
-      <div className="flex gap-3 md:flex-col md:gap-6 md:[@media(max-height:860px)]:gap-4">
-        <section aria-label={t('dish.items')} className="flex gap-1 md:flex-col md:gap-0.5">
+    <div className="pointer-events-none absolute top-10 bottom-28 left-8 z-10 hidden flex-col items-start justify-center gap-6 md:flex [@media(max-height:860px)]:gap-3">
+      <div className="flex flex-col gap-6 [@media(max-height:860px)]:gap-4">
+        <section aria-label={t('dish.items')} className="flex flex-col gap-0.5">
           <h2 className={heading}>{t('dish.items')}</h2>
-          {ITEM_KEYS.map((k, i) => (
-            <Button
-              key={k}
-              aria-label={t(`dish.item.${k}`)}
-              className={cn(ROW, 'touch-none cursor-grab active:cursor-grabbing')}
-              onPointerDown={(e) => {
-                if (e.button === 0) input.dragNew(k, e.nativeEvent);
-              }}
-              // keyboard Enter / Space (a pointer press is handled by the drag)
-              onClick={(e) => {
-                if (e.detail === 0) input.place(k);
-              }}
-            >
-              <Row id={k} keyHint={i + 1}>
-                {t(`dish.item.${k}`)}
-              </Row>
-            </Button>
-          ))}
+          <ItemButtons input={input} />
         </section>
-        <section aria-label={t('dish.hands')} className="flex gap-1 md:flex-col md:gap-0.5">
+        <section aria-label={t('dish.hands')} className="flex flex-col gap-0.5">
           <h2 className={heading}>{t('dish.hands')}</h2>
-          {HAND_KEYS.map((h, i) => (
-            <Button
-              key={h}
-              aria-label={t(`dish.hand.${h}`)}
-              aria-pressed={dish.hand === h}
-              className={cn(
-                ROW,
-                'aria-pressed:bg-bone/15 aria-pressed:text-bone aria-pressed:ring-1 aria-pressed:ring-bone/40',
-              )}
-              onClick={() => dish.toggleHand(h)}
-            >
-              <Row id={h} keyHint={i + 5}>
-                {t(`dish.hand.${h}`)}
-              </Row>
-            </Button>
-          ))}
+          <HandButtons />
         </section>
-        <Puppet heading={heading} />
+        <section aria-label={t('puppet.title')} className="flex flex-col">
+          <h2 className={heading}>
+            {t('puppet.title')} <span className="tracking-normal normal-case">· {t('puppet.hint')}</span>
+          </h2>
+          <Puppet />
+        </section>
       </div>
-      <div className="hidden h-16 flex-col items-start gap-1 md:flex">
+      <div className="flex h-16 flex-col items-start gap-1">
         {hint && <p className="max-w-44 px-2 text-caption text-ash">{hint}</p>}
         {!dish.empty && (
           <Button
@@ -220,9 +223,10 @@ const SHORTCUT: Record<Pull, string> = {
 
 /**
  * Puppet mode (8.13): arrow key caps held (keyboard, pointer, or Space on a focused cap) drive
- * command cells; ← → steer the scripted walker. Desktop only (the phone gets it in 8.14).
+ * command cells; ← → steer the scripted walker. `phone`: finger-sized caps.
  */
-const Puppet = observer(function Puppet({ heading }: { heading: string }) {
+export const Puppet = observer(function Puppet({ phone = false }: { phone?: boolean }) {
+  const note = phone ? 'puppet-note-phone' : 'puppet-note';
   const name = (k: Pull) => (k === 'left' || k === 'right' ? t('puppet.steer') : t(`puppet.${k}`));
   const cell = (k: PuppetKey) => puppetHops(k)[0]?.type ?? '';
   const label = (k: Pull) =>
@@ -241,14 +245,11 @@ const Puppet = observer(function Puppet({ heading }: { heading: string }) {
     },
   ];
   return (
-    <section aria-label={t('puppet.title')} className="hidden flex-col md:flex">
-      <h2 className={heading}>
-        {t('puppet.title')} <span className="tracking-normal normal-case">· {t('puppet.hint')}</span>
-      </h2>
-      <span id="puppet-note" className="sr-only">
+    <>
+      <span id={note} className="sr-only">
         {t('puppet.steer.note')}
       </span>
-      <div className="flex w-44 items-center gap-2 px-2">
+      <div className={cn('flex items-center', phone ? 'gap-4' : 'w-44 gap-2 px-2')}>
         <div className="pointer-events-auto grid shrink-0 grid-cols-3 gap-0.5">
           {CAPS.map(({ k, at }) => (
             <Button
@@ -256,10 +257,11 @@ const Puppet = observer(function Puppet({ heading }: { heading: string }) {
               aria-label={label(k)}
               aria-pressed={on(k)}
               aria-keyshortcuts={SHORTCUT[k]}
-              aria-describedby={k === 'left' || k === 'right' ? 'puppet-note' : undefined}
+              aria-describedby={k === 'left' || k === 'right' ? note : undefined}
               className={cn(
                 at,
-                'size-5 touch-none rounded-sm font-mono text-caption text-mist ring-1 ring-ash/40 select-none hover:text-bone',
+                phone ? 'size-8 rounded-md text-label' : 'size-5 rounded-sm text-caption',
+                'touch-none font-mono text-mist ring-1 ring-ash/40 select-none hover:text-bone',
                 'aria-pressed:bg-bone/15 aria-pressed:text-bone aria-pressed:ring-bone/40',
               )}
               {...holdProps(k)}
@@ -270,7 +272,10 @@ const Puppet = observer(function Puppet({ heading }: { heading: string }) {
         </div>
         <dl
           title={t('puppet.steer.note')}
-          className="grid flex-1 grid-cols-[auto_1fr_auto] gap-x-1 text-caption"
+          className={cn(
+            'grid flex-1 grid-cols-[auto_1fr_auto] text-caption',
+            phone ? 'gap-x-2 gap-y-1' : 'gap-x-1',
+          )}
         >
           {legend.map((l) => (
             <div key={l.keys} className={cn('contents', l.lit ? 'text-bone' : 'text-mist')}>
@@ -281,6 +286,6 @@ const Puppet = observer(function Puppet({ heading }: { heading: string }) {
           ))}
         </dl>
       </div>
-    </section>
+    </>
   );
 });

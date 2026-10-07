@@ -31,10 +31,10 @@ export const DishLevels = observer(function DishLevels() {
   }, [level, won]);
   // the dark halo keeps the line legible where it crosses the rim's glow
   const box =
-    'pointer-events-none absolute inset-x-0 top-14 z-10 mx-auto hidden w-fit max-w-[max(18rem,min(40rem,100vw-48rem))] flex-col items-center gap-0.5 text-center [text-shadow:0_0_6px_var(--color-void)] md:flex';
+    'pointer-events-none absolute inset-x-0 top-14 z-10 mx-auto flex w-fit max-w-[calc(100vw-2rem)] md:max-w-[max(18rem,min(40rem,100vw-48rem))] flex-col items-center gap-0.5 text-center [text-shadow:0_0_6px_var(--color-void)]';
   if (level === null)
     return (
-      <div className={box}>
+      <div data-band-top className={box}>
         <Button ref={reopen} className={ghost} onClick={() => dish.openLevels()}>
           {t('level.open')}
         </Button>
@@ -45,7 +45,7 @@ export const DishLevels = observer(function DishLevels() {
   const last = level === LEVELS.length - 1;
   const k = (part: string) => `level.${l.op}.${part}` as Key;
   return (
-    <section aria-labelledby="level-goal" className={box}>
+    <section data-band-top aria-labelledby="level-goal" className={box}>
       <h2
         ref={head}
         id="level-goal"
@@ -70,7 +70,7 @@ export const DishLevels = observer(function DishLevels() {
         {t(k('goal'))}
       </h2>
       {/* the latest rung only: each says more than the last, and the line stays short */}
-      <p aria-live="polite" className="text-label text-bone">
+      <p aria-live="polite" className="text-label text-balance text-bone">
         {hint > 0 && !won && (
           <span
             key={hint}

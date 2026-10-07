@@ -162,9 +162,9 @@ export const DishWhy = observer(function DishWhy() {
           {t('op.restore')}
         </Button>
       ) : (
-        // the surgeon panel is desktop-only until 8.14
+        // phone: opening the card also shows the sheet's operations tab
         <Button
-          className="hidden h-8 self-start px-0 text-caption text-bone underline-offset-4 hover:underline md:inline-flex"
+          className="h-8 self-start px-0 text-caption text-bone underline-offset-4 hover:underline"
           onClick={() => {
             dish.setOpen(op);
             dish.setWhyOpen(false);
