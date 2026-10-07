@@ -115,7 +115,7 @@ Stage 2 — deeper:
 - [x] 8.11 "Why did she do that?" — explanation card for the last decision. **[UI]**
 - [x] 8.12 Puzzle levels (3–5) with a hint ladder and a success moment. **[V]** **[UI]**
 - [x] 8.13 Puppet mode: arrow keys → command neurons.
-- [ ] 8.14 Phone: tabbed layout; if the live brain is too slow → baked clips instead of the live dish. Simple / Scientist mode on the home view if still needed after the Terrarium. **[V]** **[UI]**
+- [x] 8.14 Phone: tabbed layout; if the live brain is too slow → baked clips instead of the live dish. Simple / Scientist mode on the home view if still needed after the Terrarium. **[V]** **[UI]**
 
 Stage 3 — release:
 - [ ] 8.15 Perf (live sim + dish, 60 fps at "high"), visual-qa RU/EN 1600/390, ui-critic, smoke "Terrarium loads + an operation changes behaviour", clip for the video. **[V]** **[UI]**

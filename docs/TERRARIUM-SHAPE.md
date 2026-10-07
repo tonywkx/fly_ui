@@ -129,9 +129,9 @@ Card list on the right. Closed card = one line (plain name + mono term + on/off 
 └──────────────────────────────┘
 ```
 
-- Bottom sheet with two tabs replaces the ViewerBar. Items: tap → placed ahead of the fly (no drag). Hands: tap the tool, then tap the dish = swing there; shadow = touch and hold. Operations tab: the same cards, one open, pill full-width.
-- Arena fills the width; camera pitch fixed at 45°, one-finger yaw orbit.
-- If live sim can't hold ~30 fps → baked clips per (item × operation), labelled `запись` in the timecode line (decision in 8.14).
+- Built (8.14, `ui/DishSheet.tsx`): three ghost-word tabs «Предметы · Нейрохирург · Кукла» under one panel, above the wordmark row. Предметы: hint + item glyphs + hands (tap → placed ahead of the fly; swatter = tap the dish, shadow = drag a finger). Нейрохирург: the four names in a 2 × 2 grid, the open card under it (no fact; on screens < 760 px tall no term / «обычно» either), panel ≤ 42svh. Кукла: 48 px key caps, hold with a finger. Opening a card (why-card CTA, last hint rung) shows the operations tab. Puzzles show under the timecode; the decision caption sits under them (`--band-top`).
+- The dish glides into the band the chrome leaves (`DishScene.frameBand`, camera view offset), so the fly stays above the sheet.
+- Live brain on phones too; the timecode shows the real slow-motion (`×1/N`) when the worker falls behind (DECISIONS 2026-10-07).
 
 ## States
 
