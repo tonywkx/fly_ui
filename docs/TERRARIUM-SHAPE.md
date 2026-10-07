@@ -237,6 +237,10 @@ Four puzzles, one per operation: the line names a *behaviour*, the visitor finds
 - Success: saffron «Получилось · <the op's verdict line>», «Дальше →» / «Ещё раз»; after the 4th «Свободный режим».
 - Opens with the first unsolved puzzle; none when the visitor closed the line, came with a set-up dish (`items`, `ops`, `from`, `x`) or solved all. Solved / closed are remembered in localStorage. `?level=1..4` (0 = none), `?hint=0..3` for snaps.
 
+## Puppet (8.13)
+
+Arrow keys held = cells driven on the live connectome; the meter + `decide` still choose the action, so operations apply (panic off + ↑ = no jump). ↑ DNp01 at 1000 Hz → TTMn → jump; ↓ MDN at `SENSE_HZ` → back (shares MDN with «moon»: drive = max). ← → turn the scripted walker (no turning cells in the model, row says «сценарий», tooltip explains). Held keys survive a reset (like operations); window blur lets go. Desktop: third palette group «Кукла» under «Руки» (rows press-and-hold with the pointer too); phone in 8.14. Caption «Ты нажал ↑ → прыжок · DNp01 → TTMn»; the why-card's no-sense line becomes «Ты держал ↑: DNp01 гнали вручную…». Snaps: `puppet=up,left`.
+
 ## Open (for 8.3+)
 
 - P1 op mechanics (8.3): courtship gate needs pC1 > 0 *and* pIP10 above threshold, otherwise the op is relabelled «pIP10 off». The card copy above assumes the gate works.

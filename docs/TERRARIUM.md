@@ -64,6 +64,9 @@ Type caveats (neuPrint has no Gr/ppk labels): LB3 = sugar, LB1 = bitter, pC1_* p
 | female (LC10a) | P1 (pC1) 13 · 10, pIP10 90 · 16 |
 | female (LC10a) + P1 off | P1 (pC1) 0 · —, pIP10 63 · 16 |
 | P1 on | P1 (pC1) 130 · 0, pIP10 188 · 5 |
+| DNp01 on (puppet ↑, 150 Hz) | DNp01 106 · 0, TTMn 86 · 12, MDN 0 · — |
+
+Puppet ↑ (8.13, `--puppet`): driving DNp01 alone needs a far higher rate than a sense — Poisson 150 / 300 / 600 / 1000 / 1500 Hz → TTMn 86 / 137 / 183 / 212 / 226 (DNp01 106 → 355; loom gives DNp01 415, TTMn 227). `gain` changes nothing. `PUPPET.up.hz = 1000`. Silencing (panic op) blocks the drive, so «panic off» + ↑ = no jump.
 
 ## Bridge (8.3)
 
