@@ -9,6 +9,7 @@ import { experiment } from '@/state/experiment';
 import { tour } from '@/state/tour';
 import { Captions } from '@/ui/Captions';
 import { CommandPalette } from '@/ui/CommandPalette';
+import { Dish } from '@/ui/Dish';
 import { Fatal } from '@/ui/Fatal';
 import { FlyCam } from '@/ui/FlyCam';
 import { Inspector } from '@/ui/Inspector';
@@ -33,6 +34,14 @@ export const App = observer(function App() {
   const broken = app.rendererFailed || !!data.error;
   // the tour shows the scene alone until its cheat sheet
   const touring = tour.state !== null && tour.state.step < 4;
+
+  if (app.params.view === 'dish')
+    return (
+      <div className="relative h-full overflow-hidden">
+        <Dish />
+        <Fatal />
+      </div>
+    );
 
   return (
     <div

@@ -222,7 +222,9 @@ export class FlyModel {
 
     b.updateMatrix();
     this.inv.copy(b.matrix).invert();
-    this.legs.forEach((l, i) => this.place(l, this.steps?.[i]));
+    this.legs.forEach((l, i) => {
+      this.place(l, this.steps?.[i]);
+    });
   }
 
   /** Walking feet (dish gait) applied from the next `pose`; null = feet at rest. */

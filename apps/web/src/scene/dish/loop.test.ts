@@ -8,16 +8,19 @@ const g = (...rows: number[]): Group => ({
   R: Uint32Array.from(rows.filter((r) => r % 2 === 1)),
 });
 const commands: Record<Command, Group> = { jump: g(0, 1), back: g(2), eat: g(3), court: g(4), gate: g(5) };
-const senses = Object.fromEntries(Object.keys(SENSES).map((k, i) => [k, g(100 + 2 * i, 101 + 2 * i)])) as Record<
-  keyof typeof SENSES,
-  Group
->;
+const senses = Object.fromEntries(
+  Object.keys(SENSES).map((k, i) => [k, g(100 + 2 * i, 101 + 2 * i)]),
+) as Record<keyof typeof SENSES, Group>;
 
 /** A log where `rows` fire every `every` ms from `from` on. */
 function log(rows: number[], from: number, until: number, every = 1) {
   const t: number[] = [];
   const r: number[] = [];
-  for (let s = from; s < until; s += every) for (const i of rows) t.push(s), r.push(i);
+  for (let s = from; s < until; s += every)
+    for (const i of rows) {
+      t.push(s);
+      r.push(i);
+    }
   const times = Float32Array.from(t);
   const lo = (x: number) => times.findIndex((v) => v >= x);
   return {

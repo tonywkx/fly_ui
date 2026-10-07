@@ -176,6 +176,15 @@ export const ru = {
   'palette.types': 'Типы клеток: {scenario}',
 
   // behaviour camera
+  'dish.label': 'Террариум: муха в чашке',
+  'dish.loading': 'готовлю мозг…',
+  'dish.timecode': '×1/6 · скоростная камера · {t} с',
+  'dish.paused': 'пауза',
+  'dish.state.walk': 'идёт',
+  'dish.state.eat': 'ест',
+  'dish.state.back': 'пятится',
+  'dish.state.jump': 'прыжок',
+  'dish.state.court': 'ухаживает',
   'flycam.label': 'Камера поведения',
   'flycam.title': 'Поведение',
   'flycam.rest': 'покой',

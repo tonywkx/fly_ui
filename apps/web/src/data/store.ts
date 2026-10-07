@@ -42,6 +42,24 @@ export class DataStore {
     return d?.kind === kind ? (d.data as Payloads[K]) : undefined;
   }
 
+  /** Manifest only (the dish: its Worker fetches the full graph itself). */
+  async loadManifest(): Promise<void> {
+    try {
+      const res = await fetch(new URL('manifest.json', this.baseUrl));
+      if (!res.ok) throw new Error(`manifest.json: HTTP ${res.status}`);
+      const manifest = parseManifest(await res.json());
+      runInAction(() => {
+        this.manifest = manifest;
+        this.ready = true;
+      });
+    } catch (e) {
+      runInAction(() => {
+        this.error = e instanceof Error ? e.message : String(e);
+      });
+      throw e;
+    }
+  }
+
   /** Fetches the manifest, then every first-frame chunk in parallel across a small Worker pool. */
   async loadFirstFrame(scenario: string | undefined): Promise<void> {
     try {

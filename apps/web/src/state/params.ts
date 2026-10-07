@@ -175,7 +175,9 @@ export function parseParams(search: string): { params: Params; warnings: string[
       const m = /^([a-z]+)@(-?[\d.]+),(-?[\d.]+)$/.exec(v.trim());
       const kind = m?.[1] as ItemKind;
       const [x, y] = [Number(m?.[2]), Number(m?.[3])];
-      return m && ITEM_KINDS.includes(kind) && Number.isFinite(x) && Number.isFinite(y) ? { kind, x, y } : null;
+      return m && ITEM_KINDS.includes(kind) && Number.isFinite(x) && Number.isFinite(y)
+        ? { kind, x, y }
+        : null;
     });
     if (list.every((v): v is NonNullable<typeof v> => v !== null)) params.items = list;
     else warnings.push(`items: expected "kind@x,y;…" (${ITEM_KINDS.join(' | ')}), got "${items}"`);

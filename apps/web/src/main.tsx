@@ -27,15 +27,15 @@ Promise.all(['400 16px "Inter Variable"', '400 12px "Geist Mono"'].map((f) => do
 
 app.waitFor('data');
 app.waitFor('frame');
-data
-  .loadFirstFrame(app.params.scenario)
+const dish = app.params.view === 'dish';
+(dish ? data.loadManifest() : data.loadFirstFrame(app.params.scenario))
   .catch((e) => {
     console.error('[data]', e);
     app.markReady('frame'); // nothing will draw; let snap capture the broken state
   })
   .finally(() => app.markReady('data'));
 
-bootTour();
+if (!dish) bootTour();
 
 when(
   () => app.ready,

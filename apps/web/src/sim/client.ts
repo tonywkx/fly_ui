@@ -6,6 +6,12 @@ import type { LiveInit, SimApi, Tuning } from './sim.worker';
 /** Sim time kept buffered ahead of the display clock, and the size of one Worker request (ms). */
 const AHEAD_MS = 100;
 const CHUNK_MS = 20;
+
+/** Buffering: the closed loop (dish) wants less, its drive lands `aheadMs + chunkMs` late. */
+export interface Pace {
+  aheadMs: number;
+  chunkMs: number;
+}
 /** Sim time kept behind the newest spikes for scrubbing back (ms). */
 const HISTORY_MS = 2000;
 /** Batches after which the measured speed is logged once. */
@@ -29,13 +35,16 @@ export class LiveClient {
   private gen = 0;
   private disposed = false;
 
-  private constructor() {
+  private constructor(private readonly pace: Pace) {
     this.worker = new Worker(new URL('./sim.worker.ts', import.meta.url), { type: 'module' });
     this.api = wrap<SimApi>(this.worker);
   }
 
-  static async start(init: LiveInit): Promise<LiveClient> {
-    const c = new LiveClient();
+  static async start(
+    init: LiveInit,
+    pace: Pace = { aheadMs: AHEAD_MS, chunkMs: CHUNK_MS },
+  ): Promise<LiveClient> {
+    const c = new LiveClient(pace);
     try {
       const t0 = performance.now();
       const { n, edges } = await c.api.init(init);
@@ -47,17 +56,18 @@ export class LiveClient {
     }
   }
 
-  /** Requests more sim time unless the log already reaches `t + AHEAD_MS`. Call every frame. */
+  /** Requests more sim time unless the log already reaches `t + aheadMs`. Call every frame. */
   pump(t: number): void {
-    if (this.busy || this.disposed || this.log.until >= t + AHEAD_MS) return;
+    const { aheadMs, chunkMs } = this.pace;
+    if (this.busy || this.disposed || this.log.until >= t + aheadMs) return;
     this.busy = true;
     const gen = this.gen;
     const t0 = performance.now();
     this.api
-      .advance(CHUNK_MS)
+      .advance(chunkMs)
       .then((b) => {
         if (gen !== this.gen) return;
-        this.simMs += CHUNK_MS;
+        this.simMs += chunkMs;
         this.wallMs += performance.now() - t0;
         this.speed = (this.simMs * 1000) / Math.max(1, this.wallMs);
         if (++this.batches === SPEED_LOG_AFTER) console.info(`[sim] ${this.speed.toFixed(0)} sim ms/s`);
