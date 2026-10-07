@@ -1,6 +1,7 @@
 import { PATHS } from '@fly/sim';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { num, t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { app } from '@/state/app';
@@ -32,23 +33,41 @@ export const DishCaption = observer(function DishCaption() {
   const term = d && sensed ? `${hops} · ${t('unit.ms', { v: num(d.ms as number) })}` : hops;
 
   return (
-    <p
-      aria-live="off"
-      data-empty={!shown}
+    <div
       className={cn(
         // phones: under the timecode (the palette owns the bottom); desktop: the Captions slot
-        'pointer-events-none absolute inset-x-4 top-16 z-10 mx-auto max-w-[32rem] text-center text-body font-light text-balance text-bone md:top-auto md:bottom-8 md:max-w-[max(16rem,min(32rem,100vw-44rem))]',
-        'transition-opacity duration-200 ease-out motion-reduce:transition-none data-[empty=true]:opacity-0',
+        'pointer-events-none absolute inset-x-4 top-16 z-10 mx-auto flex max-w-[32rem] flex-col items-center gap-1 text-center md:top-auto md:bottom-8 md:max-w-[max(16rem,min(32rem,100vw-44rem))]',
       )}
     >
-      {d && (
-        <>
-          <span className="whitespace-nowrap">
-            {t('dish.why', { why, act: t(`dish.state.${d.action}`) })}
-          </span>{' '}
-          <span className="font-mono text-caption whitespace-nowrap text-ash tabular-nums">· {term}</span>
-        </>
+      <p
+        aria-live="off"
+        data-empty={!shown}
+        className="text-body font-light text-balance text-bone transition-opacity duration-200 ease-out motion-reduce:transition-none data-[empty=true]:opacity-0"
+      >
+        {d && (
+          <>
+            <span className="whitespace-nowrap">
+              {t('dish.why', { why, act: t(`dish.state.${d.action}`) })}
+            </span>{' '}
+            <span className="font-mono text-caption whitespace-nowrap text-ash tabular-nums">· {term}</span>
+          </>
+        )}
+      </p>
+      {/* stays (dim) after the caption fades: the last decision can still be asked about */}
+      {d && dish.why && (
+        <Button
+          data-why
+          aria-expanded={dish.whyOpen}
+          aria-keyshortcuts="W"
+          className={cn(
+            'pointer-events-auto h-7 px-2 font-mono text-caption hover:text-bone aria-expanded:invisible',
+            shown ? 'text-mist' : 'text-ash',
+          )}
+          onClick={() => dish.setWhyOpen(!dish.whyOpen)}
+        >
+          {t('why.open')}
+        </Button>
       )}
-    </p>
+    </div>
   );
 });

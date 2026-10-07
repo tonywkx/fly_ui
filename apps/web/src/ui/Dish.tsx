@@ -16,6 +16,7 @@ import { Credit } from './Credit';
 import { DishCaption } from './DishCaption';
 import { DishOps } from './DishOps';
 import { DishPalette } from './DishPalette';
+import { DishWhy } from './DishWhy';
 import { LangSwitch } from './LangSwitch';
 import { ViewSwitch, viewHref } from './ViewSwitch';
 
@@ -87,7 +88,7 @@ export const Dish = observer(function Dish() {
           ),
         onCells: (n) => dish.setCells(n),
         onVerdict: (op, o) => dish.setNow(op, o),
-        onDecision: (d) => dish.setDecision(d),
+        onDecision: (d, why) => dish.setDecision(d, why),
         onStatus: (s) => {
           const text = timecode(s);
           if (line.current && line.current.textContent !== text) line.current.textContent = text;
@@ -110,9 +111,20 @@ export const Dish = observer(function Dish() {
         (on) => run.setOps(on),
         { fireImmediately: true },
       );
+      // the «why?» card freezes the dish; snaps (`why=1`) open it on the last decision
+      const hold = reaction(
+        () => dish.whyOpen,
+        (on) => run.hold(on),
+      );
+      const ask = reaction(
+        () => dish.why,
+        (w) => app.params.why && w && dish.setWhyOpen(true),
+      );
       dispose = () => {
         quality();
         surgery();
+        hold();
+        ask();
         run.dispose();
         setRun(null);
       };
@@ -180,6 +192,7 @@ export const Dish = observer(function Dish() {
           />
         )}
         <DishCaption />
+        <DishWhy />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-1 p-4 md:flex-row md:items-end md:justify-between md:p-8">
           <div className="flex items-center justify-between md:block">
             <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
