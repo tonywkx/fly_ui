@@ -114,7 +114,7 @@ Stage 2 — deeper:
 - [ ] 8.10 Odor navigation — 8.1: no L/R steering in the model → drop unless the model changes.
 - [x] 8.11 "Why did she do that?" — explanation card for the last decision. **[UI]**
 - [x] 8.12 Puzzle levels (3–5) with a hint ladder and a success moment. **[V]** **[UI]**
-- [ ] 8.13 Puppet mode: arrow keys → command neurons.
+- [x] 8.13 Puppet mode: arrow keys → command neurons.
 - [ ] 8.14 Phone: tabbed layout; if the live brain is too slow → baked clips instead of the live dish. Simple / Scientist mode on the home view if still needed after the Terrarium. **[V]** **[UI]**
 
 Stage 3 — release:

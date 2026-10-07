@@ -239,7 +239,7 @@ Four puzzles, one per operation: the line names a *behaviour*, the visitor finds
 
 ## Puppet (8.13)
 
-Arrow keys held = cells driven on the live connectome; the meter + `decide` still choose the action, so operations apply (panic off + ↑ = no jump). ↑ DNp01 at 1000 Hz → TTMn → jump; ↓ MDN at `SENSE_HZ` → back (shares MDN with «moon»: drive = max). ← → turn the scripted walker (no turning cells in the model, row says «сценарий», tooltip explains). Held keys survive a reset (like operations); window blur lets go. Desktop: third palette group «Кукла» under «Руки» (rows press-and-hold with the pointer too); phone in 8.14. Caption «Ты нажал ↑ → прыжок · DNp01 → TTMn»; the why-card's no-sense line becomes «Ты держал ↑: DNp01 гнали вручную…». Snaps: `puppet=up,left`.
+Arrow keys held = cells driven on the live connectome; the meter + `decide` still choose the action, so operations apply (panic off + ↑ = no jump). ↑ DNp01 at 1000 Hz → TTMn → jump; ↓ MDN at `SENSE_HZ` → back (shares MDN with «moon»: drive = max). ← → turn the scripted walker (no turning cells in the model, row says «сценарий», tooltip explains). Held keys survive a reset (like operations); window blur lets go. Desktop: third palette group «Кукла · держи стрелки» under «Руки»: inverted-T key caps (hold with the pointer, or Space on a focused cap) + a 3-line legend (key · act · cell); phone in 8.14. Caption «Ты нажал ↑ → прыжок · DNp01 → TTMn»; the why-card's no-sense line becomes «Ты держал ↑: DNp01 гнали вручную…». Snaps: `puppet=up,left`.
 
 ## Open (for 8.3+)
 
