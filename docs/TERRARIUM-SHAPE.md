@@ -221,6 +221,22 @@ Card list on the right. Closed card = one line (plain name + mono term + on/off 
 
 Facts checked (2026-10-06). Panic: the GF axon is the largest in the *thoracic* ganglia (4–8 µm), not the whole CNS — copy says «в груди» ([JEB 2014](https://journals.biologists.com/jeb/article/217/12/2121/12086/Responses-of-Drosophila-giant-descending-neurons)). Retreat: MDN = moonwalker descending neuron, sufficient for backward walking (Bidaye et al., Science 2014); the Michael Jackson link is folklore, not in the paper — dropped. Sugar: the old «ногами раньше, чем ртом» did not fit LB3 (labellar) — replaced by taste hairs on proboscis, legs and wing margin. P1: ~20 cells per hemisphere, male-only, fru⁺/dsx⁺ ([PNAS 2012](https://www.pnas.org/doi/full/10.1073/pnas.1207107109)). Cell counts in `op.*.term` (`{n} клетки`) come from the dataset at runtime, never hard-coded.
 
+## Levels (8.12)
+
+Four puzzles, one per operation: the line names a *behaviour*, the visitor finds the neuron. Top-centre under the timecode, text only (no card), desktop only until the phone has the operations (8.14). Copy: `level.*` in `i18n/{ru,en}.ts`.
+
+| # | goal | laid out | solved by |
+|---|---|---|---|
+| 1 | Прихлопни её | empty dish, swatter in hand | panic outcome with `hit` |
+| 2 | Пусть пройдёт по сахару — и не съест | sugar 2.5 mm ahead | sugar verdict |
+| 3 | Самка рядом — а ему всё равно | female 4 mm ahead | p1 verdict |
+| 4 | Пусть пятится без всякой причины | empty dish | moon verdict |
+
+- Start: operations off, no card open, dish reset and laid out. Only outcomes after the start count.
+- Hints: 3 rungs, only the latest shown (mechanism → where to look → the answer, which also opens its card). No arrows.
+- Success: saffron «Получилось · <the op's verdict line>», «Дальше →» / «Ещё раз»; after the 4th «Свободный режим».
+- Opens with the first unsolved puzzle; none when the visitor closed the line, came with a set-up dish (`items`, `ops`, `from`, `x`) or solved all. Solved / closed are remembered in localStorage. `?level=1..4` (0 = none), `?hint=0..3` for snaps.
+
 ## Open (for 8.3+)
 
 - P1 op mechanics (8.3): courtship gate needs pC1 > 0 *and* pIP10 above threshold, otherwise the op is relabelled «pIP10 off». The card copy above assumes the gate works.
