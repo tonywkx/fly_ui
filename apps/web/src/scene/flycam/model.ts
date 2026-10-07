@@ -17,6 +17,7 @@ import {
   Vector3,
 } from 'three/webgpu';
 import type { FlyPose } from '../behavior';
+import type { Foot } from '../dish/gait';
 import { type GlassOptions, glassMaterial } from '../layers/shells';
 
 // Stylized fly in body units (≈2.6 long): x forward (head +x), y up, z toward the camera.
@@ -124,6 +125,7 @@ export class FlyModel {
   private readonly foot = new Vector3();
   private readonly bend = new Vector3();
   private readonly knee = new Vector3();
+  private steps: Foot[] | null = null;
 
   constructor() {
     const skin = this.skin.mat;
@@ -220,12 +222,19 @@ export class FlyModel {
 
     b.updateMatrix();
     this.inv.copy(b.matrix).invert();
-    for (const l of this.legs) this.place(l);
+    this.legs.forEach((l, i) => this.place(l, this.steps?.[i]));
+  }
+
+  /** Walking feet (dish gait) applied from the next `pose`; null = feet at rest. */
+  gait(f: Foot[] | null): void {
+    this.steps = f;
   }
 
   /** Two-bone leg: the foot stays planted until the leg is straight, then hangs from the hip. */
-  private place(l: Leg) {
-    const f = this.foot.copy(l.rest).applyMatrix4(this.inv);
+  private place(l: Leg, step?: Foot) {
+    const f = this.foot.copy(l.rest);
+    if (step) f.add(this.bend.set(step.dx, step.lift, 0));
+    f.applyMatrix4(this.inv);
     d.subVectors(f, l.hip);
     const reach = FEMUR + TIBIA;
     let dist = d.length();
