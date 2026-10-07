@@ -74,7 +74,7 @@ export const DishSheet = observer(function DishSheet({
             role="tabpanel"
             id="sheet-ops"
             aria-labelledby="sheet-ops-tab"
-            className="pointer-events-auto flex max-h-[42svh] flex-col gap-0.5 overflow-y-auto overscroll-contain rounded-xl bg-card p-2 backdrop-blur-md"
+            className="pointer-events-auto flex max-h-[42svh] [@media(max-height:759px)]:max-h-[38svh] flex-col gap-0.5 overflow-y-auto overscroll-contain rounded-xl bg-card p-2 backdrop-blur-md"
           >
             <OpsList onClearBrain={onClearBrain} at="sheet-op" compact />
           </div>

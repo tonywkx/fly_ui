@@ -11,6 +11,9 @@ const ID: Record<Op, string> = { panic: 'DNp01', moon: 'MDN', sugar: 'LB3', p1: 
 /** Types inferred, not named in the dataset (LB3 = sugar, pC1 = P1): source chip «inferred». */
 const GUESS: ReadonlySet<Op> = new Set(['sugar', 'p1']);
 
+/** Short phones (SE): the card keeps role, now and the switch, so the fly stays in view. */
+const SHORT = 'max-md:[@media(max-height:759px)]:hidden';
+
 const k = (op: Op, part: string) => `op.${op}.${part}` as Key;
 
 function usual(op: Op): string {
@@ -64,15 +67,15 @@ const Body = observer(function Body({ op, at }: { op: Op; at: string }) {
       aria-labelledby={`${body}-h`}
       className="flex flex-col gap-2 px-2 pb-2 motion-safe:transition-[opacity,translate] motion-safe:duration-200 motion-safe:ease-out motion-safe:starting:-translate-y-1 motion-safe:starting:opacity-0"
     >
-      <p className="font-mono text-caption text-mist">
+      <p className={cn('font-mono text-caption text-mist', SHORT)}>
         {t(k(op, 'term'))}
         {dish.cells && <span className="tabular-nums"> · {plural('op.cells', dish.cells[op])}</span>}
       </p>
       <p className="text-label text-bone">{t(k(op, 'role'))}</p>
       <p className="text-caption text-mist max-md:hidden">{t(k(op, 'fact'))}</p>
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-caption tabular-nums">
-        <dt className="font-mono text-mist">{t('op.usual')}</dt>
-        <dd className="text-mist">{usual(op)}</dd>
+        <dt className={cn('font-mono text-mist', SHORT)}>{t('op.usual')}</dt>
+        <dd className={cn('text-mist', SHORT)}>{usual(op)}</dd>
         <dt className="font-mono text-mist">{t('op.now')}</dt>
         <dd className={cn(!o ? 'text-ash' : o.line === 'verdict' ? 'text-saffron' : 'text-bone')}>
           {nowLine(op, o)}
