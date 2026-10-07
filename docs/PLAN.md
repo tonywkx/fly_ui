@@ -107,7 +107,7 @@ Stage 1 — MVP wow (desktop):
 - [x] 8.5 Dish scene (three.js): glass dish in the void, camera 35–45°; glass fly (reuse `scene/flycam/model.ts`) with tripod gait; light trail coloured by state; items as glowing specimens (saffron crystals, acid drop, drifting particle plume); "×1/6 · high-speed camera" timecode; closed loop with the live sim. **[V]**
 - [x] 8.6 Placement: item palette, drag / remove / reset; tap on phones. **[V]** **[UI]**
 - [x] 8.7 Neurosurgeon: 4 operations — panic neuron off → no escape from the swatter; MDN on → moonwalk; sugar GRNs off → won't eat; P1 off → ignores the female; famous-neuron cards (plain name, role, fact); before/after verdict; mark on the fly's body. **[V]** **[UI]**
-- [ ] 8.8 Brain hologram + decision thread: the brain floats above the fly and follows it; on a decision a thread of light runs sense organ → path (from `sim/trace.ts`) → legs. **[V]**
+- [x] 8.8 Brain hologram + decision thread: the brain floats above the fly and follows it; on a decision a thread of light runs sense organ → path (from `sim/trace.ts`) → legs. **[V]**
 - [ ] 8.9 "From fly to neuron" zoom: click the fly → one continuous camera flight into its head → full brain view → operate → back to the dish. **[V]**
 
 Stage 2 — deeper:
