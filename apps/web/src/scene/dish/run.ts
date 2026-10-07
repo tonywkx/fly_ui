@@ -19,6 +19,7 @@ import type { BrainData } from './holo';
 import { DishInput } from './input';
 import { type DecisionEvent, DishLoop } from './loop';
 import { OPS, type Op, type Outcome } from './verdict';
+import { explain, type PathRow, type WhyHop } from './why';
 
 const SEED = 1;
 /** Shown at ×1/6: a sim ms takes 6 wall ms ("high-speed camera"). */
@@ -66,7 +67,7 @@ export interface DishRunOptions extends DishSceneOptions {
   /** An operation's last encounter changed (the card's «now» line). */
   onVerdict?: (op: Op, o: Outcome) => void;
   /** The fly just decided (the decision caption); null on a reset. */
-  onDecision?: (e: DecisionEvent | null) => void;
+  onDecision?: (e: DecisionEvent | null, why?: WhyHop[]) => void;
   /** The zoom began (`true`) / landed back in the dish (`false`). */
   onZoom?: (on: boolean) => void;
   /** The dive reached the black seam: time to become the brain view. */
@@ -93,7 +94,11 @@ export class DishRun {
   /** The brain view's experiment in full-graph rows (kept across resets, like the operations). */
   private brain: { off: Uint32Array; on: Uint32Array; hz: number; gain: number } | null = null;
   /** Log rows of each path cell type; spikes per type in the heat window. */
-  private pathRows: { type: string; cells: number; has: Uint8Array }[] = [];
+  private pathRows: PathRow[] = [];
+  /** Cells per sensory group (the «why?» card's first hop). */
+  private senseCells: Partial<Record<keyof typeof SENSES, number>> = {};
+  /** Paused by the «why?» card (its close resumes). */
+  private held = false;
   private readonly heat = new Map<string, number>();
   private clock = 0;
   private last = 0;
@@ -129,6 +134,13 @@ export class DishRun {
 
   togglePause(): void {
     this.paused = !this.paused;
+    this.held = false;
+  }
+
+  /** The «why?» card: freeze on open; on close resume only if the card froze it. */
+  hold(on: boolean): void {
+    if (on && !this.paused) this.paused = this.held = true;
+    else if (!on && this.held) this.paused = this.held = false;
   }
 
   /** «From fly to neuron»: dives into the head, `onDive` at the black seam. `at` freezes it (snaps). */
@@ -194,6 +206,7 @@ export class DishRun {
       );
       if (this.disposed) return c.dispose();
       const senses = await c.groups(SENSES);
+      this.senseCells = Object.fromEntries(Object.entries(senses).map(([k, g]) => [k, g.all.length]));
       const watched = await c.watch({
         ...COMMANDS,
         ...Object.fromEntries(PATH_TYPES.map((t) => [t, new RegExp(`^${t}$`)])),
@@ -291,7 +304,7 @@ export class DishRun {
       const d = l.decisions.at(-1);
       if (d) {
         this.scene.decide(d);
-        this.o.onDecision?.(d);
+        this.o.onDecision?.(d, explain(d, c.log, this.pathRows, this.senseCells[PATHS[d.action].sense] ?? 0));
       }
       l.decisions.length = 0;
       this.measureHeat(l.t, c.log);

@@ -58,6 +58,8 @@ export interface Params {
   items?: { kind: ItemKind; x: number; y: number }[];
   /** Dish operations switched on at start (`panic,moon,…`). */
   ops?: Op[];
+  /** Dish: open the «why?» card on the last decision (snaps). */
+  why?: true;
   /** First-visit tour: 0 = off, 1..4 = open at that step (see `state/tour.ts`). */
   tour?: TourStep;
 }
@@ -72,6 +74,7 @@ export function parseParams(search: string): { params: Params; warnings: string[
   const params: Params = { stats: flag(q.get('stats')), snap: flag(q.get('snap')) };
   const warnings: string[] = [];
   if (flag(q.get('director'))) params.director = true;
+  if (flag(q.get('why'))) params.why = true;
 
   const scenario = q.get('scenario');
   if (scenario !== null) {

@@ -1,6 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 import type { DecisionEvent } from '@/scene/dish/loop';
 import type { Op, Outcome } from '@/scene/dish/verdict';
+import type { WhyHop } from '@/scene/dish/why';
 
 /** The visitor's own strikes (TERRARIUM-SHAPE §Hands): tools in hand, not items in the dish. */
 export type Hand = 'shadow' | 'swatter';
@@ -24,6 +25,9 @@ export class DishStore {
   last: Op | null = null;
   /** The fly's last decision (the caption under the dish); null after a reset. */
   decision: DecisionEvent | null = null;
+  /** Its chain from the live log (the «why?» card); the card is open while `whyOpen`. */
+  why: WhyHop[] | null = null;
+  whyOpen = false;
   /** The fly ↔ neuron zoom is flying (the chrome steps aside). */
   zooming = false;
   /** Cells the brain view silenced / drove, now on in the fly (null = none). */
@@ -67,8 +71,14 @@ export class DishStore {
     this.cells = n;
   }
 
-  setDecision(d: DecisionEvent | null): void {
+  setDecision(d: DecisionEvent | null, why: WhyHop[] | null = null): void {
     this.decision = d;
+    this.why = why;
+    if (!d) this.whyOpen = false;
+  }
+
+  setWhyOpen(open: boolean): void {
+    this.whyOpen = open && !!this.why;
   }
 
   setNow(op: Op, o: Outcome): void {
