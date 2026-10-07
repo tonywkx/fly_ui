@@ -1,4 +1,5 @@
 import { observer } from 'mobx-react-lite';
+import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { type Key, t } from '@/i18n';
 import { cn } from '@/lib/utils';
@@ -15,12 +16,26 @@ const ghost = 'pointer-events-auto h-6 px-2 text-caption text-mist hover:text-bo
  */
 export const DishLevels = observer(function DishLevels() {
   const { level, hint, won } = dish;
+  const head = useRef<HTMLHeadingElement>(null);
+  const reopen = useRef<HTMLButtonElement>(null);
+  const moved = useRef(false);
+  // «Дальше →» / «Ещё раз» / «Свободный режим» unmount the focused button: keep focus on the line
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a new puzzle or a win moves the focus
+  useEffect(() => {
+    if (!moved.current) {
+      moved.current = true;
+      return;
+    }
+    const lost = !document.activeElement || document.activeElement === document.body;
+    if (lost) (level === null ? reopen.current : head.current)?.focus();
+  }, [level, won]);
+  // the dark halo keeps the line legible where it crosses the rim's glow
   const box =
-    'pointer-events-none absolute inset-x-0 top-14 z-10 mx-auto hidden w-fit max-w-[min(40rem,100vw-48rem)] flex-col items-center gap-0.5 text-center md:flex';
+    'pointer-events-none absolute inset-x-0 top-14 z-10 mx-auto hidden w-fit max-w-[max(18rem,min(40rem,100vw-48rem))] flex-col items-center gap-0.5 text-center [text-shadow:0_0_6px_var(--color-void)] md:flex';
   if (level === null)
     return (
       <div className={box}>
-        <Button className={ghost} onClick={() => dish.openLevels()}>
+        <Button ref={reopen} className={ghost} onClick={() => dish.openLevels()}>
           {t('level.open')}
         </Button>
       </div>
@@ -31,9 +46,15 @@ export const DishLevels = observer(function DishLevels() {
   const k = (part: string) => `level.${l.op}.${part}` as Key;
   return (
     <section aria-labelledby="level-goal" className={box}>
-      <h2 id="level-goal" className="flex items-center gap-2 text-label text-bone">
+      <h2
+        ref={head}
+        id="level-goal"
+        tabIndex={-1}
+        className="flex items-center gap-2 text-label text-bone outline-none"
+      >
         <span className="font-mono text-caption tracking-widest text-ash uppercase">
           {t('level.of', { n: level + 1, of: LEVELS.length })}
+          <span className="sr-only">: </span>
         </span>
         <span aria-hidden="true" className="flex gap-1">
           {LEVELS.map((x, i) => (
@@ -49,7 +70,7 @@ export const DishLevels = observer(function DishLevels() {
         {t(k('goal'))}
       </h2>
       {/* the latest rung only: each says more than the last, and the line stays short */}
-      <p aria-live="polite" className={cn('text-label text-bone', (hint === 0 || won) && 'hidden')}>
+      <p aria-live="polite" className="text-label text-bone">
         {hint > 0 && !won && (
           <span
             key={hint}
@@ -59,7 +80,13 @@ export const DishLevels = observer(function DishLevels() {
           </span>
         )}
       </p>
-      <p role="status" className={cn('text-label text-saffron', !won && 'sr-only')}>
+      <p
+        role="status"
+        className={cn(
+          'text-label text-saffron motion-safe:transition-opacity motion-safe:duration-200 motion-safe:starting:opacity-0',
+          !won && 'sr-only',
+        )}
+      >
         {won && `${t('level.won')} · ${nowLine(l.op, won)}`}
       </p>
       {won && last && <p className="text-caption text-bone">{t('level.done')}</p>}

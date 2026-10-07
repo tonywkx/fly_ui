@@ -228,7 +228,7 @@ Four puzzles, one per operation: the line names a *behaviour*, the visitor finds
 | # | goal | laid out | solved by |
 |---|---|---|---|
 | 1 | Прихлопни её | empty dish, swatter in hand | panic outcome with `hit` |
-| 2 | Пусть пройдёт по сахару — и не съест | sugar 2.5 mm ahead | sugar verdict |
+| 2 | Пусть пройдёт по сахару, не поев | sugar 2.5 mm ahead | sugar verdict |
 | 3 | Самка рядом — а ему всё равно | female 4 mm ahead | p1 verdict |
 | 4 | Пусть пятится без всякой причины | empty dish | moon verdict |
 
