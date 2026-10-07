@@ -1,5 +1,4 @@
 import { observer } from 'mobx-react-lite';
-import { Button } from '@/components/ui/button';
 import { data } from '@/data/store';
 import { cn } from '@/lib/utils';
 import { QUALITY } from '@/scene/quality';
@@ -9,6 +8,7 @@ import { experiment } from '@/state/experiment';
 import { tour } from '@/state/tour';
 import { Captions } from '@/ui/Captions';
 import { CommandPalette } from '@/ui/CommandPalette';
+import { Credit } from '@/ui/Credit';
 import { Dish } from '@/ui/Dish';
 import { Fatal } from '@/ui/Fatal';
 import { FlyCam } from '@/ui/FlyCam';
@@ -25,6 +25,7 @@ import { Narration } from '@/ui/tour/Narration';
 import { TourCard } from '@/ui/tour/TourCard';
 import { TourRestart, TourSkip } from '@/ui/tour/TourChrome';
 import { ViewerBar } from '@/ui/ViewerBar';
+import { ViewSwitch } from '@/ui/ViewSwitch';
 import { scenarioTitle } from '@/ui/viewer';
 
 export const App = observer(function App() {
@@ -99,25 +100,23 @@ export const App = observer(function App() {
                 fly_ui
               </h1>
               {/* phones: beside the wordmark, the ViewerBar has no room for it */}
-              <TourRestart className="md:hidden" />
+              <div className="flex items-center md:hidden">
+                <ViewSwitch />
+                <TourRestart />
+              </div>
             </div>
             {/* phones name the scenario in the ViewerBar */}
             {title && <p className="mt-2 hidden text-body font-extralight text-mist md:block">{title}</p>}
             {/* phones switch language in the ViewerBar */}
             <div className="-mx-1 mt-1 hidden items-center gap-1 md:flex">
+              <ViewSwitch />
               <LangSwitch />
               <TourRestart />
             </div>
           </div>
           {/* phones: the card stands in for the ViewerBar until the tour ends */}
           {!broken && (tour.active ? <TourCard phone className="md:hidden" /> : <ViewerBar />)}
-          <p className="pointer-events-auto -mx-1 text-caption text-ash">
-            <Button variant="ghost" asChild className="h-auto py-3 text-caption md:py-0">
-              <a href="https://neuprint.janelia.org/" target="_blank" rel="noreferrer">
-                male-cns v1.0 · Janelia FlyEM / neuPrint · CC BY 4.0
-              </a>
-            </Button>
-          </p>
+          <Credit />
         </div>
       </div>
     </div>
