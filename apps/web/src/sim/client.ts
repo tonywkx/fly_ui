@@ -1,4 +1,5 @@
-import { type Remote, wrap } from 'comlink';
+import type { Drive, Group } from '@fly/sim';
+import { type Remote, transfer, wrap } from 'comlink';
 import { SpikeLog } from './feed';
 import type { LiveInit, SimApi, Tuning } from './sim.worker';
 
@@ -76,6 +77,27 @@ export class LiveClient {
 
   silence(row: number, on: boolean): Promise<void> {
     return this.api.silence(row, on);
+  }
+
+  /** Full-graph rows of cell groups (see `SimApi.groups`). */
+  groups<K extends string>(specs: Record<K, RegExp>): Promise<Record<K, Group>> {
+    return this.api.groups(specs);
+  }
+
+  /** Log rows become these groups' cells from the next batch on; returns the groups in log rows. */
+  async watch<K extends string>(specs: Record<K, RegExp>): Promise<Record<K, Group>> {
+    this.gen++;
+    this.log.reset();
+    return this.api.watch(specs);
+  }
+
+  /** Poisson drive by full-graph row; the arrays are transferred. */
+  drive(d: Drive, gain?: number): Promise<void> {
+    return this.api.drive(transfer(d, [d.rows.buffer, d.hz.buffer]), gain);
+  }
+
+  silenceRows(rows: Uint32Array, on: boolean): Promise<void> {
+    return this.api.silenceRows(rows, on);
   }
 
   /** Restarts the scenario at t = 0; a batch still in flight is dropped. */

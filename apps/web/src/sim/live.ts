@@ -1,4 +1,4 @@
-import { createSim, type LifParams, mulberry32, type Net, type Sim } from '@fly/sim';
+import { createSim, type Drive, type Group, type LifParams, mulberry32, type Net, type Sim } from '@fly/sim';
 
 /** Spikes of one `advance`: scenario rows, time-ordered; `until` = sim time reached; `total` = whole-graph spikes. */
 export interface Batch {
@@ -28,6 +28,32 @@ export function rowMap(fullBodyIds: Float64Array, scenarioBodyIds: Float64Array)
   return { rowOf, fullOf };
 }
 
+/** Row map that reports exactly `rows` (full graph) as batch rows 0…k−1. */
+export function watchMap(n: number, rows: Uint32Array): RowMap {
+  const rowOf = new Int32Array(n).fill(-1);
+  rows.forEach((i, k) => {
+    rowOf[i] = k;
+  });
+  return { rowOf, fullOf: Int32Array.from(rows) };
+}
+
+/** Union of the groups' rows (sorted) and the groups re-indexed into it, i.e. as batch rows after `watch`. */
+export function watchRows<K extends string>(
+  groups: Record<K, Group>,
+): { rows: Uint32Array; local: Record<K, Group> } {
+  const all = new Set<number>();
+  for (const g of Object.values<Group>(groups)) for (const i of g.all) all.add(i);
+  const rows = Uint32Array.from([...all].sort((a, b) => a - b));
+  const at = new Map(Array.from(rows, (i, k) => [i, k] as const));
+  const map = (a: Uint32Array) => a.map((i) => at.get(i) as number);
+  const local = {} as Record<K, Group>;
+  for (const k of Object.keys(groups) as K[]) {
+    const g = groups[k];
+    local[k] = { all: map(g.all), L: map(g.L), R: map(g.R) };
+  }
+  return { rows, local };
+}
+
 export interface LiveOptions {
   seed: number;
   params?: Partial<LifParams>;
@@ -39,7 +65,7 @@ export class Live {
 
   constructor(
     private net: Net,
-    private readonly rows: RowMap,
+    private rows: RowMap,
     private opts: LiveOptions,
   ) {
     this.sim = this.create();
@@ -72,6 +98,22 @@ export class Live {
   silence(row: number, on = true): void {
     const i = this.full(row);
     if (i >= 0) this.sim.silence(i, on);
+  }
+
+  /** Poisson drive by full-graph row (0 Hz removes it), kicks scaled by `gain`. */
+  drive(d: Drive, gain?: number): void {
+    d.rows.forEach((i, k) => {
+      this.sim.stimulate(i, d.hz[k], gain);
+    });
+  }
+
+  silenceRows(rows: Uint32Array, on = true): void {
+    for (const i of rows) this.sim.silence(i, on);
+  }
+
+  /** From now on batches report exactly these full-graph rows (as rows 0…k−1); the sim keeps running. */
+  watch(rows: Uint32Array): void {
+    this.rows = watchMap(this.rows.rowOf.length, rows);
   }
 
   inject(row: number, mV: number): void {

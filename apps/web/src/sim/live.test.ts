@@ -1,12 +1,32 @@
 import { netFromEdges } from '@fly/sim';
 import { describe, expect, it } from 'vitest';
-import { Live, rowMap } from './live';
+import { Live, rowMap, watchMap, watchRows } from './live';
 
 describe('rowMap', () => {
   it('maps full rows to scenario rows by bodyId, −1 outside', () => {
     const map = rowMap(Float64Array.from([10, 20, 30, 40]), Float64Array.from([30, 10]));
     expect([...map.rowOf]).toEqual([1, -1, 0, -1]);
     expect([...map.fullOf]).toEqual([2, 0]);
+  });
+});
+
+describe('watch', () => {
+  it('watchMap reports the given full rows as 0…k−1', () => {
+    const m = watchMap(5, Uint32Array.of(1, 4));
+    expect([...m.rowOf]).toEqual([-1, 0, -1, -1, 1]);
+    expect([...m.fullOf]).toEqual([1, 4]);
+  });
+
+  it('watchRows unions groups and re-indexes them', () => {
+    const u = (...x: number[]) => Uint32Array.from(x);
+    const { rows, local } = watchRows({
+      a: { all: u(7, 3), L: u(3), R: u(7) },
+      b: { all: u(3, 9), L: u(), R: u() },
+    });
+    expect([...rows]).toEqual([3, 7, 9]);
+    expect([...local.a.all]).toEqual([1, 0]);
+    expect([...local.a.R]).toEqual([1]);
+    expect([...local.b.all]).toEqual([0, 2]);
   });
 });
 
@@ -71,5 +91,26 @@ describe('Live', () => {
     const b = live.advance(20);
     expect([...b.row]).toEqual([0]); // full 2 is not a scenario row, 2 → 3 is gone
     expect(b.total).toBe(2);
+  });
+
+  it('drives and silences by full row; drive 0 Hz removes it', () => {
+    const live = setup();
+    live.drive({ rows: Uint32Array.of(1), hz: Float32Array.of(150) });
+    live.silenceRows(Uint32Array.of(3));
+    const b = live.advance(100);
+    expect(b.row.length).toBeGreaterThan(5);
+    expect([...b.row].every((r) => r === 0)).toBe(true);
+    live.drive({ rows: Uint32Array.of(1), hz: Float32Array.of(0) });
+    live.advance(10);
+    expect(live.advance(100).total).toBe(0);
+  });
+
+  it('watch switches the reported rows mid-run', () => {
+    const live = setup();
+    live.watch(Uint32Array.of(2));
+    live.inject(0, 60); // scenario row 0 is now full row 2
+    const b = live.advance(20);
+    expect([...b.row]).toEqual([0]);
+    expect(b.total).toBe(2); // full 2 → 3
   });
 });

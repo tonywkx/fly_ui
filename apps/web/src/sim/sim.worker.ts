@@ -1,7 +1,18 @@
-import { type Csr, decodeGraph, decodeMeta } from '@fly/data';
-import { applyOverrides, LIF_DEFAULTS, type LifParams, NET_OVERRIDES, type Net, netFromCsr } from '@fly/sim';
+import { type Csr, decodeGraph, decodeMeta, SOMA_SIDES } from '@fly/data';
+import {
+  applyOverrides,
+  type CellTable,
+  type Drive,
+  type Group,
+  LIF_DEFAULTS,
+  type LifParams,
+  NET_OVERRIDES,
+  type Net,
+  netFromCsr,
+  resolveGroups,
+} from '@fly/sim';
 import { expose, transfer } from 'comlink';
-import { type Batch, Live, rowMap } from './live';
+import { type Batch, Live, rowMap, watchRows } from './live';
 
 export interface LiveInit {
   /** `graph-full` and `meta-full` chunk URLs (fetched here, they never pass through the main thread). */
@@ -19,7 +30,7 @@ export type Tuning = Partial<LifParams> & { gain?: number };
 
 let live: Live | undefined;
 let stim: number[] = [];
-let graph: { csr: Csr; sign: Int8Array; types: (string | null)[] } | undefined;
+let graph: ({ csr: Csr; sign: Int8Array } & CellTable) | undefined;
 let synW: number = LIF_DEFAULTS.wSyn; // wSyn · gain the current net was built with
 
 /** Same net as the bake (`buildNet`): Shiu weights · gain + literature overrides. */
@@ -44,7 +55,12 @@ const api = {
       bytes(o.graphUrl).then(decodeGraph),
       bytes(o.metaUrl).then(decodeMeta),
     ]);
-    graph = { csr, sign: meta.sign, types: Array.from(meta.type, (t) => meta.strings.types[t] ?? null) };
+    graph = {
+      csr,
+      sign: meta.sign,
+      types: Array.from(meta.type, (t) => meta.strings.types[t] ?? null),
+      sides: Array.from(meta.somaSide, (s) => SOMA_SIDES[s] ?? null),
+    };
     synW = LIF_DEFAULTS.wSyn;
     const net = buildNet(graph, synW);
     live = new Live(net, rowMap(meta.bodyIds, o.scenarioBodyIds), { seed: o.seed });
@@ -65,6 +81,28 @@ const api = {
 
   silence(row: number, on = true) {
     need().silence(row, on);
+  },
+
+  /** Full-graph rows of cell groups by type (and soma side), e.g. `SENSES` or operation targets. */
+  groups<K extends string>(specs: Record<K, RegExp>): Record<K, Group> {
+    if (!graph) throw new Error('sim worker: init first');
+    return resolveGroups(graph, specs);
+  },
+
+  /** Batches report only these groups' cells from now on; returns the groups in batch rows. */
+  watch<K extends string>(specs: Record<K, RegExp>): Record<K, Group> {
+    const { rows, local } = watchRows(api.groups(specs));
+    need().watch(rows);
+    return local;
+  },
+
+  /** Poisson drive by full-graph row (a `diffDrive` batch); `reset` clears it. */
+  drive(d: Drive, gain?: number) {
+    need().drive(d, gain);
+  },
+
+  silenceRows(rows: Uint32Array, on = true) {
+    need().silenceRows(rows, on);
   },
 
   /** Restarts the scenario with new params; the net is rebuilt only when wSyn · gain changes. */
