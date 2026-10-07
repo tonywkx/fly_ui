@@ -1,6 +1,11 @@
 import { type ItemKind, PUPPET, type PuppetKey } from '@fly/sim';
 import { observer } from 'mobx-react-lite';
-import type { ReactNode, PointerEvent as ReactPointerEvent } from 'react';
+import type {
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+  ReactNode,
+  PointerEvent as ReactPointerEvent,
+} from 'react';
 import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
 import { cn } from '@/lib/utils';
@@ -88,25 +93,34 @@ function Row({ id, keyHint, children }: { id: ItemKind | Hand; keyHint: number; 
   );
 }
 
-/** Held while the pointer is down on it (as an arrow key is held). */
-function holdProps(keys: readonly Pull[]) {
-  const set = (on: boolean) => {
-    for (const k of keys) dish.pull(k, on);
-  };
+/** A key cap held by the pointer, or by Space / Enter while focused, as its arrow key is held. */
+function holdProps(k: Pull) {
+  const set = (on: boolean) => dish.pull(k, on);
+  const own = (e: ReactKeyboardEvent) => e.key === ' ' || e.key === 'Enter';
   return {
     onPointerDown: (e: ReactPointerEvent<HTMLButtonElement>) => {
       if (e.button !== 0) return;
       e.currentTarget.setPointerCapture(e.pointerId);
       set(true);
     },
-    onPointerUp: () => set(false),
-    onPointerCancel: () => set(false),
     onLostPointerCapture: () => set(false),
+    onContextMenu: (e: ReactMouseEvent) => e.preventDefault(),
+    // not the dish's Space (pause)
+    onKeyDown: (e: ReactKeyboardEvent) => {
+      if (!own(e)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (!e.repeat) set(true);
+    },
+    onKeyUp: (e: ReactKeyboardEvent) => {
+      if (own(e)) set(false);
+    },
+    onBlur: () => set(false),
   };
 }
 
 const ROW =
-  'pointer-events-auto size-8 justify-center gap-3 rounded-full text-mist md:h-8 md:w-44 md:justify-start md:rounded-md md:px-2';
+  'pointer-events-auto size-8 justify-center gap-3 rounded-full text-mist md:h-8 md:w-44 md:justify-start md:rounded-md md:px-2 md:[@media(max-height:860px)]:h-7';
 
 /**
  * The Terrarium palette (TERRARIUM-SHAPE §Layout): things to drag into the dish (a tap drops one
@@ -117,7 +131,7 @@ export const DishPalette = observer(function DishPalette({ input }: { input: Pal
   const heading = 'hidden px-2 pb-1 font-mono text-caption tracking-widest text-ash uppercase md:block';
   const hint = dish.hand ? t('dish.hand.put') : dish.empty ? t('dish.hint.empty') : null;
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-24 z-10 flex flex-col items-center gap-2 md:inset-x-auto md:top-1/2 md:bottom-auto md:left-8 md:-translate-y-1/2 md:items-start md:gap-6">
+    <div className="pointer-events-none absolute inset-x-0 bottom-24 z-10 flex flex-col items-center gap-2 md:inset-x-auto md:top-10 md:bottom-28 md:left-8 md:items-start md:justify-center md:gap-6 md:[@media(max-height:860px)]:gap-3">
       <div className="flex items-center gap-2 md:hidden">
         <p className="text-caption text-ash">{dish.hand ? t('dish.hand.put') : t('dish.hint.tap')}</p>
         {!dish.empty && (
@@ -129,7 +143,7 @@ export const DishPalette = observer(function DishPalette({ input }: { input: Pal
           </Button>
         )}
       </div>
-      <div className="flex gap-3 md:flex-col md:gap-6">
+      <div className="flex gap-3 md:flex-col md:gap-6 md:[@media(max-height:860px)]:gap-4">
         <section aria-label={t('dish.items')} className="flex gap-1 md:flex-col md:gap-0.5">
           <h2 className={heading}>{t('dish.items')}</h2>
           {ITEM_KEYS.map((k, i) => (
@@ -190,51 +204,82 @@ export const DishPalette = observer(function DishPalette({ input }: { input: Pal
 
 const PUPPET_KEYS = Object.keys(PUPPET) as PuppetKey[];
 
-/** Puppet mode (8.13): the arrows drive command cells while held; ← → steer (scripted). Desktop only. */
+/** Inverted-T key caps: ↑ over ← ↓ →. */
+const CAPS: { k: Pull; at: string }[] = [
+  { k: 'up', at: 'col-start-2' },
+  { k: 'left', at: 'col-start-1 row-start-2' },
+  { k: 'down', at: 'col-start-2 row-start-2' },
+  { k: 'right', at: 'col-start-3 row-start-2' },
+];
+const SHORTCUT: Record<Pull, string> = {
+  up: 'ArrowUp',
+  down: 'ArrowDown',
+  left: 'ArrowLeft',
+  right: 'ArrowRight',
+};
+
+/**
+ * Puppet mode (8.13): arrow key caps held (keyboard, pointer, or Space on a focused cap) drive
+ * command cells; ← → steer the scripted walker. Desktop only (the phone gets it in 8.14).
+ */
 const Puppet = observer(function Puppet({ heading }: { heading: string }) {
-  const pressed =
-    'aria-pressed:bg-bone/15 aria-pressed:text-bone aria-pressed:ring-1 aria-pressed:ring-bone/40';
-  const glyph = 'w-6 shrink-0 text-center font-mono text-label';
-  const steering = dish.pulls.has('left') || dish.pulls.has('right');
+  const name = (k: Pull) => (k === 'left' || k === 'right' ? t('puppet.steer') : t(`puppet.${k}`));
+  const cell = (k: PuppetKey) => puppetHops(k)[0]?.type ?? '';
+  const label = (k: Pull) =>
+    k === 'left' || k === 'right'
+      ? t('puppet.hold.steer', { key: PULL_GLYPH[k] })
+      : t('puppet.hold', { key: PULL_GLYPH[k], act: name(k), type: cell(k) });
+  const on = (k: Pull) => dish.pulls.has(k);
+  const steering = on('left') || on('right');
+  const legend: { keys: string; act: string; term: string; lit: boolean }[] = [
+    ...PUPPET_KEYS.map((k) => ({ keys: PULL_GLYPH[k], act: name(k), term: cell(k), lit: on(k) })),
+    {
+      keys: `${PULL_GLYPH.left}${PULL_GLYPH.right}`,
+      act: t('puppet.steer'),
+      term: t('puppet.scripted'),
+      lit: steering,
+    },
+  ];
   return (
-    <section aria-label={t('puppet.title')} className="hidden flex-col gap-0.5 md:flex">
-      <h2 className={heading}>{t('puppet.title')}</h2>
-      {PUPPET_KEYS.map((k) => {
-        const type = puppetHops(k)[0]?.type ?? '';
-        return (
-          <Button
-            key={k}
-            aria-label={t('puppet.hold', { key: PULL_GLYPH[k], act: t(`puppet.${k}`), type })}
-            aria-pressed={dish.pulls.has(k)}
-            className={cn(ROW, 'touch-none select-none', pressed)}
-            {...holdProps([k])}
-          >
-            <kbd className={glyph}>{PULL_GLYPH[k]}</kbd>
-            <span className="flex-1 text-left text-label">{t(`puppet.${k}`)}</span>
-            <span className="font-mono text-caption text-ash">{type}</span>
-          </Button>
-        );
-      })}
-      <div
-        title={t('puppet.steer.note')}
-        className={cn(ROW, 'flex items-center text-mist', steering && 'text-bone')}
-      >
-        {(['left', 'right'] as const).map((k) => (
-          <Button
-            key={k}
-            aria-label={`${PULL_GLYPH[k]} ${t('puppet.steer')}`}
-            aria-pressed={dish.pulls.has(k)}
-            className={cn(
-              'pointer-events-auto -mx-1.5 size-6 touch-none rounded-sm font-mono text-label',
-              pressed,
-            )}
-            {...holdProps([k])}
-          >
-            {PULL_GLYPH[k]}
-          </Button>
-        ))}
-        <span className="flex-1 pl-1.5 text-left text-label">{t('puppet.steer')}</span>
-        <span className="font-mono text-caption text-ash">{t('puppet.scripted')}</span>
+    <section aria-label={t('puppet.title')} className="hidden flex-col md:flex">
+      <h2 className={heading}>
+        {t('puppet.title')} <span className="tracking-normal normal-case">· {t('puppet.hint')}</span>
+      </h2>
+      <span id="puppet-note" className="sr-only">
+        {t('puppet.steer.note')}
+      </span>
+      <div className="flex w-44 items-center gap-2 px-2">
+        <div className="pointer-events-auto grid shrink-0 grid-cols-3 gap-0.5">
+          {CAPS.map(({ k, at }) => (
+            <Button
+              key={k}
+              aria-label={label(k)}
+              aria-pressed={on(k)}
+              aria-keyshortcuts={SHORTCUT[k]}
+              aria-describedby={k === 'left' || k === 'right' ? 'puppet-note' : undefined}
+              className={cn(
+                at,
+                'size-5 touch-none rounded-sm font-mono text-caption text-mist ring-1 ring-ash/40 select-none hover:text-bone',
+                'aria-pressed:bg-bone/15 aria-pressed:text-bone aria-pressed:ring-bone/40',
+              )}
+              {...holdProps(k)}
+            >
+              {PULL_GLYPH[k]}
+            </Button>
+          ))}
+        </div>
+        <dl
+          title={t('puppet.steer.note')}
+          className="grid flex-1 grid-cols-[auto_1fr_auto] gap-x-1 text-caption"
+        >
+          {legend.map((l) => (
+            <div key={l.keys} className={cn('contents', l.lit ? 'text-bone' : 'text-mist')}>
+              <dt className="font-mono text-ash">{l.keys}</dt>
+              <dd>{l.act}</dd>
+              <dd className="font-mono text-ash">{l.term}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   );
