@@ -20,9 +20,9 @@ import { centroids, holoFrame, hopSites, type Side, sample, site, type Vec3 } fr
 import { BONE, glow, SAFFRON } from './materials';
 import type { Op } from './verdict';
 
-/** The CNS's width (brain, eye to eye), mm, and its height over the fly's back. */
+/** The CNS's width (brain, eye to eye), mm, and its centre's height over the floor (its underside ≈ 2 fly lengths up). */
 const WIDTH = 1.3 * FLY_LEN;
-const LIFT = 2 * FLY_LEN;
+const LIFT = 2.5 * FLY_LEN;
 /** Dots sampled from the dust cloud; their diameter and opacity (mm, 0..1). */
 const DOTS = 4000;
 const DOT_MM = 0.035;

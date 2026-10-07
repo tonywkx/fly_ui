@@ -23,7 +23,7 @@ const MARK = { r: 0.22, w: 0.035, at: [0.6, 1.1, 0] as const };
 const ORGANS = {
   eye: [0.68, 0.78, 0.16],
   mouth: [0.82, 0.4, 0],
-  legs: [0.05, 0.28, 0],
+  legs: [0.05, 0.08, 0],
 } as const;
 
 export interface Placed {

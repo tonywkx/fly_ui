@@ -43,10 +43,10 @@ export const DishCaption = observer(function DishCaption() {
     >
       {d && (
         <>
-          <span>{t('dish.why', { why, act: t(`dish.state.${d.action}`) })}</span>
-          <span className="ml-1 font-mono text-caption whitespace-nowrap text-ash tabular-nums">
-            · {term}
-          </span>
+          <span className="whitespace-nowrap">
+            {t('dish.why', { why, act: t(`dish.state.${d.action}`) })}
+          </span>{' '}
+          <span className="font-mono text-caption whitespace-nowrap text-ash tabular-nums">· {term}</span>
         </>
       )}
     </p>
