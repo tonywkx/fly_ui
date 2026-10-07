@@ -10,7 +10,18 @@ import {
 } from '@fly/sim';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
-import { length, oneMinus, pass, smoothstep, color as tint, uniform, uv } from 'three/tsl';
+import {
+  length,
+  oneMinus,
+  pass,
+  positionGeometry,
+  smoothstep,
+  color as tint,
+  uniform,
+  uv,
+  vec3,
+  vec4,
+} from 'three/tsl';
 import {
   AdditiveBlending,
   AgXToneMapping,
@@ -21,8 +32,10 @@ import {
   LineBasicNodeMaterial,
   LineSegments,
   Mesh,
+  MeshBasicNodeMaterial,
   type Node,
   PerspectiveCamera,
+  PlaneGeometry,
   Raycaster,
   RenderPipeline,
   RingGeometry,
@@ -34,6 +47,8 @@ import {
   WebGPURenderer,
 } from 'three/webgpu';
 import type { Backend } from '../engine';
+import { frameDistance } from '../frame';
+import { lerpPose, type Pose, posePosition } from '../intro';
 import type { Preset } from '../quality';
 import { arena } from './arena';
 import { FlyView } from './fly';
@@ -46,6 +61,7 @@ import { floorHit, type Spot } from './place';
 import { cut, RUN_MS, threadAt } from './thread';
 import { Trail } from './trail';
 import type { Op } from './verdict';
+import { ARRIVE, facing, type ZoomDir, zoomAt } from './zoom';
 
 const FOV = 30;
 /** Start pitch and its clamp (deg above the floor). */
@@ -73,12 +89,35 @@ const SLOW_GHOST = 6;
 const THREAD_MAX = 16;
 const THREAD_GAIN = 1.4;
 const HEAD_MM = 0.18;
+/** Draw order: the zoom's veil over the dish, the hologram over the veil. */
+const VEIL_ORDER = 10;
+const HOLO_ORDER = 20;
+/** Hologram box before it loads (mm, front half extents) — the zoom still has a framing. */
+const HALF_GUESS: Vec3 = [1.6, 0.9, 1.4];
 
 export interface DishSceneOptions {
   forceWebGL: boolean;
   reducedMotion: boolean;
   /** Snaps: a decision's thread stays drawn whole instead of running and fading. */
   still?: boolean;
+  /** Arrived from the brain view: black until `arrive()` flies out of the head. */
+  arriving?: boolean;
+}
+
+/** A camera on its orbit (`Pose`) round a target. */
+interface Shot {
+  pose: Pose;
+  target: Vector3;
+}
+
+interface Zoom {
+  dir: ZoomDir;
+  /** Wall ms since it began, or frozen there (snaps). */
+  age: number;
+  frozen: boolean;
+  /** The dish end of the flight (the user's camera on the way in, the fitted framing on the way out). */
+  dish: Shot;
+  done?: () => void;
 }
 
 /** The Terrarium view: dish, glass fly, trail, items and hands, bloom; draws a `World` each frame. */
@@ -112,6 +151,11 @@ export class DishScene {
   private readonly threadLine: LineSegments;
   private readonly threadAlpha = uniform(0);
   private readonly head: Sprite;
+  /** Zoom: black over the dish (not the hologram), and over everything. */
+  private readonly veilAlpha = uniform(0);
+  private readonly veil: Mesh;
+  private readonly lit = uniform(1);
+  private zoom: Zoom | null = null;
   private readonly ray = new Raycaster();
   private readonly ndc = new Vector2();
   private readonly v = new Vector3();
@@ -183,10 +227,22 @@ export class DishScene {
     this.threadLine.visible = this.head.visible = false;
     this.scene.add(this.threadLine, this.head);
 
+    // a screen quad straight in clip space: never culled, drawn between the dish and the hologram
+    const vm = new MeshBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false });
+    vm.vertexNode = vec4(positionGeometry.xy, 0, 1);
+    vm.colorNode = vec3(0);
+    vm.opacityNode = this.veilAlpha;
+    this.veil = new Mesh(new PlaneGeometry(2, 2), vm);
+    this.veil.frustumCulled = false;
+    this.veil.renderOrder = VEIL_ORDER;
+    this.veil.visible = false;
+    this.scene.add(this.veil);
+    if (opts.arriving) this.lit.value = 0;
+
     const scenePass = pass(this.scene, this.camera, { samples: 4 });
     const color = scenePass.getTextureNode('output');
-    this.plain = color;
-    this.bloomed = color.add(bloom(color, BLOOM.strength, BLOOM.radius, BLOOM.threshold));
+    this.plain = color.mul(this.lit);
+    this.bloomed = color.add(bloom(color, BLOOM.strength, BLOOM.radius, BLOOM.threshold)).mul(this.lit);
     this.pipeline = new RenderPipeline(this.renderer, this.bloomed);
   }
 
@@ -215,7 +271,7 @@ export class DishScene {
   loop(fn: (now: number) => void): void {
     this.renderer.setAnimationLoop((now) => {
       fn(now);
-      this.controls.update();
+      if (!this.zoom) this.controls.update();
       this.pipeline.render();
     });
   }
@@ -278,6 +334,7 @@ export class DishScene {
   setBrain(d: BrainData): void {
     if (this.disposed || this.holo) return;
     this.holo = new HoloView(d);
+    this.holo.root.renderOrder = HOLO_ORDER;
     this.holo.setMarks(this.marks);
     this.scene.add(this.holo.root);
   }
@@ -291,6 +348,73 @@ export class DishScene {
   /** A decision: its thread runs sense organ → hologram path → legs. */
   decide(e: DecisionEvent): void {
     this.thread = { e, age: 0 };
+  }
+
+  /** A zoom is flying (input waits). */
+  get zooming(): boolean {
+    return this.zoom !== null;
+  }
+
+  /**
+   * Dives into the fly's head from the current camera; `done` once the screen is black (the seam).
+   * `at` freezes the flight there (snaps).
+   */
+  dive(done: () => void, at?: number): void {
+    if (this.zoom) return;
+    const target = this.controls.target.clone();
+    const d = this.v.copy(this.camera.position).sub(target);
+    const radius = d.length();
+    const pose = { radius, azimuth: Math.atan2(d.x, d.z), elevation: Math.asin(d.y / radius) };
+    this.start({ dir: 'in', age: at ?? 0, frozen: at !== undefined, dish: { pose, target }, done });
+  }
+
+  /** Flies out of the fly's head to the fitted framing (arrived from the brain view). */
+  arrive(at?: number): void {
+    const pose = { radius: this.fitted, azimuth: 0, elevation: (PITCH * Math.PI) / 180 };
+    this.start({ dir: 'out', age: at ?? 0, frozen: at !== undefined, dish: { pose, target: new Vector3() } });
+  }
+
+  /** Advances the zoom by `dt` wall ms (the sim waits meanwhile): camera, hologram, veils. */
+  flight(dt: number): void {
+    const z = this.zoom;
+    if (!z) return;
+    if (!z.frozen) z.age += dt;
+    const shot = zoomAt(z.age, z.dir, this.opts.reducedMotion);
+    const head = this.fly.head();
+    if (!this.opts.reducedMotion) {
+      const half = (this.holo?.half ?? HALF_GUESS).map((v) => v * HoloView.scaleAt(1)) as Vec3;
+      const brain: Shot = {
+        pose: {
+          radius: frameDistance(half, FOV, this.camera.aspect, 1) * ARRIVE,
+          azimuth: facing(this.holo?.facing ?? this.fly.root.rotation.y),
+          elevation: 0,
+        },
+        target: head,
+      };
+      const target = new Vector3().lerpVectors(z.dish.target, brain.target, shot.k);
+      this.camera.position.fromArray(posePosition(lerpPose(z.dish.pose, brain.pose, shot.k))).add(target);
+      this.camera.lookAt(target);
+      this.holo?.sink(shot.k, head);
+    }
+    this.veilAlpha.value = shot.veil;
+    this.veil.visible = shot.veil > 0;
+    this.lit.value = 1 - shot.black;
+    if (!shot.done || z.frozen) return;
+    if (z.dir === 'in') {
+      z.done?.();
+      z.done = undefined;
+      return;
+    }
+    this.zoom = null;
+    this.controls.enabled = true;
+    this.controls.target.set(0, 0, 0);
+    this.holo?.sink(0, head);
+  }
+
+  private start(z: Zoom): void {
+    this.zoom = z;
+    this.controls.enabled = false;
+    this.flight(0);
   }
 
   /** Wall-clock animation (`dt` ms; 0 while paused): hologram follow and node flashes, the thread. */

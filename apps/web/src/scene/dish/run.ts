@@ -11,6 +11,7 @@ import {
   type WorldEvent,
 } from '@fly/sim';
 import { LiveClient, type Pace } from '@/sim/client';
+import type { SharedExperiment } from '@/state/share';
 import type { Backend } from '../engine';
 import type { Preset } from '../quality';
 import { DishScene, type DishSceneOptions } from './DishScene';
@@ -66,6 +67,14 @@ export interface DishRunOptions extends DishSceneOptions {
   onVerdict?: (op: Op, o: Outcome) => void;
   /** The fly just decided (the decision caption); null on a reset. */
   onDecision?: (e: DecisionEvent | null) => void;
+  /** The zoom began (`true`) / landed back in the dish (`false`). */
+  onZoom?: (on: boolean) => void;
+  /** The dive reached the black seam: time to become the brain view. */
+  onDive?: () => void;
+  /** Cells silenced / driven in the brain view (`?x=`, by bodyId), put on in the fly. */
+  experiment?: SharedExperiment;
+  /** Of those, the cells found in the full graph, once the live brain is up; null once cleared. */
+  onBrain?: (n: { off: number; on: number } | null) => void;
 }
 
 /** Owns the dish scene, the world, the live sim and the ×1/6 clock. */
@@ -81,6 +90,8 @@ export class DishRun {
   private ops = new Set<Op>();
   private applied = new Set<Op>();
   private opRows: Record<Op, Group> | null = null;
+  /** The brain view's experiment in full-graph rows (kept across resets, like the operations). */
+  private brain: { off: Uint32Array; on: Uint32Array; hz: number; gain: number } | null = null;
   /** Log rows of each path cell type; spikes per type in the heat window. */
   private pathRows: { type: string; cells: number; has: Uint8Array }[] = [];
   private readonly heat = new Map<string, number>();
@@ -120,6 +131,24 @@ export class DishRun {
     this.paused = !this.paused;
   }
 
+  /** «From fly to neuron»: dives into the head, `onDive` at the black seam. `at` freezes it (snaps). */
+  dive(at?: number): void {
+    if (this.scene.zooming) return;
+    this.o.onZoom?.(true);
+    this.scene.dive(() => this.o.onDive?.(), at);
+  }
+
+  /** Back from the brain view: flies out of the head, then the dish runs. */
+  arrive(at?: number): void {
+    this.o.onZoom?.(true);
+    this.scene.arrive(at);
+  }
+
+  /** A zoom is flying: the dish holds still and takes no input. */
+  get zooming(): boolean {
+    return this.scene.zooming;
+  }
+
   /** Switches operations on (in the set) and off (not in it); applied once the live brain is up. */
   setOps(ops: Iterable<Op>): void {
     this.ops = new Set(ops);
@@ -134,6 +163,7 @@ export class DishRun {
     void this.client?.reset();
     this.applied.clear();
     this.applyOps();
+    this.applyBrain(true);
     this.clock = 0;
     this.flash = null;
     this.scene.clear();
@@ -182,11 +212,40 @@ export class DishRun {
         Object.fromEntries(OPS.map((op) => [op, this.opRows?.[op].all.length ?? 0])) as Record<Op, number>,
       );
       this.applyOps();
+      const x = this.o.experiment;
+      if (x) {
+        const [off, on] = await Promise.all([
+          c.rowsOf(Float64Array.from(x.silenced)),
+          c.rowsOf(Float64Array.from(x.stimulated)),
+        ]);
+        if (this.disposed) return;
+        this.brain = { off, on, ...x.stim };
+        this.applyBrain(true);
+        this.o.onBrain?.({ off: off.length, on: on.length });
+      }
       console.info(`[dish] live brain in ${(performance.now() - t0).toFixed(0)} ms`);
     } catch (e) {
       console.error('[dish] live sim failed', e);
       this.o.onReady?.();
     }
+  }
+
+  /** Takes the brain view's experiment off the fly. */
+  clearBrain(): void {
+    if (!this.brain) return;
+    this.applyBrain(false);
+    this.brain = null;
+    this.o.onBrain?.(null);
+  }
+
+  /** Puts the brain view's silencing and drive on (or takes it off) the sim. */
+  private applyBrain(on: boolean): void {
+    const c = this.client;
+    const b = this.brain;
+    if (!c || !b) return;
+    if (b.off.length) void c.silenceRows(b.off, on);
+    if (b.on.length)
+      void c.drive({ rows: b.on.slice(), hz: new Float32Array(b.on.length).fill(on ? b.hz : 0) }, b.gain);
   }
 
   /** Brings the sim's operations in line with `ops` (silence for «off», full drive for «on»). */
@@ -209,13 +268,17 @@ export class DishRun {
   private frame(now: number): void {
     const dt = this.last ? Math.min(MAX_FRAME_MS, now - this.last) : 0;
     this.last = now;
+    const zooming = this.scene.zooming;
+    this.scene.flight(dt);
+    if (zooming && !this.scene.zooming) this.o.onZoom?.(false);
+    const still = this.paused || zooming;
     const c = this.client;
     const l = this.loop;
     let ev: WorldEvent[] = [];
     if (c && l) {
       const { until } = this.o;
       if (until !== undefined) this.clock = until;
-      else if (!this.paused) this.clock = Math.min(this.clock + dt / SLOW, c.log.until + 1);
+      else if (!still) this.clock = Math.min(this.clock + dt / SLOW, c.log.until + 1);
       c.pump(this.clock);
       ev = l.advance(this.clock, c.log);
       for (const op of l.changed) {
@@ -244,8 +307,8 @@ export class DishRun {
       else if (e.kind === 'reassemble') this.flash = { word: 'back_again', t: e.t };
     }
     if (this.flash && (t - this.flash.t > FLASH_MS || t < this.flash.t)) this.flash = null;
-    this.scene.sync(this.world, l?.action ?? 'walk', t, ev, this.applied.size > 0);
-    this.scene.animate(this.paused ? 0 : dt, this.heat);
+    this.scene.sync(this.world, l?.action ?? 'walk', t, ev, this.applied.size > 0 || !!this.brain);
+    this.scene.animate(still ? 0 : dt, this.heat);
     const id = this.input.hover;
     const it = id === null ? undefined : this.world.items.find((i) => i.id === id);
     this.o.onStatus({

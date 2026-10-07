@@ -40,6 +40,8 @@ const NODE_HOT = 2.2;
 /** Op marks: ring radius (mm). */
 const MARK_R = 0.24;
 const ASH = 0x6e6e6e;
+/** Sunk into the head (the zoom): its size then, × the floating one. */
+const SUNK = 0.3;
 
 export interface BrainData {
   cloud: Float32Array;
@@ -67,12 +69,19 @@ export class HoloView {
   private readonly nodes = new Map<string, PathNode>();
   private readonly marks = new Map<Op, Mesh>();
   private readonly v = new Vector3();
+  /** Half extents seen from the front (mm, floating size): across, up, deep — like the brain view's framing box. */
+  readonly half: Vec3;
   private placed = false;
   private yaw = 0;
+  /** Where it floats (the follow's spring state); the zoom pulls it from there into the head. */
+  private readonly float = new Vector3();
+  private sunk = 0;
+  private readonly head = new Vector3();
 
   constructor(d: BrainData) {
     const f = holoFrame(d.bbox, WIDTH);
     const s = WIDTH / ((d.bbox.max[0] as number) - (d.bbox.min[0] as number));
+    this.half = d.bbox.min.map((v, i) => (((d.bbox.max[i] as number) - v) * s) / 2) as Vec3;
     this.brain.matrixAutoUpdate = false;
     this.brain.matrix.copy(new Matrix4().set(...(f.rows as Parameters<Matrix4['set']>)));
     this.root.add(this.brain);
@@ -129,13 +138,36 @@ export class HoloView {
   follow(x: number, z: number, h: number, dt: number): void {
     const k = this.placed && dt > 0 ? 1 - Math.exp(-dt / LAG_MS) : 1;
     this.placed = true;
-    const r = this.root.position;
+    const r = this.float;
     r.x += (x - r.x) * k;
     r.z += (z - r.z) * k;
     r.y = LIFT;
     const dy = Math.atan2(Math.sin(h - this.yaw), Math.cos(h - this.yaw));
     this.yaw += dy * k;
     this.root.rotation.y = this.yaw;
+    this.place();
+  }
+
+  /** The zoom: `k` = 0 floating … 1 shrunk into the fly's `head` (world). */
+  sink(k: number, head: Vector3): void {
+    this.sunk = k;
+    this.head.copy(head);
+    this.place();
+  }
+
+  /** Heading it faces (radians, the fly's, lagged). */
+  get facing(): number {
+    return this.yaw;
+  }
+
+  /** Its scale at sink `k` (× the floating size). */
+  static scaleAt(k: number): number {
+    return 1 + (SUNK - 1) * k;
+  }
+
+  private place(): void {
+    this.root.position.lerpVectors(this.float, this.head, this.sunk);
+    this.root.scale.setScalar(HoloView.scaleAt(this.sunk));
   }
 
   /** Each path node's activity (0..1) by cell type. */

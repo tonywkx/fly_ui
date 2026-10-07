@@ -94,6 +94,11 @@ export class LiveClient {
     return this.api.groups(specs);
   }
 
+  /** Full-graph rows of these bodyIds (see `SimApi.rowsOf`). */
+  rowsOf(ids: Float64Array): Promise<Uint32Array> {
+    return this.api.rowsOf(ids);
+  }
+
   /** Log rows become these groups' cells from the next batch on; returns the groups in log rows. */
   async watch<K extends string>(specs: Record<K, RegExp>): Promise<Record<K, Group>> {
     this.gen++;

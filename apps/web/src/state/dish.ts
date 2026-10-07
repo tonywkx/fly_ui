@@ -24,9 +24,21 @@ export class DishStore {
   last: Op | null = null;
   /** The fly's last decision (the caption under the dish); null after a reset. */
   decision: DecisionEvent | null = null;
+  /** The fly ↔ neuron zoom is flying (the chrome steps aside). */
+  zooming = false;
+  /** Cells the brain view silenced / drove, now on in the fly (null = none). */
+  brain: { off: number; on: number } | null = null;
 
   constructor() {
     makeAutoObservable(this);
+  }
+
+  setBrain(n: { off: number; on: number } | null): void {
+    this.brain = n;
+  }
+
+  setZooming(on: boolean): void {
+    this.zooming = on;
   }
 
   toggleOp(op: Op): void {

@@ -5,8 +5,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { data } from '@/data/store';
 import { type Key, num, t } from '@/i18n';
+import { cn } from '@/lib/utils';
 import type { BrainData } from '@/scene/dish/holo';
 import type { DishRun, DishStatus } from '@/scene/dish/run';
+import { scenarioFor } from '@/scene/dish/zoom';
 import { QUALITY } from '@/scene/quality';
 import { app } from '@/state/app';
 import { dish } from '@/state/dish';
@@ -15,7 +17,7 @@ import { DishCaption } from './DishCaption';
 import { DishOps } from './DishOps';
 import { DishPalette } from './DishPalette';
 import { LangSwitch } from './LangSwitch';
-import { ViewSwitch } from './ViewSwitch';
+import { ViewSwitch, viewHref } from './ViewSwitch';
 
 function timecode(s: DishStatus): string {
   if (s.loading) return t('dish.loading');
@@ -51,7 +53,10 @@ export const Dish = observer(function Dish() {
       app.markReady('frame');
       return;
     }
-    const { snap, t: until, items, ops, gl } = app.params;
+    const { snap, t: until, items, ops, gl, from, zoom } = app.params;
+    const arriving = from === 'brain';
+    // black until the flight out of the head: no chrome over the void
+    if (arriving) dish.setZooming(true);
     if (ops?.[0]) {
       dish.setOps(ops);
       dish.setOpen(ops[0]);
@@ -70,7 +75,16 @@ export const Dish = observer(function Dish() {
         graphUrl: data.url(graph),
         metaUrl: data.url(meta),
         until: snap ? (until ?? 0) : undefined,
+        arriving,
+        experiment: app.params.experiment,
+        onBrain: (n) => dish.setBrain(n),
         onReady: () => app.markReady('sim'),
+        onZoom: (on) => dish.setZooming(on),
+        // the black seam: the page becomes the brain view on the circuit of her last decision
+        onDive: () =>
+          location.assign(
+            viewHref({ dish: false, from: 'dish', scenario: scenarioFor(dish.decision?.action ?? null) }),
+          ),
         onCells: (n) => dish.setCells(n),
         onVerdict: (op, o) => dish.setNow(op, o),
         onDecision: (d) => dish.setDecision(d),
@@ -111,7 +125,11 @@ export const Dish = observer(function Dish() {
           return loadBrain(manifest);
         })
         .then((brain) => {
-          if (brain && !disposed) run.setBrain(brain);
+          if (disposed) return;
+          if (brain) run.setBrain(brain);
+          // back from the brain: fly out of the head once the hologram is there to fly out of
+          if (arriving) run.arrive(zoom);
+          else if (zoom !== undefined) run.dive(zoom);
           app.markReady('holo');
         })
         .catch((e) => {
@@ -128,36 +146,52 @@ export const Dish = observer(function Dish() {
   return (
     <>
       <div ref={host} className="absolute inset-0" role="img" aria-label={t('dish.label')} />
-      <p
-        ref={line}
-        aria-live="off"
-        className="pointer-events-none absolute inset-x-0 top-6 text-center font-mono text-caption text-mist tabular-nums md:top-10"
-      />
-      <Button
-        ref={remove}
-        hidden
-        aria-label={t('dish.remove')}
-        className="absolute top-0 left-0 z-10 size-8 rounded-full bg-panel font-mono text-label text-mist backdrop-blur hover:text-bone"
-        onClick={() => {
-          if (hovered.current !== null) run?.input.remove(hovered.current);
-        }}
+      {/* not positioned: the chrome still lays out against the page; it steps aside while the zoom flies */}
+      <div
+        inert={dish.zooming}
+        className={cn('transition-opacity duration-300 ease-out', dish.zooming && 'opacity-0')}
       >
-        ×
-      </Button>
-      {run && <DishPalette input={run.input} />}
-      {run && <DishOps />}
-      <DishCaption />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-1 p-4 md:flex-row md:items-end md:justify-between md:p-8">
-        <div className="flex items-center justify-between md:block">
-          <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
-            fly_ui
-          </h1>
-          <div className="-mx-1 flex items-center gap-1 md:mt-1">
-            <ViewSwitch />
-            <LangSwitch />
+        <p
+          ref={line}
+          aria-live="off"
+          className="pointer-events-none absolute inset-x-0 top-6 text-center font-mono text-caption text-mist tabular-nums md:top-10"
+        />
+        <Button
+          ref={remove}
+          hidden
+          aria-label={t('dish.remove')}
+          className="absolute top-0 left-0 z-10 size-8 rounded-full bg-panel font-mono text-label text-mist backdrop-blur hover:text-bone"
+          onClick={() => {
+            if (hovered.current !== null) run?.input.remove(hovered.current);
+          }}
+        >
+          ×
+        </Button>
+        {run && <DishPalette input={run.input} />}
+        {run && (
+          <DishOps
+            onClearBrain={() => {
+              run.clearBrain();
+              // a reload must not bring it back
+              const q = new URLSearchParams(location.search);
+              q.delete('x');
+              history.replaceState(null, '', `?${q}`);
+            }}
+          />
+        )}
+        <DishCaption />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-1 p-4 md:flex-row md:items-end md:justify-between md:p-8">
+          <div className="flex items-center justify-between md:block">
+            <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
+              fly_ui
+            </h1>
+            <div className="-mx-1 flex items-center gap-1 md:mt-1">
+              <ViewSwitch />
+              <LangSwitch />
+            </div>
           </div>
+          <Credit />
         </div>
-        <Credit />
       </div>
     </>
   );

@@ -32,6 +32,7 @@ let live: Live | undefined;
 let stim: number[] = [];
 let graph: ({ csr: Csr; sign: Int8Array } & CellTable) | undefined;
 let synW: number = LIF_DEFAULTS.wSyn; // wSyn · gain the current net was built with
+let bodies: Float64Array<ArrayBufferLike> = new Float64Array(0); // full-graph bodyIds by row
 
 /** Same net as the bake (`buildNet`): Shiu weights · gain + literature overrides. */
 const buildNet = (g: NonNullable<typeof graph>, w: number): Net =>
@@ -62,6 +63,7 @@ const api = {
       sides: Array.from(meta.somaSide, (s) => SOMA_SIDES[s] ?? null),
     };
     synW = LIF_DEFAULTS.wSyn;
+    bodies = meta.bodyIds;
     const net = buildNet(graph, synW);
     live = new Live(net, rowMap(meta.bodyIds, o.scenarioBodyIds), { seed: o.seed });
     stim = o.stim;
@@ -87,6 +89,12 @@ const api = {
   groups<K extends string>(specs: Record<K, RegExp>): Record<K, Group> {
     if (!graph) throw new Error('sim worker: init first');
     return resolveGroups(graph, specs);
+  },
+
+  /** Full-graph rows of these bodyIds (ascending; ids outside the graph are dropped). */
+  rowsOf(ids: Float64Array): Uint32Array {
+    const { fullOf } = rowMap(bodies, ids);
+    return Uint32Array.from(fullOf.filter((r) => r >= 0)).sort();
   },
 
   /** Batches report only these groups' cells from now on; returns the groups in batch rows. */

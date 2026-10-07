@@ -1,4 +1,4 @@
-import type { ItemKind, World } from '@fly/sim';
+import { FLY_LEN, type ItemKind, type World } from '@fly/sim';
 import { reaction } from 'mobx';
 import { dish, type Hand } from '@/state/dish';
 import type { DishScene } from './DishScene';
@@ -9,6 +9,8 @@ export const ITEM_KEYS: readonly ItemKind[] = ['sugar', 'bitter', 'odor', 'femal
 export const HAND_KEYS: readonly Hand[] = ['shadow', 'swatter'];
 /** A palette press that moves less than this (px) is a tap: place ahead of the fly. */
 const TAP_PX = 6;
+/** A floor point this close to the fly (mm) is on her. */
+const FLY_HIT = 0.6 * FLY_LEN;
 
 const svgCursor = (svg: string, hot: number) =>
   `url("data:image/svg+xml,${encodeURIComponent(svg)}") ${hot} ${hot}, crosshair`;
@@ -41,7 +43,7 @@ export class DishInput {
     private readonly host: HTMLElement,
     private readonly scene: DishScene,
     private readonly world: World,
-    private readonly run: { reset(): void; togglePause(): void },
+    private readonly run: { reset(): void; togglePause(): void; dive(): void; readonly zooming: boolean },
   ) {
     this.listen(host, 'pointerdown', (e) => this.down(e), true);
     this.listen(host, 'pointermove', (e) => this.move(e));
@@ -153,6 +155,10 @@ export class DishInput {
 
   private down(e: PointerEvent): void {
     if (!this.onCanvas(e) || e.button !== 0) return;
+    if (this.run.zooming) {
+      e.stopPropagation();
+      return;
+    }
     const p = this.scene.pick(e.clientX, e.clientY);
     const hand = dish.hand;
     if (hand) {
@@ -167,7 +173,14 @@ export class DishInput {
       return;
     }
     const it = p && itemAt(this.world.items, p.x, p.y);
-    if (!it) return;
+    if (!it) {
+      if (!this.onFly(p)) return;
+      e.stopPropagation();
+      this.hover = null;
+      this.scene.canvas.style.cursor = '';
+      this.run.dive();
+      return;
+    }
     e.stopPropagation();
     this.host.setPointerCapture(e.pointerId);
     this.drag = { pid: e.pointerId, id: it.id, off: false };
@@ -191,11 +204,17 @@ export class DishInput {
       this.scene.aim(p && inDish(p) ? p : null);
       return;
     }
-    if (!this.onCanvas(e)) return;
+    if (!this.onCanvas(e) || this.run.zooming) return;
     const it = p && itemAt(this.world.items, p.x, p.y);
     if (it) this.hover = it.id;
     else if (this.hover !== null && !this.near(this.hover, p)) this.hover = null;
-    this.scene.canvas.style.cursor = it ? 'grab' : '';
+    this.scene.canvas.style.cursor = it ? 'grab' : this.onFly(p) ? 'zoom-in' : '';
+  }
+
+  /** The point is on the fly standing in the dish (a click there dives into her head). */
+  private onFly(p: Spot | null): boolean {
+    const f = this.world.fly;
+    return !!p && f.air === 0 && f.down === 0 && Math.hypot(p.x - f.x, p.y - f.y) < FLY_HIT;
   }
 
   private up(e: PointerEvent): void {
@@ -209,7 +228,7 @@ export class DishInput {
   }
 
   private key(e: KeyboardEvent): void {
-    if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.repeat || e.metaKey || e.ctrlKey || e.altKey || this.run.zooming) return;
     if ((e.target as HTMLElement).closest('input, textarea, [contenteditable]')) return;
     const n = Number(e.key);
     const kind = ITEM_KEYS[n - 1];

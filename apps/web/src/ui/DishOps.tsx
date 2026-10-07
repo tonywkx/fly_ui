@@ -92,8 +92,8 @@ const Card = observer(function Card({ op }: { op: Op }) {
  * switch on the live brain and «usually / now» lines. Desktop: the right column; phone in 8.14.
  * The latest outcome is announced from one live region that outlives the cards.
  */
-export const DishOps = observer(function DishOps() {
-  const last = dish.last;
+export const DishOps = observer(function DishOps({ onClearBrain }: { onClearBrain: () => void }) {
+  const { last, brain } = dish;
   return (
     <section
       aria-label={t('op.title')}
@@ -103,6 +103,18 @@ export const DishOps = observer(function DishOps() {
       {OPS.map((op) => (
         <Card key={op} op={op} />
       ))}
+      {/* what the visitor did in the brain view, carried back by the zoom */}
+      {brain && (
+        <div className="mt-1 flex items-center justify-between gap-1 pl-2">
+          <p className="text-caption text-bone">
+            {t('op.brain')}{' '}
+            <span className="font-mono text-ash tabular-nums">{t('op.brain.cells', brain)}</span>
+          </p>
+          <Button className="h-8 px-2 text-caption text-mist" onClick={onClearBrain}>
+            {t('op.restore')}
+          </Button>
+        </div>
+      )}
       {dish.ops.size > 0 && (
         <Button
           className="mt-1 h-8 justify-start px-2 text-caption text-mist"

@@ -25,6 +25,8 @@ const ORGANS = {
   mouth: [0.82, 0.4, 0],
   legs: [0.05, 0.08, 0],
 } as const;
+/** Head centre (body units) — where the zoom dives. */
+const HEAD = [0.6, 0.7, 0] as const;
 
 export interface Placed {
   x: number;
@@ -67,6 +69,12 @@ export class FlyView {
     const [x, y, z] = ORGANS[o];
     this.root.updateMatrixWorld();
     return this.root.localToWorld(new Vector3(x, y, side === 'L' ? -z : z));
+  }
+
+  /** The head's centre in world space. */
+  head(): Vector3 {
+    this.root.updateMatrixWorld();
+    return this.root.localToWorld(new Vector3(...HEAD));
   }
 
   takeoffAt(t: number): void {
