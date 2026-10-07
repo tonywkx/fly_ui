@@ -64,3 +64,35 @@ Type caveats (neuPrint has no Gr/ppk labels): LB3 = sugar, LB1 = bitter, pC1_* p
 | female (LC10a) | P1 (pC1) 13 · 10, pIP10 90 · 16 |
 | female (LC10a) + P1 off | P1 (pC1) 0 · —, pIP10 63 · 16 |
 | P1 on | P1 (pC1) 130 · 0, pIP10 188 · 5 |
+
+## Bridge (8.3)
+
+Code: [`packages/sim/src/bridge.ts`](../packages/sim/src/bridge.ts) — `SENSES` / `COMMANDS` / `OPERATIONS` groups, `senseDrive` + `diffDrive` (world → Poisson rows), `CommandMeter` (kernel rate per cell), `decide` (thresholds with hysteresis, jump > back > eat > court > walk), `eyes(bearing, x)`. Live Worker: `groups`, `watch`, `drive`, `silenceRows` by full-graph row.
+Calibration: `pnpm -C apps/pipeline explore:terrarium --bridge` (≈ 40 s, no neuPrint): the closed loop the Terrarium runs (10 ms ticks, 300 ms, seeds 1–3, sides from `somaSide`; taste groups are unsided).
+
+Findings:
+- **One eye is not enough.** Loom on one eye → TTMn ≤ 187 (no jump on most seeds); female on one eye → MDN bursts and late courtship. Big things (swatter, shadow, a female nearby) are seen by both eyes, so the world sends the far eye ≥ ¾ of the near one (`eyes`). With ½ the loom from the right missed on one seed (LC4 R has 55 cells vs 71 L).
+- Thresholds (on / off, kernel Hz per cell): jump TTMn 170 / 110, back MDN 60 / 35, eat MN9 150 / 100, court pIP10 50 / 30 **and** pC1 3 / 1.5. FlyCam's 200 Hz jump threshold stays as is (different kernel input: a whole-graph escape run).
+- **P1 gate works**: P1 off leaves pIP10 at 112–140 Hz but pC1 at 0 → no courtship, so the «P1 off» card stays (open question from TERRARIUM-SHAPE closed).
+- Latency (first tick over threshold): jump 30 ms, eat 60–70, back 60–70 (MDN on 20–50), court 40–110.
+
+| case | expect | seed → first action @ ms · share of ticks | peak Hz min–max over seeds (TTMn / MDN / MN9 / pIP10 / pC1) | ok |
+| --- | --- | --- | --- | --- |
+| baseline | walk | walk; walk; walk | 0–0 / 0–0 / 0–0 / 0–0 / 0–0 | yes |
+| loom L eye only | — | jump @ 290 · 7 %; walk; jump @ 30 · 13 % | 154–187 / 6–28 / 0–0 / 0–0 / 1–1 | — |
+| loom R eye only | — | jump @ 40 · 10 %; jump @ 40 · 10 %; walk | 167–170 / 0–0 / 0–0 / 0–0 / 1–1 | — |
+| loom ahead | jump | jump @ 30 · 93 %; jump @ 30 · 93 %; jump @ 30 · 93 % | 266–278 / 0–0 / 0–0 / 0–0 / 1–1 | yes |
+| loom left | jump | jump @ 30 · 93 %; jump @ 30 · 93 %; jump @ 30 · 93 % | 271–284 / 0–0 / 0–0 / 0–0 / 1–1 | yes |
+| loom right | jump | jump @ 30 · 93 %; jump @ 30 · 93 %; jump @ 30 · 93 % | 204–272 / 0–0 / 0–0 / 0–0 / 1–1 | yes |
+| loom left + panic off | walk | walk; walk; walk | 86–134 / 0–0 / 0–0 / 0–0 / 1–1 | yes |
+| loom ahead + panic off | walk | walk; walk; walk | 130–133 / 0–0 / 0–0 / 0–0 / 1–1 | yes |
+| sugar | eat | eat @ 70 · 80 %; eat @ 70 · 80 %; eat @ 60 · 83 % | 0–0 / 6–12 / 249–253 / 0–10 / 0–0 | yes |
+| sugar + sugar off | walk | walk; walk; walk | 0–0 / 0–0 / 0–0 / 0–0 / 0–0 | yes |
+| bitter | back | back @ 70 · 80 %; back @ 60 · 83 %; back @ 60 · 63 % | 0–58 / 129–166 / 0–0 / 0–12 / 0–0 | yes |
+| MDN on | back | back @ 50 · 87 %; back @ 30 · 93 %; back @ 20 · 97 % | 25–70 / 151–214 / 0–0 / 0–0 / 1–1 | yes |
+| female ahead | court | court @ 100 · 70 %; court @ 100 · 70 %; court @ 40 · 70 % | 0–0 / 0–0 / 0–0 / 112–164 / 18–23 | yes |
+| female L eye only | — | back @ 140 · 33 %; walk; court @ 260 · 17 % | 0–0 / 6–112 / 0–20 / 54–85 / 2–5 | — |
+| female left | court | court @ 90 · 53 %; court @ 100 · 70 %; court @ 90 · 73 % | 0–0 / 0–27 / 0–0 / 114–135 / 17–17 | yes |
+| female left + P1 off | walk | walk; walk; walk | 0–0 / 0–0 / 81–104 / 112–120 / 0–0 | yes |
+| female ahead + P1 off | walk | walk; walk; walk | 0–0 / 0–0 / 39–103 / 129–140 / 0–0 | yes |
+| banana odor | walk | walk; walk; walk | 29–40 / 6–19 / 91–93 / 45–53 / 3–3 | yes |
