@@ -1,14 +1,16 @@
 /**
  * Frame-rate probe for quality presets.
- *   pnpm perf --quality=high [--gl=webgl2 --scenario=escape --secs=6 --dpr=2 --w=1600 --h=1000 --profile --url=http://...]
+ *   pnpm perf --quality=high [--gl=webgl2 --scenario=escape --secs=6 --dpr=2 --w=1600 --h=1000 --profile --cpu=4 --url=http://...]
  * --profile: main-thread CPU profile over the measured window, top functions by self time.
+ * --cpu=N: CDP CPU throttling (N× slower; a mid phone ≈ 4). `--view=dish`: also prints the world
+ * clock's pace (sim s per wall s against the ×1/6 target) — a slow live brain stalls the dish.
  * Opens the app like a snap (intro skipped, preset pinned, fake activity running), waits until it is
  * drawn, warms up 1 s, then records rAF intervals. Prints fps and frame-time percentiles.
  * Headless Chromium on the real GPU — a guide, not a substitute for `?stats=1` in a real window.
  */
 import { devServer, launch, parseArgs } from './lib';
 
-const own = new Set(['w', 'h', 'url', 'secs', 'dpr', 'profile']);
+const own = new Set(['w', 'h', 'url', 'secs', 'dpr', 'profile', 'cpu']);
 const args = parseArgs();
 
 const query = new URLSearchParams({ snap: '1', scenario: 'escape', stats: '1', lang: 'en' });
@@ -25,6 +27,9 @@ try {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+  // the live sim's own reports (boot time, worker speed)
+  const sim: string[] = [];
+  page.on('console', (m) => /^\[(sim|dish)\]/.test(m.text()) && sim.push(m.text()));
   // bytes on the wire until the app is drawn (data/ = baked chunks; the rest is dev-server JS, not the build)
   const bytes = { data: 0, other: 0 };
   let drawn = false;
@@ -39,6 +44,19 @@ try {
     timeout: 60_000,
   });
   drawn = true;
+  if (args.cpu) {
+    const s = await page.context().newCDPSession(page);
+    await s.send('Emulation.setCPUThrottlingRate', { rate: Number(args.cpu) });
+  }
+  // the dish's timecode «×1/6 · … · 1.617 s · walking»
+  const clock = async () => {
+    const m = ((await page.evaluate('document.body.innerText')) as string).match(/(\d+)[.,](\d{3})\s+s\b/);
+    return m ? Number(`${m[1]}.${m[2]}`) : Number.NaN;
+  };
+  // the live brain boots after the first frame: start the pace once the clock shows
+  if (args.view === 'dish')
+    for (let i = 0; i < 300 && Number.isNaN(await clock()); i++) await page.waitForTimeout(100);
+  const clock0 = [await clock(), performance.now()] as const;
   const cdp = args.profile ? await page.context().newCDPSession(page) : undefined;
   if (cdp) {
     await cdp.send('Profiler.enable');
@@ -99,6 +117,13 @@ try {
   console.log(
     `${label}  fps ${(1000 / mean).toFixed(1)}  frame ms p50 ${pct(0.5).toFixed(1)} p95 ${pct(0.95).toFixed(1)} max ${pct(1).toFixed(1)}  cpu render ${cpu} ms  (${dts.length} frames, ${preset})`,
   );
+  if (args.view === 'dish') {
+    const pace = ((await clock()) - clock0[0]) / ((performance.now() - clock0[1]) / 1000);
+    for (const l of sim) console.log(`  ${l}`);
+    console.log(
+      `  dish clock: ${pace.toFixed(3)} sim s / s (target ${(1 / 6).toFixed(3)}, ${(pace * 6 * 100).toFixed(0)} %)`,
+    );
+  }
   const mb = (n: number) => (n / 1e6).toFixed(1);
   console.log(`  gpu: ${gpu}`);
   console.log(`  until drawn: data ${mb(bytes.data)} MB, other ${mb(bytes.other)} MB (dev, unminified)`);
