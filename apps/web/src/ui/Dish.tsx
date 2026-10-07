@@ -86,6 +86,8 @@ export const Dish = observer(function Dish() {
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     ro.observe(bottom);
+    // desktop columns: the palette widens with the language and the reset button
+    for (const c of box.querySelectorAll('[data-band-left], [data-band-right]')) ro.observe(c);
     wide.addEventListener('change', measure);
     // the puzzle strip remounts as it changes
     const strip = reaction(() => [dish.level, dish.hint, dish.won, app.lang], measure, {

@@ -553,7 +553,6 @@ export class DishScene {
     if (same('top') && same('bottom') && same('left') && same('right')) return;
     this.band = band;
     this.fit();
-    if (this.opts.still || this.opts.reducedMotion) this.ease(Number.POSITIVE_INFINITY);
   }
 
   private ease(dt: number): void {
@@ -583,6 +582,7 @@ export class DishScene {
     this.camera.updateProjectionMatrix();
     const f = frame(w, h, this.band, LENS);
     this.shiftTo = { x: f.x, y: f.y };
+    if (this.opts.still || this.opts.reducedMotion) this.shift = { ...this.shiftTo };
     this.offset();
     const fit = f.dist;
     const pitch = (PITCH * Math.PI) / 180;
