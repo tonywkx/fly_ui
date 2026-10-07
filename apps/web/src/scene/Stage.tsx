@@ -13,7 +13,7 @@ import { startAnatomy } from './anatomy';
 import { Behavior, effectorMask } from './behavior';
 import { beatMask, Narrator, SCRIPTS } from './captions';
 import { startDirector } from './director';
-import { ARRIVE } from './dish/zoom';
+import { SEAM_FADE_MS, seamDistance } from './dish/zoom';
 import { Engine } from './engine';
 import { startFocus } from './focus';
 import { onFrameSample } from './frameStats';
@@ -135,6 +135,17 @@ function stageDust(engine: Engine, stops: (() => void)[]): Intro {
   const reveal = uniform(0);
 
   const rest = engine.restPose;
+  const half = max
+    .clone()
+    .sub(min)
+    .multiplyScalar(s / 2)
+    .toArray();
+  // the dish's dive ends on black: come up out of it (snaps show the frame as is)
+  const canvas = engine.renderer.domElement;
+  if (zoomed && !snap) {
+    canvas.style.opacity = '0';
+    canvas.style.transition = `opacity ${SEAM_FADE_MS}ms ease-out`;
+  }
   let t0: number | undefined;
   let readyAt = frozen !== undefined || skip ? 0 : Number.POSITIVE_INFINITY;
   let userTook = false;
@@ -143,6 +154,8 @@ function stageDust(engine: Engine, stops: (() => void)[]): Intro {
     userTook = true;
   });
   const off = engine.onFrame((now) => {
+    if (t0 === undefined && canvas.style.opacity === '0')
+      requestAnimationFrame(() => (canvas.style.opacity = ''));
     t0 ??= now;
     const t = skip ? Number.POSITIVE_INFINITY : (frozen ?? now - t0) + offset;
     const st = introTimeline(t, readyAt);
@@ -151,7 +164,7 @@ function stageDust(engine: Engine, stops: (() => void)[]): Intro {
     if (!userTook && !skip) {
       const diveStart = Math.max(INTRO.assembleMs, readyAt);
       const far: Pose = zoomed
-        ? { radius: rest.radius * ARRIVE, azimuth: 0, elevation: 0 }
+        ? { radius: seamDistance(half, engine.camera.fov, engine.camera.aspect), azimuth: 0, elevation: 0 }
         : {
             radius: rest.radius * FAR_RADIUS,
             azimuth: FAR_AZIMUTH + (DRIFT_PER_S * Math.min(t, diveStart)) / 1000,

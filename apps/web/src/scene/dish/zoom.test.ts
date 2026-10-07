@@ -13,11 +13,19 @@ describe('zoomAt', () => {
     expect(mid.black).toBeLessThan(0.2);
   });
 
+  it('sinks the hologram into the head before the dish is fully veiled', () => {
+    const s = zoomAt(ZOOM_MS * 0.72, 'in', false);
+    expect(s.sink).toBe(1);
+    expect(s.veil).toBeLessThan(1);
+    expect(zoomAt(ZOOM_MS, 'out', false).sink).toBe(0);
+  });
+
   it('travel, veil and black only grow on the way in', () => {
     let prev = zoomAt(0, 'in', false);
     for (let ms = 20; ms <= ZOOM_MS; ms += 20) {
       const s = zoomAt(ms, 'in', false);
       expect(s.k).toBeGreaterThanOrEqual(prev.k);
+      expect(s.sink).toBeGreaterThanOrEqual(prev.sink);
       expect(s.veil).toBeGreaterThanOrEqual(prev.veil);
       expect(s.black).toBeGreaterThanOrEqual(prev.black);
       prev = s;
@@ -29,6 +37,7 @@ describe('zoomAt', () => {
       const o = zoomAt(ms, 'out', false);
       const i = zoomAt(ZOOM_MS - ms, 'in', false);
       expect(o.k).toBeCloseTo(i.k);
+      expect(o.sink).toBeCloseTo(i.sink);
       expect(o.veil).toBeCloseTo(i.veil);
       expect(o.black).toBeCloseTo(i.black);
     }

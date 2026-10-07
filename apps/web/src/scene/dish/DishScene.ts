@@ -47,7 +47,6 @@ import {
   WebGPURenderer,
 } from 'three/webgpu';
 import type { Backend } from '../engine';
-import { frameDistance } from '../frame';
 import { lerpPose, type Pose, posePosition } from '../intro';
 import type { Preset } from '../quality';
 import { arena } from './arena';
@@ -61,7 +60,7 @@ import { floorHit, type Spot } from './place';
 import { cut, RUN_MS, threadAt } from './thread';
 import { Trail } from './trail';
 import type { Op } from './verdict';
-import { ARRIVE, facing, type ZoomDir, zoomAt } from './zoom';
+import { facing, seamDistance, type ZoomDir, zoomAt } from './zoom';
 
 const FOV = 30;
 /** Start pitch and its clamp (deg above the floor). */
@@ -334,7 +333,9 @@ export class DishScene {
   setBrain(d: BrainData): void {
     if (this.disposed || this.holo) return;
     this.holo = new HoloView(d);
-    this.holo.root.renderOrder = HOLO_ORDER;
+    this.holo.root.traverse((o) => {
+      o.renderOrder = HOLO_ORDER;
+    });
     this.holo.setMarks(this.marks);
     this.scene.add(this.holo.root);
   }
@@ -385,7 +386,7 @@ export class DishScene {
       const half = (this.holo?.half ?? HALF_GUESS).map((v) => v * HoloView.scaleAt(1)) as Vec3;
       const brain: Shot = {
         pose: {
-          radius: frameDistance(half, FOV, this.camera.aspect, 1) * ARRIVE,
+          radius: seamDistance(half, FOV, this.camera.aspect),
           azimuth: facing(this.holo?.facing ?? this.fly.root.rotation.y),
           elevation: 0,
         },
@@ -394,12 +395,13 @@ export class DishScene {
       const target = new Vector3().lerpVectors(z.dish.target, brain.target, shot.k);
       this.camera.position.fromArray(posePosition(lerpPose(z.dish.pose, brain.pose, shot.k))).add(target);
       this.camera.lookAt(target);
-      this.holo?.sink(shot.k, head);
+      this.holo?.sink(shot.sink, head);
     }
     this.veilAlpha.value = shot.veil;
     this.veil.visible = shot.veil > 0;
     this.lit.value = 1 - shot.black;
-    if (!shot.done || z.frozen) return;
+    // a frozen dive holds at the seam (snaps); a frozen way out at its end lands like a live one
+    if (!shot.done || (z.frozen && z.dir === 'in')) return;
     if (z.dir === 'in') {
       z.done?.();
       z.done = undefined;

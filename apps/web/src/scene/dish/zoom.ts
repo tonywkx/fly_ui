@@ -1,4 +1,5 @@
 import type { Action } from '@fly/sim';
+import { frameDistance } from '../frame';
 import { EASE_IN_OUT, EASE_OUT } from '../intro';
 
 /**
@@ -12,11 +13,17 @@ export const ZOOM_MS = 1600;
 /** Reduced motion: a plain fade through black, no travel. */
 export const FADE_MS = 300;
 /**
- * The seam's framing, × the brain view's rest distance (`frameDistance` of the CNS box): the dish
- * flight ends there and the brain view's intro starts there, so the dust lines up across the cut.
+ * The seam's framing: the CNS box's front face fills the view to this share of the brain view's
+ * rest fit (< 1 = a touch closer, so the brain view's intro still pulls back a little).
  */
-export const ARRIVE = 0.6;
-/** Shares of the flight: the dish fades over `veil`, the hologram to black over `black`. */
+const ARRIVE = 0.85;
+/** The brain view comes up out of the seam's black, wall ms. */
+export const SEAM_FADE_MS = 400;
+/**
+ * Shares of the flight: the hologram sinks into the head over `SINK` (ahead of the camera, so it is
+ * in place while the dish is veiled), the dish fades over `VEIL`, the hologram to black over `BLACK`.
+ */
+const SINK = [0, 0.7] as const;
 const VEIL = [0.3, 0.75] as const;
 const BLACK = [0.85, 1] as const;
 
@@ -25,6 +32,8 @@ export type ZoomDir = 'in' | 'out';
 export interface ZoomShot {
   /** Camera travel: 0 = dish framing, 1 = in front of the brain. */
   k: number;
+  /** Hologram: 0 = floating over the fly, 1 = shrunk into her head (it gets there before the camera). */
+  sink: number;
   /** Dish, fly and items veiled (the hologram stays), 0..1. */
   veil: number;
   /** Everything black, 0..1. */
@@ -39,9 +48,27 @@ export function zoomAt(ms: number, dir: ZoomDir, reduced: boolean): ZoomShot {
   const t = clamp01((dir === 'in' ? ms : len - ms) / len);
   if (reduced) {
     const b = EASE_OUT(t);
-    return { k: 0, veil: b, black: b, done };
+    return { k: 0, sink: 0, veil: b, black: b, done };
   }
-  return { k: EASE_IN_OUT(t), veil: EASE_IN_OUT(span(t, VEIL)), black: span(t, BLACK), done };
+  return {
+    k: EASE_IN_OUT(t),
+    sink: EASE_IN_OUT(span(t, SINK)),
+    veil: EASE_IN_OUT(span(t, VEIL)),
+    black: span(t, BLACK),
+    done,
+  };
+}
+
+/**
+ * Camera distance from the CNS box centre at the seam, for a box of front `half` extents (across,
+ * up, deep) — the same on both sides of the cut whatever their FOV, so the dust lines up.
+ */
+export function seamDistance(
+  half: readonly [number, number, number],
+  fovDeg: number,
+  aspect: number,
+): number {
+  return frameDistance(half, fovDeg, aspect, ARRIVE);
 }
 
 /** Camera azimuth (about +y from +z, as `intro.ts` `Pose`) in front of a fly with world `heading`. */

@@ -142,6 +142,8 @@ export class DishRun {
   arrive(at?: number): void {
     this.o.onZoom?.(true);
     this.scene.arrive(at);
+    // frozen at its end (snaps): already landed
+    if (!this.scene.zooming) this.o.onZoom?.(false);
   }
 
   /** A zoom is flying: the dish holds still and takes no input. */
