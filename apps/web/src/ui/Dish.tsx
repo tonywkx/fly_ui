@@ -7,6 +7,7 @@ import { data } from '@/data/store';
 import { type Key, num, t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import type { BrainData } from '@/scene/dish/holo';
+import { LEVELS } from '@/scene/dish/levels';
 import type { DishRun, DishStatus } from '@/scene/dish/run';
 import { scenarioFor } from '@/scene/dish/zoom';
 import { QUALITY } from '@/scene/quality';
@@ -14,6 +15,7 @@ import { app } from '@/state/app';
 import { dish } from '@/state/dish';
 import { Credit } from './Credit';
 import { DishCaption } from './DishCaption';
+import { DishLevels } from './DishLevels';
 import { DishOps } from './DishOps';
 import { DishPalette } from './DishPalette';
 import { DishWhy } from './DishWhy';
@@ -102,6 +104,20 @@ export const Dish = observer(function Dish() {
       });
       for (const it of items ?? []) run.input.place(it.kind, it);
       setRun(run);
+      // a puzzle (re)start: a fresh dish laid out for it
+      const round = reaction(
+        () => dish.round,
+        () => {
+          run.reset();
+          for (const it of LEVELS[dish.level ?? -1]?.items ?? []) run.input.place(it.kind, it);
+        },
+      );
+      const p = app.params;
+      const first = dish.firstLevel(p.level, !!(items || ops || from || p.experiment));
+      if (first !== null) {
+        dish.startLevel(first);
+        dish.setHint(p.hint ?? 0);
+      }
       const quality = reaction(
         () => app.quality,
         (q) => run.applyQuality(QUALITY[q]),
@@ -121,6 +137,7 @@ export const Dish = observer(function Dish() {
         (w) => app.params.why && w && dish.setWhyOpen(true),
       );
       dispose = () => {
+        round();
         quality();
         surgery();
         hold();
@@ -191,6 +208,7 @@ export const Dish = observer(function Dish() {
             }}
           />
         )}
+        <DishLevels />
         <DishCaption />
         <DishWhy />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-1 p-4 md:flex-row md:items-end md:justify-between md:p-8">

@@ -18,7 +18,7 @@ function usual(op: Op): string {
   return op === 'moon' ? t('op.moon.usual') : t(k(op, 'did'), { hz: u.hz, ms: u.ms ?? 0 });
 }
 
-function now(op: Op, o: Outcome | undefined): string {
+export function nowLine(op: Op, o: Outcome | undefined): string {
   if (!o) return t('op.try', { hint: t(k(op, 'try')) });
   const line = op === 'panic' && o.line === 'verdict' && o.hit ? 'verdict_hit' : o.line;
   return t(k(op, line), { hz: o.hz, ms: o.ms ?? 0 });
@@ -65,7 +65,7 @@ const Card = observer(function Card({ op }: { op: Op }) {
             <dd className="text-mist">{usual(op)}</dd>
             <dt className="font-mono text-mist">{t('op.now')}</dt>
             <dd className={cn(!o ? 'text-ash' : o.line === 'verdict' ? 'text-saffron' : 'text-bone')}>
-              {now(op, o)}
+              {nowLine(op, o)}
             </dd>
           </dl>
           <div className="flex items-center justify-between gap-2">
@@ -124,7 +124,7 @@ export const DishOps = observer(function DishOps({ onClearBrain }: { onClearBrai
         </Button>
       )}
       <p role="status" className="sr-only">
-        {last && `${t(k(last, 'name'))}: ${now(last, dish.now[last])}`}
+        {last && `${t(k(last, 'name'))}: ${nowLine(last, dish.now[last])}`}
       </p>
     </section>
   );

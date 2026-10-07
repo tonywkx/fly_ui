@@ -1,6 +1,6 @@
 import { makeAutoObservable } from 'mobx';
-import type { DecisionEvent } from '../scene/dish/loop';
 import { HINTS, LEVELS, nextHint, solves } from '../scene/dish/levels';
+import type { DecisionEvent } from '../scene/dish/loop';
 import type { Op, Outcome } from '../scene/dish/verdict';
 import type { WhyHop } from '../scene/dish/why';
 
@@ -86,6 +86,7 @@ export class DishStore {
 
   setHint(h: number): void {
     this.hint = Math.min(Math.max(h, 0), HINTS);
+    if (this.hint === HINTS && this.level !== null) this.open = LEVELS[this.level]?.op ?? null;
   }
 
   /** Free play; remembered, so the strip stays closed on the next visit. */
