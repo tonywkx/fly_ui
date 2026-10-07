@@ -1,6 +1,7 @@
 import type { ItemKind } from '@fly/sim';
 import { COLOR_BY, type ColorBy, isColorBy } from '../data/colorBy';
 import { isLang, LANGS, type Lang } from '../i18n';
+import { HINTS, LEVELS } from '../scene/dish/levels';
 import { OPS, type Op } from '../scene/dish/verdict';
 import { isQuality, QUALITIES, type Quality } from '../scene/quality';
 import { MAX_PROBES } from './experiment';
@@ -60,6 +61,10 @@ export interface Params {
   ops?: Op[];
   /** Dish: open the «why?» card on the last decision (snaps). */
   why?: true;
+  /** Dish puzzle to open, 1..4 (0 = free play, no puzzle strip). */
+  level?: number;
+  /** Hint rungs shown for that puzzle, 0..3 (snaps). */
+  hint?: number;
   /** First-visit tour: 0 = off, 1..4 = open at that step (see `state/tour.ts`). */
   tour?: TourStep;
 }
@@ -92,6 +97,16 @@ export function parseParams(search: string): { params: Params; warnings: string[
   ms('t');
   ms('intro');
   ms('zoom');
+
+  const int = (key: 'level' | 'hint', max: number) => {
+    const v = q.get(key);
+    if (v === null) return;
+    const n = Number(v);
+    if (v !== '' && Number.isInteger(n) && n >= 0 && n <= max) params[key] = n;
+    else warnings.push(`${key}: expected an integer 0..${max}, got "${v}"`);
+  };
+  int('level', LEVELS.length);
+  int('hint', HINTS);
 
   const debug = q.get('debug');
   if (debug !== null) {

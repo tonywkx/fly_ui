@@ -187,4 +187,15 @@ describe('parseParams', () => {
     expect(bad.params.zoom).toBeUndefined();
     expect(bad.warnings).toHaveLength(2);
   });
+
+  it('reads a puzzle level and its hint rung', () => {
+    const { params, warnings } = parseParams('?view=dish&level=2&hint=3');
+    expect(params).toMatchObject({ level: 2, hint: 3 });
+    expect(warnings).toEqual([]);
+    expect(parseParams('?level=0').params.level).toBe(0);
+    const bad = parseParams('?level=9&hint=1.5');
+    expect(bad.params.level).toBeUndefined();
+    expect(bad.params.hint).toBeUndefined();
+    expect(bad.warnings).toHaveLength(2);
+  });
 });
