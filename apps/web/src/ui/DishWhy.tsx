@@ -25,7 +25,7 @@ function Hop({ h, last }: { h: WhyHop; last: boolean }) {
           lit ? 'bg-saffron' : 'bg-void ring-1 ring-ash/60',
         )}
       />
-      <span className="min-w-0 truncate text-label text-bone">
+      <span title={`${h.type} · ${name(h.type)}`} className="min-w-0 truncate text-label text-bone">
         <span className="font-mono">{h.type}</span> <span className="text-mist">· {name(h.type)}</span>
       </span>
       <span className={cn('shrink-0 font-mono text-caption tabular-nums', silent ? 'text-ash' : 'text-bone')}>
@@ -81,9 +81,13 @@ export const DishWhy = observer(function DishWhy() {
     };
   }, []);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: opening moves focus into the card
+  // focus into the card on open, back to the «why?» toggle on close
+  const was = useRef(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs on open / close
   useEffect(() => {
     if (whyOpen) close.current?.focus({ preventScroll: true });
+    else if (was.current) document.querySelector<HTMLElement>('[data-why]')?.focus({ preventScroll: true });
+    was.current = whyOpen;
   }, [whyOpen]);
 
   if (!whyOpen || !d || !why) return null;
@@ -113,7 +117,7 @@ export const DishWhy = observer(function DishWhy() {
         <Button
           ref={close}
           aria-label={t('why.close')}
-          className="-mt-1 -mr-2 size-8 shrink-0 rounded-full font-mono text-label text-mist hover:text-bone"
+          className="-mt-1 -mr-2 size-8 shrink-0 rounded-full font-mono text-label text-mist hover:text-bone focus-visible:ring-bone/60"
           onClick={() => dish.setWhyOpen(false)}
         >
           ×
@@ -140,7 +144,7 @@ export const DishWhy = observer(function DishWhy() {
       {!forced && (
         <p className="text-caption text-ash">
           {t('why.note')}
-          {bypass && <> · {t('why.bypass')}</>}
+          {bypass && <span className="block text-mist">{t('why.bypass')}</span>}
         </p>
       )}
       {restore ? (
@@ -157,7 +161,7 @@ export const DishWhy = observer(function DishWhy() {
       ) : (
         // the surgeon panel is desktop-only until 8.14
         <Button
-          className="hidden h-8 self-start px-0 text-caption text-mist hover:text-bone md:inline-flex"
+          className="hidden h-8 self-start px-0 text-caption text-bone underline-offset-4 hover:underline md:inline-flex"
           onClick={() => {
             dish.setOpen(op);
             dish.setWhyOpen(false);

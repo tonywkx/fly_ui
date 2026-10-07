@@ -60,7 +60,7 @@ export const DishCaption = observer(function DishCaption() {
           aria-expanded={dish.whyOpen}
           aria-keyshortcuts="W"
           className={cn(
-            'pointer-events-auto h-7 px-2 font-mono text-caption hover:text-bone aria-expanded:invisible',
+            'pointer-events-auto h-7 px-2 font-mono text-caption hover:text-bone aria-expanded:text-bone',
             shown ? 'text-mist' : 'text-ash',
           )}
           onClick={() => dish.setWhyOpen(!dish.whyOpen)}
