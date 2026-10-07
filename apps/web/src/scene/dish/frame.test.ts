@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { type Band, frame, GUTTER, type Lens, NO_BAND } from './frame';
+import { type Band, frame, GUTTER, type Lens, NO_BAND, SPREAD } from './frame';
 
 const LENS: Lens = { fov: 30, pitch: 40, diameter: 10, fillH: 0.6, fillW: 0.92 };
 const band = (b: Partial<Band>): Band => ({ ...NO_BAND, ...b });
@@ -43,7 +43,7 @@ describe('frame', () => {
     const b = band({ left: 312, right: 390 });
     const f = frame(1280, 800, b, LENS);
     expect(f.dist).toBeGreaterThan(legacy(1280, 800));
-    expect(span(1280, 800, f.dist)).toBeCloseTo(1280 - 312 - 390 - 2 * GUTTER, 6);
+    expect(span(1280, 800, f.dist)).toBeCloseTo((1280 - 312 - 390 - 2 * GUTTER) / SPREAD, 6);
   });
 
   it('centres the dish in the free band', () => {

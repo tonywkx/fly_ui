@@ -18,8 +18,10 @@ export interface Lens {
   fillW: number;
 }
 
-/** Px kept between the rim and a side column (the near half of the dish spreads ~4 % wider). */
-export const GUTTER = 40;
+/** Px kept between the rim and a side column. */
+export const GUTTER = 24;
+/** On screen the near half of the dish, its wall and glow spread this much wider than its diameter. */
+export const SPREAD = 1.08;
 /** Least share of the width the dish keeps when side columns leave less (tablets). */
 const MIN_FREE = 0.3;
 
@@ -31,7 +33,9 @@ export function frame(w: number, h: number, band: Band, lens: Lens) {
   const tan = Math.tan((lens.fov * Math.PI) / 360);
   const pitch = (lens.pitch * Math.PI) / 180;
   const side = band.left + band.right;
-  const fillW = side ? Math.max(MIN_FREE, Math.min(lens.fillW, (w - side - 2 * GUTTER) / w)) : lens.fillW;
+  const fillW = side
+    ? Math.max(MIN_FREE, Math.min(lens.fillW, (w - side - 2 * GUTTER) / SPREAD / w))
+    : lens.fillW;
   const dist = Math.max(
     (lens.diameter * Math.sin(pitch)) / lens.fillH / (2 * tan),
     lens.diameter / fillW / (2 * tan * (w / h)),
