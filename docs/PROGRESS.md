@@ -3,7 +3,7 @@
 ## 2026-10-07 — 8.14 Phone
 Done: `ui/DishSheet.tsx` (tabs «Предметы · Нейрохирург · Кукла», roving tabindex, Home/End); `DishOps` → `OpsList` (`compact`: 2×2 heads + open body; fact hidden on phones, term/«обычно» hidden under 760 px tall) + `OpsStatus`; `DishPalette` → `ItemButtons`/`HandButtons`/`Puppet phone`; `DishStore.tab` (`setOpen` → ops tab, `startLevel` → items), param `sheet=`; `DishScene.frameBand` (camera view offset glides the dish into the band between top chrome and the sheet, measured in `Dish.tsx`; `--band-top` places the caption); `scene/dish/slowmo.ts` (+ test) → timecode `×1/{slow}` = real slow-motion; levels + why-card CTA on phones; `pnpm perf --cpu=N`, dish clock pace + `[sim]` lines.
 State: e2e 390×844 live sim (tap item, panic off + ↑ no jump, ↑ jumps, why CTA → ops tab) green; tests/typecheck/lint/smoke green; snaps 390/375×667 RU/EN OK, desktop unchanged. Live brain on phones (DECISIONS).
-Next: 8.15 perf — the sim worker slows ~2× once sugar is in the dish (84 sim ms/s vs 167 target, desktop too); then 1280×800 rim vs palette/panel, smoke for the Terrarium, clip.
+Next: 8.15 perf — the sim worker slows ~2× once sugar is in the dish (84 sim ms/s vs 167 target, desktop too); then 1280×800 rim vs palette/panel, smoke for the Terrarium (no clip).
 Gotchas: CDP `setCPUThrottlingRate` doesn't reach the dedicated worker — phone sim speed can't be emulated headless. `snap=1` freezes the dish clock (perf needs `--snap=0`). On iPhone SE with 3 hint rungs the fly sits just above the ops panel (tight). The level strip's focus effect ran twice under StrictMode (fixed by comparing values). A class named `Pace` clashed with `sim/client`'s `Pace` type.
 
 ## 2026-10-07 — 8.13 Puppet mode

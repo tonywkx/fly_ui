@@ -118,7 +118,7 @@ Stage 2 — deeper:
 - [x] 8.14 Phone: tabbed layout; if the live brain is too slow → baked clips instead of the live dish. Simple / Scientist mode on the home view if still needed after the Terrarium. **[V]** **[UI]**
 
 Stage 3 — release:
-- [ ] 8.15 Perf (live sim + dish, 60 fps at "high"), visual-qa RU/EN 1600/390, ui-critic, smoke "Terrarium loads + an operation changes behaviour", clip for the video. **[V]** **[UI]**
+- [ ] 8.15 Perf (live sim + dish, 60 fps at "high"), visual-qa RU/EN 1600/390, ui-critic, smoke "Terrarium loads + an operation changes behaviour". No clip (user, 2026-10-07). **[V]** **[UI]**
 
 ## Backlog / spin-offs (not scheduled)
 - Phase 9 candidates: fly-first home layout (big fly, brain as "what happens inside"); 3-step mini tours for Sugar and Song. (Simple mode + missions of the old phase 8 are absorbed by 8.7 / 8.12 / 8.14.)
