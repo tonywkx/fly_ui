@@ -18,6 +18,7 @@ import type { SharedExperiment } from '@/state/share';
 import type { Backend } from '../engine';
 import type { Preset } from '../quality';
 import { DishScene, type DishSceneOptions } from './DishScene';
+import type { Band } from './frame';
 import type { BrainData } from './holo';
 import { DishInput } from './input';
 import { type DecisionEvent, DishLoop, type Pull } from './loop';
@@ -138,9 +139,9 @@ export class DishRun {
     return backend;
   }
 
-  /** Px of chrome over the top and the bottom of the picture (phone): the dish centres between. */
-  frameBand(top: number, bottom: number): void {
-    this.scene.frameBand(top, bottom);
+  /** Px of chrome over each side of the picture: the dish centres in the band between. */
+  frameBand(band: Band): void {
+    this.scene.frameBand(band);
   }
 
   applyQuality(p: Preset): void {

@@ -172,7 +172,10 @@ export const DishPalette = observer(function DishPalette({ input }: { input: Pal
   const heading = 'px-2 pb-1 font-mono text-caption tracking-widest text-ash uppercase';
   const hint = dish.hand ? t('dish.hand.put') : dish.empty ? t('dish.hint.empty') : null;
   return (
-    <div className="pointer-events-none absolute top-10 bottom-28 left-8 z-10 hidden flex-col items-start justify-center gap-6 md:flex [@media(max-height:860px)]:gap-3">
+    <div
+      data-band-left
+      className="pointer-events-none absolute top-10 bottom-28 left-8 z-10 hidden flex-col items-start justify-center gap-6 md:flex [@media(max-height:860px)]:gap-3"
+    >
       <div className="flex flex-col gap-6 [@media(max-height:860px)]:gap-4">
         <section aria-label={t('dish.items')} className="flex flex-col gap-0.5">
           <h2 className={heading}>{t('dish.items')}</h2>

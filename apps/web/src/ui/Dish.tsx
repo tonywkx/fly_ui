@@ -47,7 +47,8 @@ export const Dish = observer(function Dish() {
   const chrome = useRef<HTMLDivElement>(null);
   const foot = useRef<HTMLDivElement>(null);
 
-  // phone: the dish centres in the band the chrome leaves (the sheet grows per tab)
+  // the dish centres in the band the chrome leaves: phone, under the strip and over the sheet
+  // (it grows per tab); desktop, between the palette and the operations
   useEffect(() => {
     const el = host.current;
     const box = chrome.current;
@@ -58,13 +59,28 @@ export const Dish = observer(function Dish() {
     const measure = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
-        if (wide.matches) return run.frameBand(0, 0);
         const r = el.getBoundingClientRect();
+        if (wide.matches) {
+          const edge = (sel: string) => box.querySelector<HTMLElement>(sel)?.getBoundingClientRect();
+          const left = edge('[data-band-left]');
+          const right = edge('[data-band-right]');
+          return run.frameBand({
+            top: 0,
+            bottom: 0,
+            left: left ? left.right - r.left : 0,
+            right: right ? r.right - right.left : 0,
+          });
+        }
         let top = r.top;
         for (const t of box.querySelectorAll<HTMLElement>('[data-band-top]'))
           if (t.offsetParent) top = Math.max(top, t.getBoundingClientRect().bottom);
         box.style.setProperty('--band-top', `${Math.round(top - r.top)}px`);
-        run.frameBand(top - r.top + CAPTION_SLOT, r.bottom - bottom.getBoundingClientRect().top);
+        run.frameBand({
+          top: top - r.top + CAPTION_SLOT,
+          bottom: r.bottom - bottom.getBoundingClientRect().top,
+          left: 0,
+          right: 0,
+        });
       });
     };
     const ro = new ResizeObserver(measure);

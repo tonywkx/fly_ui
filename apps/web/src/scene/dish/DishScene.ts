@@ -51,6 +51,7 @@ import { lerpPose, type Pose, posePosition } from '../intro';
 import type { Preset } from '../quality';
 import { arena } from './arena';
 import { FlyView } from './fly';
+import { type Band, frame, type Lens, NO_BAND } from './frame';
 import { type BrainData, HoloView } from './holo';
 import type { Vec3 } from './hologram';
 import { type ItemView, itemView } from './items';
@@ -68,9 +69,8 @@ const PITCH = 40;
 const PITCH_MIN = 25;
 const PITCH_MAX = 60;
 /** Share of the viewport the dish fills: its (foreshortened) height on desktop, its width on phones. */
-const FILL_H = 0.6;
-const FILL_W = 0.92;
-/** Time constant (ms) of the picture's glide when the phone chrome changes height. */
+const LENS: Lens = { fov: FOV, pitch: PITCH, diameter: 2 * ARENA_R, fillH: 0.6, fillW: 0.92 };
+/** Time constant (ms) of the picture's glide when the chrome changes size. */
 const LIFT_MS = 90;
 /** Zoom range as distance factors of the fitted one (fly ≈ 200 … 60 px around ≈ 90). */
 const ZOOM_IN = 0.45;
@@ -162,9 +162,10 @@ export class DishScene {
   private readonly v = new Vector3();
   private lastTrail: { x: number; y: number; a: Action } | null = null;
   private fitted = 0;
-  /** Screen px the picture is raised by (phone chrome, `frameBand`), easing toward `liftTo`. */
-  private lift = 0;
-  private liftTo = 0;
+  /** Chrome over the picture (`frameBand`) and the view offset easing toward the one it asks for. */
+  private band = NO_BAND;
+  private shift = { x: 0, y: 0 };
+  private shiftTo = { x: 0, y: 0 };
   private lastNow = 0;
   private disposed = false;
   private initialized: Promise<unknown> | null = null;
@@ -541,29 +542,35 @@ export class DishScene {
   }
 
   /**
-   * Centres the dish in the band the chrome leaves free (px covered at the top and the bottom):
-   * the phone's sheet grows per tab, so the picture glides up rather than hiding the fly.
+   * Centres the dish in the band the chrome leaves free (px covered on each side): the phone's
+   * sheet grows per tab, so the picture glides up rather than hiding the fly; on desktop the dish
+   * fits between the palette and the operations.
    */
-  frameBand(top: number, bottom: number): void {
-    const to = Math.round((bottom - top) / 2);
+  frameBand(band: Band): void {
+    const b = this.band;
     // a px of resize jitter must not start a glide
-    if (Math.abs(to - this.liftTo) < 2) return;
-    this.liftTo = to;
+    const same = (k: keyof Band) => Math.abs(band[k] - b[k]) < 2;
+    if (same('top') && same('bottom') && same('left') && same('right')) return;
+    this.band = band;
+    this.fit();
     if (this.opts.still || this.opts.reducedMotion) this.ease(Number.POSITIVE_INFINITY);
   }
 
   private ease(dt: number): void {
-    if (this.lift === this.liftTo) return;
+    const { shift: s, shiftTo: to } = this;
+    if (s.x === to.x && s.y === to.y) return;
     const k = Number.isFinite(dt) ? 1 - Math.exp(-Math.max(dt, 0) / LIFT_MS) : 1;
-    this.lift += (this.liftTo - this.lift) * k;
-    if (Math.abs(this.liftTo - this.lift) < 0.5) this.lift = this.liftTo;
+    s.x += (to.x - s.x) * k;
+    s.y += (to.y - s.y) * k;
+    if (Math.abs(to.x - s.x) < 0.5 && Math.abs(to.y - s.y) < 0.5) this.shift = { ...to };
     this.offset();
   }
 
   private offset(): void {
     const { clientWidth: w, clientHeight: h } = this.host;
     if (!w || !h) return;
-    if (this.lift) this.camera.setViewOffset(w, h, 0, this.lift, w, h);
+    const { x, y } = this.shift;
+    if (x || y) this.camera.setViewOffset(w, h, x, y, w, h);
     else this.camera.clearViewOffset();
   }
 
@@ -574,17 +581,16 @@ export class DishScene {
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
+    const f = frame(w, h, this.band, LENS);
+    this.shiftTo = { x: f.x, y: f.y };
     this.offset();
-    const tan = Math.tan((FOV * Math.PI) / 360);
+    const fit = f.dist;
     const pitch = (PITCH * Math.PI) / 180;
-    const d = 2 * ARENA_R;
-    const fit = Math.max(
-      (d * Math.sin(pitch)) / FILL_H / (2 * tan),
-      d / FILL_W / (2 * tan * this.camera.aspect),
-    );
     this.controls.minDistance = fit * ZOOM_IN;
     this.controls.maxDistance = fit * ZOOM_OUT;
     if (!this.fitted) this.camera.position.set(0, fit * Math.sin(pitch), fit * Math.cos(pitch));
+    // refit (columns measured, resize): keep the visitor's zoom as a share of the fitted distance
+    else if (!this.zoom && fit !== this.fitted) this.camera.position.multiplyScalar(fit / this.fitted);
     this.fitted = fit;
     this.controls.target.set(0, 0, 0);
     this.controls.update();

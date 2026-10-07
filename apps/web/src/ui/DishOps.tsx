@@ -184,6 +184,7 @@ export const OpsStatus = observer(function OpsStatus() {
 export const DishOps = observer(function DishOps({ onClearBrain }: { onClearBrain: () => void }) {
   return (
     <section
+      data-band-right
       aria-label={t('op.title')}
       className="pointer-events-auto absolute top-1/2 right-8 z-10 hidden w-57 -translate-y-1/2 flex-col gap-0.5 rounded-xl bg-card p-2 backdrop-blur-md md:flex"
     >
