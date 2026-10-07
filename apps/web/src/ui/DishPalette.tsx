@@ -10,6 +10,7 @@ import { dish, type Hand } from '@/state/dish';
 /** What the palette needs from the dish input. */
 export interface PaletteInput {
   dragNew(kind: ItemKind, e: PointerEvent): void;
+  place(kind: ItemKind): boolean;
   reset(): void;
 }
 
@@ -98,10 +99,18 @@ export const DishPalette = observer(function DishPalette({ input }: { input: Pal
   const hint = dish.hand ? t('dish.hand.put') : dish.empty ? t('dish.hint.empty') : null;
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-24 z-10 flex flex-col items-center gap-2 md:inset-x-auto md:top-1/2 md:bottom-auto md:left-8 md:-translate-y-1/2 md:items-start md:gap-6">
-      <p className="text-center text-caption text-ash md:hidden">
-        {dish.hand ? t('dish.hand.put') : t('dish.hint.tap')}
-      </p>
-      <div className="flex gap-1 md:flex-col md:gap-6">
+      <div className="flex items-center gap-2 md:hidden">
+        <p className="text-caption text-ash">{dish.hand ? t('dish.hand.put') : t('dish.hint.tap')}</p>
+        {!dish.empty && (
+          <Button
+            className="pointer-events-auto h-8 px-2 text-caption text-mist"
+            onClick={() => input.reset()}
+          >
+            {t('dish.reset')}
+          </Button>
+        )}
+      </div>
+      <div className="flex gap-3 md:flex-col md:gap-6">
         <section aria-label={t('dish.items')} className="flex gap-1 md:flex-col md:gap-0.5">
           <h2 className={heading}>{t('dish.items')}</h2>
           {ITEM_KEYS.map((k, i) => (
@@ -111,6 +120,10 @@ export const DishPalette = observer(function DishPalette({ input }: { input: Pal
               className={cn(ROW, 'touch-none cursor-grab active:cursor-grabbing')}
               onPointerDown={(e) => {
                 if (e.button === 0) input.dragNew(k, e.nativeEvent);
+              }}
+              // keyboard Enter / Space (a pointer press is handled by the drag)
+              onClick={(e) => {
+                if (e.detail === 0) input.place(k);
               }}
             >
               <Row id={k} keyHint={i + 1}>
@@ -126,7 +139,10 @@ export const DishPalette = observer(function DishPalette({ input }: { input: Pal
               key={h}
               aria-label={t(`dish.hand.${h}`)}
               aria-pressed={dish.hand === h}
-              className={cn(ROW, 'aria-pressed:bg-bone/10 aria-pressed:text-bone')}
+              className={cn(
+                ROW,
+                'aria-pressed:bg-bone/15 aria-pressed:text-bone aria-pressed:ring-1 aria-pressed:ring-bone/40',
+              )}
               onClick={() => dish.toggleHand(h)}
             >
               <Row id={h} keyHint={i + 5}>

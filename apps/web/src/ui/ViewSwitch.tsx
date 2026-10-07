@@ -23,8 +23,16 @@ export const ViewSwitch = observer(function ViewSwitch({ className }: { classNam
     <nav aria-label={t('view.switch')} className={cn('pointer-events-auto flex items-center', className)}>
       {([false, true] as const).map((d, i) => (
         <span key={String(d)} className="flex items-center">
-          {i > 0 && <span className="px-0.5 text-caption text-ash">·</span>}
-          <Button variant="ghost" asChild className="text-caption text-ash aria-[current=page]:text-bone">
+          {i > 0 && (
+            <span aria-hidden className="px-0.5 text-caption text-ash">
+              ·
+            </span>
+          )}
+          <Button
+            variant="ghost"
+            asChild
+            className="h-8 px-2 text-caption text-ash aria-[current=page]:text-bone md:h-6 md:px-1"
+          >
             <a href={href(d)} aria-current={d === dish ? 'page' : undefined}>
               {t(d ? 'view.dish' : 'view.brain')}
             </a>
