@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-07 — 8.6 Placement
+Done: `World.move` (+ test); `scene/dish/place.ts` (+ test: floor ray, `itemAt`, `ahead`); `DishScene.pick/project/aim` (aim ring + 60 % ghost); `scene/dish/input.ts` `DishInput` (capture-phase pointer on host: item drag / off-dish remove, shadow hold, swatter click; keys 1–6, Esc, R, Space); `DishRun.reset()` + flash words (miss / dodge / back_again); `state/dish.ts` (hand, empty); `ui/DishPalette.tsx`, `ui/ViewSwitch.tsx`, `ui/Credit.tsx`; dish chrome (wordmark, switch, RU/EN, credit); i18n `dish.*`, `view.*`.
+State: desktop placement fully works (verified by a Playwright script: key place, palette drag, tap, hover ×, swatter → «dodged», R). Phone: one row of 6 glyph buttons (tap = ahead of the fly) + reset; no way to remove a single item on touch yet. View switch = full page navigation (view is picked at boot in `main.tsx`), no crossfade.
+Next: 8.7 neurosurgeon — 4 operation cards (right column), `silenceRows` / forced drive, before/after verdict, hologram/body mark; plus tour step 4 «В террариум →» and swatter-in-hand on arrival.
+Gotchas: theme `--spacing` is 6px (`w-8` = 48 px, `w-11` = 66 px). `FlyView.reset()` is needed on dish reset, else a stale takeoff pose sticks. A swing the fly dodged still emits `miss` on landing — `run.ts` keeps «dodge» over it. Input listens on the host in capture phase and `stopPropagation`s presses it takes, so OrbitControls only sees free presses. Palette item buttons: pointer → `dragNew` (tap = place ahead), keyboard click (`detail === 0`) → `place`.
+
 ## 2026-10-07 — 8.4 World model + 8.5 Dish scene
 Done: `packages/sim/src/world.ts` (+ test): 2D dish (R 12 mm, mm/ms), scripted wander/odor/sugar drift, items (odor/female ≤ 1), hands (shadow hold, swatter 120 ms → hit/miss), `sense()` → `Senses`, `step(dt, action)` → events. Dish view `?view=dish[&items=kind@x,y;…]`: `apps/web/src/scene/dish/` (`DishScene`, `arena`, `fly` + `gait` tripod, `trail`, `items`, `loop` = closed loop, `run` = ×1/6 clock + live Worker), `ui/Dish.tsx` timecode, `data.loadManifest()` (dish skips brain chunks + tour), `LiveClient.start(init, pace)` (dish 20/5 ms).
 State: live loop works in the browser (421 sim ms/s ≫ 167 needed): sugar → eat, bitter → back (blue trail), female → court, empty → walk. Hands render but have no input yet; items only via URL. Snaps: `pnpm snap --view=dish --t=<sim ms> --items='sugar@2,0'` (snap runs the sim flat out to t). 493 tests green.
@@ -23,9 +29,3 @@ Done: `apps/pipeline/src/explore/terrarium.ts` (`pnpm -C apps/pipeline explore:t
 State: GO. Connectome-driven: loom → DNp01 → TTMn (GF off → TTMn 44 Hz, no jump), sugar LB3 → MN9, bitter LB1 → MDN, LC10a → pIP10. Scripted: forward walk, turning, odor approach (L/R ORN input gives identical output). P1 off only cuts pIP10 by 30 %. Grooming dropped.
 Next: 8.2 Shape (dish look, items, operation card, RU/EN copy, wireframes 1600/390, where the Terrarium lives); user approves before code.
 Gotchas: sensory cells have no `somaSide`, so the L/R split needs neuPrint `rootSide` (the script queries it, token needed). Full run ≈ 4.5 min (≈3 s per 300 ms full-graph run). neuPrint has no Gr/ppk labels: LB3 = sugar, LB1 = bitter, pC1_* = P1 are inferred. There is no "P1"/"oDN1"/"aDN" type. DNb06 fires L ≫ R for any input (artefact). DNg11 fires 20–30 Hz for almost any input.
-
-## 2026-10-06 — 8.0b Remove sound
-Done: deleted `scene/sound.ts`, `scene/audio.ts`, `ui/Sound.tsx`, `tone` dep, Timeline speaker button + `M` key, palette item, `app.sound`, `sound.*` i18n; `continuous` (play-step test used by Captions) moved to `sim/feed.ts` + test. README / PRODUCT / article.ru cleaned; DECISIONS 2026-10-04 sound line marked superseded.
-State: no sound anywhere. Bundle `dist/assets` 2532 → 2304 KB (−228 KB, the lazy Tone chunk; first-frame size unchanged). 439 tests, typecheck, lint, smoke 7/7 green; snap escape t=40 RU/EN OK.
-Next: 8.1 feasibility in Node — `neuprint-scout` picks sensory groups + command neurons, headless `packages/sim` per input → table in `docs/TERRARIUM.md`, go / no-go.
-Gotchas: visual-qa noticed (pre-existing, not fixed): FlyCam dark backdrop edge cuts the brain silhouette at 1600; legend card truncates «Male C…». Reading `dist/` and `pnpm-lock.yaml` via Bash is permission-denied — measure with `du -sk`.
