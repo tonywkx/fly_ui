@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-10 — 8.16 Russian copy pass + Phase 9 plan
+Done: `apps/web/src/i18n/ru.ts` rewritten block by block with the user (glossary → terrarium → ops/puzzles → why-card → tour/captions → brain HUD); EN names kept in step (`en.ts`); glossary in DECISIONS. `ui/DishLevels.tsx` strip wraps (label nowrap, title drops below on phones); nbsp before units in op lines. Phase 9 written in `docs/PLAN.md` (terrarium home, experiment loop, prediction, replay, discoveries).
+State: tests 561 / typecheck / lint green; RU snaps 1600/390 OK for dish, ops, puzzles, puppet, tour, legend. Not snapped: why-card + dish caption (needs a live decision), inspector, an open op card on the phone.
+Next: 9.1 shape — `docs/EXPERIMENT-SHAPE.md` with wireframes 1600/390 via `impeccable`; user approves before code.
+Gotchas: the dish slow-mo factor isn't fixed (`SlowMo.slow` can be any integer), so RU can't say «в N раз» without plurals. visual-qa hit its turn limit on a 6-state brief — give it ≤3 states per call. `?why=1` shows nothing in a static snap (no decision yet).
+
 ## 2026-10-07 — 8.15 Perf / release check
 Done: `scene/dish/frame.ts` (+test) — pure fit: camera distance + view offset that centre the dish in the band the chrome leaves (`GUTTER` 24 px, `SPREAD` 1.08 for the near half/glow, floor `MIN_FREE` 0.3); `DishScene.frameBand(Band)` eases x/y offset, a refit rescales the camera (keeps the visitor's zoom); `Dish.tsx` measures `[data-band-left]` (palette) / `[data-band-right]` (ops card) on desktop, ResizeObserver on both. `e2e/smoke.spec.ts` «terrarium loads + an operation changes behaviour» (MDN on → status «backs off for no reason», skipped on CI).
 State: tests 561 / typecheck / lint / smoke 8 green; visual-qa 1280/1600 RU/EN + 390 OK (≈36–40 px gap each side, phone unchanged); ui-critic no P1.
@@ -23,9 +29,3 @@ Done: `@fly/sim` `PUPPET` (↑ DNp01 @ 1000 Hz → jump, ↓ MDN @ `SENSE_HZ` �
 State: e2e (live sim): ↑ jumps, panic off + ↑ no jump, ↓ backs, moon + ↓ released still backs; no console errors. visual-qa 1600/1280/390 OK after fix (palette now centred in the band `top-10…bottom-28`, tighter at max-height 860). ui-critic P1 fixed (keyboard hold, aria-keyshortcuts, steer note via aria-describedby).
 Next: 8.14 phone (tabbed layout; puppet caps + ops + why-card CTA on phones).
 Gotchas: DNp01 needs ~1000 Hz Poisson for TTMn ≥ 170 (150 Hz → 86); `gain` does nothing there. At 1280×800 the dish rim runs under the palette's right edge (kbd 5/6, puppet cell names) — legibility, 8.15. EN «back up» wrapped → «reverse».
-
-## 2026-10-07 — 8.12 Puzzle levels
-Done: `scene/dish/levels.ts` (+ test: `LEVELS` one per op with layout + hand, `solves`, `nextHint`); `DishStore` level/hint/won/solved/round + `firstLevel/startLevel/showHint/closeLevels/openLevels`, solved/closed in localStorage (`levelMemory`, + `state/dish.test.ts`); `ui/DishLevels.tsx` top-centre under the timecode (text only, latest hint rung, saffron «Получилось · <verdict line>», «Дальше →»); `Dish.tsx` reaction on `dish.round` → `run.reset()` + place items; params `level=0..4`, `hint=0..3`; i18n `level.*`; §Levels in TERRARIUM-SHAPE.md. `cn` now knows the font-size tokens (`lib/utils.ts`).
-State: e2e (Playwright, live sim) solves all 4 puzzles, no console errors; visual-qa PASS RU/EN 1600×900, 1280×800, 390 (hidden), why-card regression OK; ui-critic P0/P1 fixed (focus after unmount, always-rendered live region, halo over the rim).
-Next: 8.13 puppet mode. Leftovers: puzzles + ops + why-card CTA on phones (8.14); tour step 4 «В террариум →» + swatter in hand.
-Gotchas: tailwind-merge treated `text-caption`/`text-label` as colours, so `cn('text-caption', 'text-ash')` silently dropped the size. Fixed globally; the why-card timings are now really 12 px. Spacing unit is 6 px (`w-72` = 432 px). The palette is vertically centred, so top-left has no room at 800 px height. A puzzle starts only when the dish isn't set up by URL (`items/ops/from/x`). Success counts any outcome after the start (the brain-view experiment could also solve the moon level).
