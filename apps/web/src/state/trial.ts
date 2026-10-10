@@ -3,12 +3,14 @@ import {
   type CardStimulus,
   chips,
   DISCOVERIES,
+  decides,
   type Discovery,
   discovery,
   normOf,
   type Pair,
   pairId,
   parsePair,
+  readCell,
   type Result,
   shuffle,
 } from '../scene/dish/discoveries';
@@ -17,12 +19,15 @@ import type { TakeResult } from '../scene/dish/take';
 
 /** The card's flow (docs/EXPERIMENT-SHAPE.md §Card); the bet is part of setup. */
 export type Phase = 'setup' | 'running' | 'result';
+/** The card's two tabs: «Опыт» and «Открытия». */
+export type CardTab = 'exp' | 'found';
 
 /** A pair's first run: the bet made before it and what came out. */
 export interface Entry {
   bet: Result | null;
   result: Result;
   ms: number | null;
+  /** The rate the «сейчас» row reads (`readCell`): the decision's command, else the norm's. */
   hz: number;
 }
 
@@ -52,6 +57,7 @@ export class TrialStore {
   stim: CardStimulus | null = null;
   op: Brain = 'none';
   phase: Phase = 'setup';
+  tab: CardTab = 'exp';
   bet: Result | null = null;
   /** Bumped on each start: the scene clears the arena and runs the pair. */
   run = 0;
@@ -94,6 +100,15 @@ export class TrialStore {
     return DISCOVERIES.filter((d) => this.pairs[d.id]);
   }
 
+  get allFound(): boolean {
+    return this.found.length === DISCOVERIES.length;
+  }
+
+  /** Tabs stay put while a run is on. */
+  setTab(tab: CardTab): void {
+    if (this.phase !== 'running') this.tab = tab;
+  }
+
   setStim(s: CardStimulus | null): void {
     this.slots(s, this.op);
   }
@@ -129,11 +144,14 @@ export class TrialStore {
     const old = this.pairs[id];
     // the very first result plays its replay by itself
     this.replaying = Object.keys(this.pairs).length === 0;
-    if (!old) this.pairs[id] = { bet: this.bet, result: t.result, ms: t.ms, hz: t.hz };
+    const norm = NORM[p.stim].none;
+    const cell = readCell(t.result, norm);
+    const hz = decides(t.result) ? t.hz : cell ? Math.round(t.peak[cell]) : 0;
+    if (!old) this.pairs[id] = { bet: this.bet, result: t.result, ms: t.ms, hz };
     this.outcome = {
       ...t,
       pair: p,
-      norm: NORM[p.stim].none,
+      norm,
       bet: old ? old.bet : this.bet,
       first: !old,
       unlocked: old ? null : discovery(p),
@@ -167,11 +185,12 @@ export class TrialStore {
     this.replaying = false;
   }
 
-  /** «Повторить опыт» from a discovery (or `?exp=`): fills the slots. */
+  /** «Повторить опыт» from a discovery (or `?exp=`): fills the slots, back to «Опыт». */
   repeat(id: string): void {
     const p = parsePair(id);
     if (!p || this.phase === 'running') return;
     this.slots(p.stim, p.op);
+    this.tab = 'exp';
   }
 
   private slots(stim: CardStimulus | null, op: Brain): void {

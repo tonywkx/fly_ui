@@ -77,7 +77,8 @@ describe('TrialStore', () => {
     });
     expect(s.outcome?.norm.action).toBe('jump');
     expect(s.found.map((d) => d.id)).toEqual(['swatter:panic']);
-    expect(mem.pairs['swatter:panic']).toEqual({ bet: 'jump', result: 'hit', ms: null, hz: 160 });
+    // nothing decided: the journal keeps the norm command's peak (TTMn), as the «сейчас» row reads it
+    expect(mem.pairs['swatter:panic']).toEqual({ bet: 'jump', result: 'hit', ms: null, hz: 44 });
     expect(mem.last).toBe('swatter:panic');
   });
 
@@ -146,6 +147,34 @@ describe('TrialStore', () => {
     expect([s.stim, s.op, s.phase]).toEqual(['shadow', 'panic', 'setup']);
     s.repeat('banana:none');
     expect(s.stim).toBe('shadow');
+  });
+
+  it('two tabs; repeat goes back to the experiment; no switching while running', () => {
+    const { s } = setup();
+    expect(s.tab).toBe('exp');
+    s.setTab('found');
+    expect(s.tab).toBe('found');
+    s.repeat('shadow:panic');
+    expect(s.tab).toBe('exp');
+    s.setTab('found');
+    s.repeat('banana:none');
+    expect(s.tab).toBe('found');
+    s.setTab('exp');
+    s.setBet('jump');
+    s.start();
+    s.setTab('found');
+    expect(s.tab).toBe('exp');
+  });
+
+  it('all found once every discovery has an entry', () => {
+    const e = { bet: null, result: 'walk', ms: null, hz: 0 } as const;
+    const ids = ['sugar:none', 'bitter:none', 'shadow:none', 'female:none', 'swatter:panic', 'sugar:sugar'];
+    const more = ['female:p1', 'none:moon', 'shadow:panic', 'sugar:moon', 'female:moon'];
+    const pairs = Object.fromEntries([...ids, ...more].map((id) => [id, e]));
+    const { s } = setup({ pairs, last: null });
+    expect(s.allFound).toBe(false);
+    const { s: all } = setup({ pairs: { ...pairs, 'bitter:sugar': e }, last: null });
+    expect(all.allFound).toBe(true);
   });
 
   it('chip order is fixed for a visit', () => {

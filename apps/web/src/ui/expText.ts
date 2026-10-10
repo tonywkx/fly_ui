@@ -1,13 +1,32 @@
-import type { Action, Decision } from '@fly/sim';
+import { type Decision, OPERATIONS } from '@fly/sim';
 import { type Key, t, tOr } from '../i18n';
-import { type CardStimulus, normResult, type Result } from '../scene/dish/discoveries';
-import type { Norm } from '../scene/dish/table';
-import type { Outcome } from '../state/trial';
+import {
+  type CardStimulus,
+  decides,
+  normResult,
+  type Pair,
+  type Result,
+  readCell,
+} from '../scene/dish/discoveries';
+import { NORM, type Norm } from '../scene/dish/table';
+import type { Op } from '../scene/dish/verdict';
+import type { Entry, Outcome } from '../state/trial';
 
 /** The command cell each decision is read from (bridge `COMMANDS`). */
 const CELL: Record<Decision, string> = { jump: 'TTMn', back: 'MDN', eat: 'MN9', court: 'pIP10' };
 
-const decides = (a: Action | Result): a is Decision => a in CELL;
+/** Mono term per operation (as on the old cards). */
+export const OP_CELL: Record<Op, string> = { panic: 'DNp01', moon: 'MDN', sugar: 'LB3', p1: 'P1' };
+
+/** Each stimulus's strongest path in short (sense → command), for the discovery tiles. */
+const PATH: Record<CardStimulus, readonly string[]> = {
+  sugar: ['LB3', 'MN9'],
+  bitter: ['LB1', 'MDN'],
+  shadow: ['LC4', 'DNp01', 'TTMn'],
+  swatter: ['LC4', 'DNp01', 'TTMn'],
+  female: ['LC10a', 'P1', 'pIP10'],
+  none: [],
+};
 
 /** The courting male is the subject for the female stimulus. */
 export const isHe = (stim: CardStimulus) => stim === 'female';
@@ -39,8 +58,8 @@ export const headline = (o: Outcome): string => cap(did(o.result, o.pair.stim));
  * command, or the norm's one when nothing decided (swatter × DNp01 off reads TTMn).
  */
 export function nowLine(o: Outcome): string {
-  const own = decides(o.result) ? o.result : null;
-  const cell = own ?? (decides(o.norm.action) ? o.norm.action : null);
+  const own = decides(o.result);
+  const cell = readCell(o.result, o.norm);
   const hz = own ? o.hz : cell ? o.peak[cell] : 0;
   return o.result === normResult(o.norm)
     ? line(t('exp.same'), o.ms, cell, hz, ' · ')
@@ -52,4 +71,26 @@ export function betLine(o: Outcome): string | null {
   if (!o.bet) return null;
   const act = t(`exp.act.${o.bet}` as Key);
   return t(o.bet === o.result ? 'exp.bet.hit' : 'exp.bet.miss', { act });
+}
+
+/** A discovery tile: what the pair's first run came to, with its numbers (as the «сейчас» row). */
+export function foundLine(e: Entry, p: Pair): string {
+  const cell = readCell(e.result, NORM[p.stim].none);
+  return line(did(e.result, p.stim), decides(e.result) ? e.ms : null, cell, e.hz);
+}
+
+export interface PathCell {
+  cell: string;
+  /** The operated cell: switched off or on. */
+  mode?: 'off' | 'on';
+  /** Off the stimulus's path (MDN switched on). */
+  extra?: true;
+}
+
+/** Which cells: the stimulus's path with the operated cell marked, or added after it. */
+export function cellPath(p: Pair): PathCell[] {
+  const op = p.op === 'none' ? null : { cell: OP_CELL[p.op], mode: OPERATIONS[p.op].mode };
+  const out: PathCell[] = PATH[p.stim].map((cell) => (op?.cell === cell ? { cell, mode: op.mode } : { cell }));
+  if (op && !PATH[p.stim].includes(op.cell)) out.push({ ...op, extra: true });
+  return out;
 }

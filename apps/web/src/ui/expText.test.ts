@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { NORM } from '../scene/dish/table';
 import type { Outcome } from '../state/trial';
-import { betLine, headline, nowLine, usualLine } from './expText';
+import { betLine, cellPath, foundLine, headline, nowLine, usualLine } from './expText';
 
 const peak = { jump: 0, back: 0, eat: 0, court: 0, gate: 0 };
 
@@ -46,5 +46,32 @@ describe('experiment card text (ru)', () => {
     expect(headline(o)).toBe('Не заметил');
     expect(nowLine(o)).toBe('не заметил · pIP10 0 Гц');
     expect(betLine(o)).toBeNull();
+  });
+
+  it('a discovery tile: what came out of the first run, with its numbers', () => {
+    const e = { bet: null, ms: null, hz: 0 };
+    expect(foundLine({ ...e, result: 'hit', hz: 44.4 }, { stim: 'swatter', op: 'panic' })).toBe(
+      'не успела взлететь · TTMn 44 Гц',
+    );
+    expect(foundLine({ ...e, result: 'eat', ms: 61, hz: 259 }, { stim: 'sugar', op: 'none' })).toBe(
+      'поела через 61 мс · MN9 259 Гц',
+    );
+    expect(foundLine({ ...e, result: 'walk' }, { stim: 'female', op: 'p1' })).toBe('не заметил · pIP10 0 Гц');
+    expect(foundLine({ ...e, result: 'walk' }, { stim: 'none', op: 'none' })).toBe('ничего не сделала');
+  });
+
+  it('the cells of a discovery: the stimulus path, the operated cell marked or added', () => {
+    expect(cellPath({ stim: 'shadow', op: 'panic' })).toEqual([
+      { cell: 'LC4' },
+      { cell: 'DNp01', mode: 'off' },
+      { cell: 'TTMn' },
+    ]);
+    expect(cellPath({ stim: 'sugar', op: 'none' })).toEqual([{ cell: 'LB3' }, { cell: 'MN9' }]);
+    expect(cellPath({ stim: 'sugar', op: 'moon' })).toEqual([
+      { cell: 'LB3' },
+      { cell: 'MN9' },
+      { cell: 'MDN', mode: 'on', extra: true },
+    ]);
+    expect(cellPath({ stim: 'none', op: 'moon' })).toEqual([{ cell: 'MDN', mode: 'on', extra: true }]);
   });
 });

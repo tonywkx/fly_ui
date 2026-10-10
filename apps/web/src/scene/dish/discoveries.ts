@@ -1,4 +1,4 @@
-import { type Action, mulberry32, type Stimulus } from '@fly/sim';
+import { type Action, type Decision, mulberry32, type Stimulus } from '@fly/sim';
 import { type Brain, NORM, type Norm } from './table';
 
 /** The card's stimulus slot (banana stays in the palette only: it never decides, TERRARIUM §Norm table). */
@@ -66,6 +66,13 @@ export const discovery = (p: Pair): Discovery | null => DISCOVERIES.find((x) => 
 
 export const normResult = (n: Norm): Result => (n.hit ? 'hit' : n.action);
 export const normOf = (p: Pair): Result => normResult(NORM[p.stim][p.op]);
+
+const DECISIONS: readonly Result[] = ['jump', 'back', 'eat', 'court'];
+export const decides = (r: Result): r is Decision => DECISIONS.includes(r);
+
+/** The command a run is read from: its own decision, else the normal fly's (swatter × DNp01 off → TTMn). */
+export const readCell = (r: Result, usual: Norm): Decision | null =>
+  decides(r) ? r : decides(usual.action) ? usual.action : null;
 
 /** Plausible wrong bets per stimulus, in order of preference. */
 const DISTRACT: Record<CardStimulus, readonly Result[]> = {
