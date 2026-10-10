@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-10 — 9.3 Experiment model
+Done: `scene/dish/discoveries.ts` (`CARD_STIMULI`, `Pair`/`pairId`/`parsePair`, 12 `DISCOVERIES` with `level` on 5–8, `chips(pair)` derived from `NORM` + per-stimulus distractors, seeded `shuffle`); `scene/dish/take.ts` (`Take`: first decision, hit, end = decision + 300 ms or 600 ms, result + all command peaks); `DishLoop.script` (delivery hook before each world step) + `DishLoop.peak`, both cleared by `reset()`; `state/trial.ts` (`TrialStore` `trial`: slots, bet on first run only, phases setup/running/result, `run` counter, `finish(take)` → `outcome` vs `NORM[stim].none`, journal in `fly_ui.found`, puzzles solved in `fly_ui.levels` migrate to discoveries 5–8).
+State: tests 593 / typecheck / lint green. Model only: nothing calls `trial.start()` / `finish()` yet, no UI change.
+Next: 9.4 card + palette; wire `DishRun` to `trial.run` (clear arena, put the fly at the start pose, `dish.setOps` from `trial.op`, `loop.script = delivery(stim)`, feed `Take` with `loop.decisions` + `advance` events each frame, on `done` → `trial.finish(take.result(loop.peak))`; `stop`/Esc drops the script).
+Gotchas: `state/experiment.ts` is the brain view's `ExperimentStore` — the card model is `state/trial.ts`. `outcome.hz` is the deciding command's peak; for swatter × DNp01 off the card wants TTMn (the norm's command) → read `outcome.peak.jump`. Changing a slot after a result drops back to setup; slots are locked while running.
+
 ## 2026-10-10 — 9.2 Norm table + determinism
 Done: `World(seed)` reseeds on `reset()` (reruns retrace; tests in `world.test.ts`, `loop.test.ts`). `packages/sim/src/deliver.ts`: scripted delivery per stimulus (`STIMULI`, `delivery(stim)` tick before each step), shared by pipeline + card. `apps/pipeline/src/explore/norm.ts` (`explore:norm [--write]`, ≈4.5 min) → `apps/web/src/scene/dish/table.ts` (`NORM[stim][brain]`), findings + 12 discoveries with bet chips in `docs/TERRARIUM.md` §Norm table; EXPERIMENT-SHAPE §Open settled.
 State: tests 568 / typecheck / lint green. No UI change.
@@ -23,9 +29,3 @@ Done: `scene/dish/frame.ts` (+test) — pure fit: camera distance + view offset 
 State: tests 561 / typecheck / lint / smoke 8 green; visual-qa 1280/1600 RU/EN + 390 OK (≈36–40 px gap each side, phone unchanged); ui-critic no P1.
 Next: 8.16 Russian copy pass (walk `i18n/ru.ts` by screen with the user). ui-critic P2 left: fly ~50 px at 1280 (maybe slimmer columns at md–xl), palette/ops column tops not aligned, ops card `bg-card` barely visible at 1280 (hairline?), puppet mono ash contrast, phone tabs `h-8` < 44 px touch target.
 Gotchas: the screen spread of the dish isn't its diameter — the near half + wall + glow add ~4–8 % and grow with size, so a fixed px gutter looked fine at 1280 and touched at 1600.
-
-## 2026-10-07 — 8.15a Sim perf (lazy LIF)
-Done: `packages/sim/src/lif.ts` lazy integration — only neurons that could reach threshold unaided (u⁺ + peak·g⁺) or are refractory are stepped, the rest decay in closed form on touch (table of dMⁿ/dSⁿ); `voltage(i)`/`conductance(i)` replace public `v`/`g`. `lif.ref.ts` = old engine for tests (identical spike trains, 3 seeds; ≥4× smaller active set). `apps/pipeline/src/explore/simperf.ts` (`explore:simperf`, per-input sim speed + active set).
-State: sugar 127 → 764 sim ms/s headless (spike counts unchanged), browser dish 2494 sim ms/s, 60 fps, clock 100 % of ×1/6. Tests/typecheck/lint green. Pre-existing biome error in `DishLevels.tsx` fixed with an ignore (test-runner tried `[]` deps — would break focus; reverted).
-Next: rest of 8.15 — 1280×800 rim vs palette/panel, smoke «Terrarium loads + an operation changes behaviour», visual-qa RU/EN 1600/390, ui-critic.
-Gotchas: the slowdown was never sugar-specific — any sustained input woke ~80k neurons (QUIET 1e-4 kept every kicked cell stepped ~150 ms). Now delivery-bound (~35M edge hits per sim s with sugar); loom (311 cells) is the slowest input at ~630. The test-runner agent may apply biome *unsafe* fixes via `pnpm fix` — check its diff.
