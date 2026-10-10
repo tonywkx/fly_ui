@@ -48,9 +48,9 @@ export const DishLevels = observer(function DishLevels() {
         ref={head}
         id="level-goal"
         tabIndex={-1}
-        className="flex items-center gap-2 text-label text-bone outline-none"
+        className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-label text-bone outline-none"
       >
-        <span className="font-mono text-caption tracking-widest text-ash uppercase">
+        <span className="font-mono text-caption tracking-widest whitespace-nowrap text-ash uppercase">
           {t('level.of', { n: level + 1, of: LEVELS.length })}
           <span className="sr-only">: </span>
         </span>
