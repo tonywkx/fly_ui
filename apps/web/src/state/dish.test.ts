@@ -16,13 +16,13 @@ describe('DishStore puppet', () => {
 });
 
 describe('DishStore phone sheet', () => {
-  it('opening a card shows the operations tab', () => {
+  it('«Положить» is a flag over the card tabs; opening a card leaves it', () => {
     const { s } = store();
-    expect(s.tab).toBe('items');
-    s.setTab('puppet');
+    expect(s.put).toBe(false);
+    s.setPut(true);
     s.setOpen('moon');
-    expect(s.tab).toBe('ops');
-    s.setOpen(null);
-    expect(s.tab).toBe('ops');
+    expect(s.put).toBe(true);
+    s.setPut(false);
+    expect(s.put).toBe(false);
   });
 });

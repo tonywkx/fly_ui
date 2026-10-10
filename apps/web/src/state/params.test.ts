@@ -235,8 +235,8 @@ describe('parseParams', () => {
   });
 
   it('reads the phone sheet tab', () => {
-    expect(parseParams('?sheet=ops').params.sheet).toBe('ops');
-    const bad = parseParams('?sheet=x');
+    expect(parseParams('?sheet=put').params.sheet).toBe('put');
+    const bad = parseParams('?sheet=ops');
     expect(bad.params.sheet).toBeUndefined();
     expect(bad.warnings).toHaveLength(1);
   });

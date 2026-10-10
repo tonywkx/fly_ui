@@ -5,7 +5,6 @@ import { type Pair, parsePair } from '../scene/dish/discoveries';
 import { PULLS, type Pull } from '../scene/dish/loop';
 import { OPS, type Op } from '../scene/dish/verdict';
 import { isQuality, QUALITIES, type Quality } from '../scene/quality';
-import { TABS, type Tab } from './dish';
 import { MAX_PROBES } from './experiment';
 import type { OnbStep } from './onboarding';
 import { decodeExperiment, type SharedExperiment } from './share';
@@ -71,8 +70,8 @@ export interface Params {
   exp?: Pair;
   /** Dish: run that experiment once the live brain is up (snaps). */
   run?: true;
-  /** Dish, phone: the sheet's tab (snaps). */
-  sheet?: Tab;
+  /** Dish, phone: open the sheet on «Положить» (snaps; the card's tabs are `tab`). */
+  sheet?: 'put';
   /** Dish: the experiment card's tab (`found` = «Открытия»). */
   tab?: CardTab;
   /** First-visit tour: 0 = off, 1..4 = open at that step (see `state/tour.ts`). */
@@ -152,8 +151,8 @@ export function parseParams(search: string): { params: Params; warnings: string[
 
   const sheet = q.get('sheet');
   if (sheet !== null) {
-    if ((TABS as readonly string[]).includes(sheet)) params.sheet = sheet as Tab;
-    else warnings.push(`sheet: unknown tab "${sheet}" (${TABS.join(' | ')})`);
+    if (sheet === 'put') params.sheet = sheet;
+    else warnings.push(`sheet: unknown tab "${sheet}" (put; exp | found are \`tab\`)`);
   }
 
   const debug = q.get('debug');

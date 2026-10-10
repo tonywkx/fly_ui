@@ -6,10 +6,6 @@ import type { Op, Outcome } from '../scene/dish/verdict';
 /** The visitor's own strikes (TERRARIUM-SHAPE §Hands): tools in hand, not items in the dish. */
 export type Hand = 'shadow' | 'swatter';
 
-/** The phone sheet's tabs (8.14); the desktop shows all three at once. */
-export const TABS = ['items', 'ops', 'puppet'] as const;
-export type Tab = (typeof TABS)[number];
-
 /**
  * Terrarium UI state that React shows: the tool in hand, whether the dish is empty, the surgeon's
  * operations and their last outcomes. Never per frame (outcomes change once per encounter).
@@ -23,8 +19,8 @@ export class DishStore {
   pulls = new Set<Pull>();
   /** The open operation card. */
   open: Op | null = 'panic';
-  /** The phone sheet's tab; opening a card shows the operations. */
-  tab: Tab = 'items';
+  /** Phone: the sheet shows «Положить» (the palette) over the card's own tabs. */
+  put = false;
   /** Cells per operation, once the live brain is up. */
   cells: Record<Op, number> | null = null;
   /** Each operation's last live encounter. */
@@ -78,11 +74,10 @@ export class DishStore {
 
   setOpen(op: Op | null): void {
     this.open = op;
-    if (op) this.tab = 'ops';
   }
 
-  setTab(tab: Tab): void {
-    this.tab = tab;
+  setPut(on: boolean): void {
+    this.put = on;
   }
 
   /** Open a card; the open one again closes it. */
