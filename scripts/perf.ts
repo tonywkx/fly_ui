@@ -3,7 +3,7 @@
  *   pnpm perf --quality=high [--gl=webgl2 --scenario=escape --secs=6 --dpr=2 --w=1600 --h=1000 --profile --cpu=4 --url=http://...]
  * --profile: main-thread CPU profile over the measured window, top functions by self time.
  * --cpu=N: CDP CPU throttling (N× slower; a mid phone ≈ 4). `--view=dish`: also prints the world
- * clock's pace (sim s per wall s against the ×1/6 target) — a slow live brain stalls the dish.
+ * clock's pace (sim s per wall s against the ×1/6 target) — a slow live brain stalls the dish. Runs the dish live (no snap freeze), onboarding off.
  * Opens the app like a snap (intro skipped, preset pinned, fake activity running), waits until it is
  * drawn, warms up 1 s, then records rAF intervals. Prints fps and frame-time percentiles.
  * Headless Chromium on the real GPU — a guide, not a substitute for `?stats=1` in a real window.
@@ -13,7 +13,10 @@ import { devServer, launch, parseArgs } from './lib';
 const own = new Set(['w', 'h', 'url', 'secs', 'dpr', 'profile', 'cpu']);
 const args = parseArgs();
 
-const query = new URLSearchParams({ snap: '1', scenario: 'escape', stats: '1', lang: 'en' });
+// a snap freezes the dish's world at `t` (0): the dish runs live instead, onboarding off
+const dish = args.view === 'dish';
+const query = new URLSearchParams({ snap: dish ? '0' : '1', scenario: 'escape', stats: '1', lang: 'en' });
+if (dish) query.set('onb', '0');
 for (const [k, v] of Object.entries(args)) if (!own.has(k)) query.set(k, v);
 const secs = Number(args.secs ?? 6);
 
@@ -54,8 +57,7 @@ try {
     return m ? Number(`${m[1]}.${m[2]}`) : Number.NaN;
   };
   // the live brain boots after the first frame: start the pace once the clock shows
-  if (args.view === 'dish')
-    for (let i = 0; i < 300 && Number.isNaN(await clock()); i++) await page.waitForTimeout(100);
+  if (dish) for (let i = 0; i < 300 && Number.isNaN(await clock()); i++) await page.waitForTimeout(100);
   const clock0 = [await clock(), performance.now()] as const;
   const cdp = args.profile ? await page.context().newCDPSession(page) : undefined;
   if (cdp) {
@@ -117,7 +119,7 @@ try {
   console.log(
     `${label}  fps ${(1000 / mean).toFixed(1)}  frame ms p50 ${pct(0.5).toFixed(1)} p95 ${pct(0.95).toFixed(1)} max ${pct(1).toFixed(1)}  cpu render ${cpu} ms  (${dts.length} frames, ${preset})`,
   );
-  if (args.view === 'dish') {
+  if (dish) {
     const pace = ((await clock()) - clock0[0]) / ((performance.now() - clock0[1]) / 1000);
     for (const l of sim) console.log(`  ${l}`);
     console.log(
