@@ -180,6 +180,11 @@ describe('parseParams', () => {
     expect(bad.warnings).toHaveLength(1);
   });
 
+  it('reads a replay frame (sim ms)', () => {
+    expect(parseParams('?exp=shadow&run=1&replay=120').params.replay).toBe(120);
+    expect(parseParams('?replay=x').warnings).toHaveLength(1);
+  });
+
   it('reads the zoom arrival and a frozen flight', () => {
     const { params, warnings } = parseParams('?view=dish&from=brain&zoom=700');
     expect(params).toMatchObject({ view: 'dish', from: 'brain', zoom: 700 });

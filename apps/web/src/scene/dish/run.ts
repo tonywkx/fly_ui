@@ -23,7 +23,7 @@ import type { Band } from './frame';
 import type { BrainData } from './holo';
 import { DishInput } from './input';
 import { type DecisionEvent, DishLoop, type Pull } from './loop';
-import { Clip, snap, span, Tape } from './replay';
+import { Clip, type Recorded, snap, span, Tape } from './replay';
 import { SlowMo } from './slowmo';
 import { NORM } from './table';
 import { Take, type TakeResult, TIMEOUT } from './take';
@@ -66,13 +66,6 @@ export interface ReplayStatus {
   playing: boolean;
 }
 
-/** What the last run's replay explains: its first decision, or the norm's one it missed (`missed`). */
-export interface Recorded {
-  e: DecisionEvent | null;
-  why: WhyHop[] | null;
-  missed: boolean;
-}
-
 export interface DishStatus {
   /** Sim time shown, ms. */
   t: number;
@@ -104,7 +97,7 @@ export interface DishRunOptions extends DishSceneOptions {
   /** An operation's last encounter changed (the card's «now» line). */
   onVerdict?: (op: Op, o: Outcome) => void;
   /** The fly just decided (the decision caption); null on a reset. */
-  onDecision?: (e: DecisionEvent | null, why?: WhyHop[]) => void;
+  onDecision?: (e: DecisionEvent | null) => void;
   /** A run was recorded (its replay can open). */
   onRecorded?: (r: Recorded) => void;
   /** The zoom began (`true`) / landed back in the dish (`false`). */
@@ -141,8 +134,6 @@ export class DishRun {
   private pathRows: PathRow[] = [];
   /** Cells per sensory group (the «why?» card's first hop). */
   private senseCells: Partial<Record<keyof typeof SENSES, number>> = {};
-  /** Paused by the «why?» card (its close resumes). */
-  private held = false;
   /** The experiment run in progress and who wants its result; the norm's sense onset and its first-decision chain. */
   private take: {
     take: Take;
@@ -198,13 +189,6 @@ export class DishRun {
 
   togglePause(): void {
     this.paused = !this.paused;
-    this.held = false;
-  }
-
-  /** The «why?» card: freeze on open; on close resume only if the card froze it. */
-  hold(on: boolean): void {
-    if (on && !this.paused) this.paused = this.held = true;
-    else if (!on && this.held) this.paused = this.held = false;
   }
 
   /** «From fly to neuron»: dives into the head, `onDive` at the black seam. `at` freezes it (snaps). */
@@ -480,7 +464,7 @@ export class DishRun {
       const d = last && pull ? { ...last, pull } : last;
       if (d) {
         this.scene.decide(d);
-        this.o.onDecision?.(d, explain(d, c.log, this.pathRows, this.senseCells[PATHS[d.action].sense] ?? 0));
+        this.o.onDecision?.(d);
       }
       const k = this.take;
       if (k) {
@@ -545,9 +529,15 @@ export class DishRun {
     this.scene.replayThread({
       e: r.e,
       look: r.e && threadReplay(rp.t, r.e, !!this.o.reducedMotion),
-      upTo: r.missed && silent >= 0 ? silent + 1 : null,
+      // a missed decision: the signal stops at the silent hop (or just past the sense)
+      upTo: r.missed ? (silent >= 0 ? silent + 1 : 1) : null,
     });
     this.scene.animate(dt, this.heat);
+    // snaps: a replay frame is the picture
+    if (this.o.until !== undefined && !this.ready) {
+      this.ready = true;
+      this.o.onReady?.();
+    }
     this.o.onStatus({
       t: rp.t,
       action: f.action,
@@ -630,6 +620,9 @@ export class DishRun {
       marked: this.applied.size > 0 || !!this.brain,
     };
     this.o.onRecorded?.({ e, why, missed });
+    console.info(
+      `[dish] recorded ${a}–${b} ms, ${missed ? 'missed' : 'decision'} ${e ? `${e.action} @${e.t} (${e.ms} ms)` : '—'}`,
+    );
   }
 
   /** Hologram node levels: path cells' recent spikes, and what the fly senses for the first hops. */

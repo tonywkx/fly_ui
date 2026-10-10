@@ -40,6 +40,8 @@ export const DishCaption = observer(function DishCaption() {
   const shownHops = !path ? [] : pull ? puppetHops(pull) : sensed ? path.hops : path.hops.slice(-1);
   const hops = shownHops.map((h) => h.type).join(' → ');
   const term = d && sensed ? `${hops} · ${t('unit.ms', { v: num(d.ms as number) })}` : hops;
+  // the replay's caption is in the card
+  if (trial.replaying) return null;
 
   return (
     <div
@@ -66,17 +68,15 @@ export const DishCaption = observer(function DishCaption() {
           </>
         )}
       </p>
-      {/* stays (dim) after the caption fades: the last decision can still be asked about */}
-      {d && dish.why && (
+      {/* stays (dim) after the caption fades: the last run's decision can still be asked about */}
+      {d && dish.recorded && trial.phase === 'result' && (
         <Button
-          data-why
-          aria-expanded={dish.whyOpen}
           aria-keyshortcuts="W"
           className={cn(
-            'pointer-events-auto h-7 px-2 font-mono text-caption hover:text-bone aria-expanded:text-bone',
+            'pointer-events-auto h-7 px-2 font-mono text-caption hover:text-bone',
             shown ? 'text-mist' : 'text-ash',
           )}
-          onClick={() => dish.setWhyOpen(!dish.whyOpen)}
+          onClick={() => trial.replay()}
         >
           {t('why.open')}
         </Button>

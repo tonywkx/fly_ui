@@ -11,6 +11,7 @@ import { dish } from '@/state/dish';
 import { type Outcome, trial } from '@/state/trial';
 import { GLYPH } from './DishPalette';
 import { betLine, headline, isHe, nowLine, usualLine } from './expText';
+import { ReplayCaption } from './ReplayCaption';
 
 /** Mono term per operation (as on the old cards). */
 const ID: Record<Op, string> = { panic: 'DNp01', moon: 'MDN', sugar: 'LB3', p1: 'P1' };
@@ -301,8 +302,13 @@ const Result = observer(function Result({ o }: { o: Outcome }) {
           })}
         </p>
       )}
-      <div className="flex justify-end gap-1">
-        <Button className="h-8 px-2 text-caption text-mist" onClick={() => trial.again()}>
+      <div className="flex items-center gap-1">
+        {dish.recorded && (
+          <Button variant="primary" aria-keyshortcuts="W" onClick={() => trial.replay()}>
+            {t('exp.replay')}
+          </Button>
+        )}
+        <Button className="ml-auto h-8 px-2 text-caption text-mist" onClick={() => trial.again()}>
           {t('exp.again')}
         </Button>
         <Button className="h-8 px-2 text-caption text-mist" onClick={() => trial.fresh()}>
@@ -313,6 +319,23 @@ const Result = observer(function Result({ o }: { o: Outcome }) {
   );
 });
 
+/** The replay's side of the card: its caption and the way back to the result. */
+function Replay() {
+  return (
+    <>
+      <ReplayCaption />
+      <Button
+        variant="primary"
+        aria-keyshortcuts="Escape"
+        className="self-end"
+        onClick={() => trial.closeReplay()}
+      >
+        {t('exp.replay.close')}
+      </Button>
+    </>
+  );
+}
+
 /**
  * The experiment card (EXPERIMENT-SHAPE §Card): what the fly gets × what we change in her brain,
  * the bet, «Запустить», the run and its result next to the norm. Desktop: the right column.
@@ -321,13 +344,13 @@ export const DishCard = observer(function DishCard({ progress }: { progress: Ref
   const o = trial.outcome;
   const head = useRef<HTMLHeadingElement>(null);
   const card = useRef<HTMLElement>(null);
-  const phase = trial.phase;
+  const { phase, replaying } = trial;
   // the button that was pressed unmounts with its phase: keep focus in the card
   // biome-ignore lint/correctness/useExhaustiveDependencies: runs on a phase change
   useEffect(() => {
     const a = document.activeElement;
     if (a === document.body || (a && card.current?.contains(a) && !a.isConnected)) head.current?.focus();
-  }, [phase, o]);
+  }, [phase, o, replaying]);
   return (
     <section
       ref={card}
@@ -346,7 +369,15 @@ export const DishCard = observer(function DishCard({ progress }: { progress: Ref
           {t('exp.found.tab', { n: trial.found.length, of: DISCOVERIES.length })}
         </span>
       </header>
-      {trial.phase === 'running' ? <Running progress={progress} /> : o ? <Result o={o} /> : <Setup />}
+      {phase === 'running' ? (
+        <Running progress={progress} />
+      ) : o && replaying ? (
+        <Replay />
+      ) : o ? (
+        <Result o={o} />
+      ) : (
+        <Setup />
+      )}
       <p role="status" className="sr-only">
         {o && `${headline(o)}. ${t('exp.now')}: ${nowLine(o)}`}
       </p>

@@ -63,8 +63,8 @@ export interface Params {
   ops?: Op[];
   /** Dish: puppet keys held (snaps). */
   puppet?: Pull[];
-  /** Dish: open the «why?» card on the last decision (snaps). */
-  why?: true;
+  /** Dish: open the run's replay paused at this sim ms once it ends (snaps, with `run`). */
+  replay?: number;
   /** Dish: the experiment card's slots (`stim[:op]`, e.g. `swatter:panic`). */
   exp?: Pair;
   /** Dish: run that experiment once the live brain is up (snaps). */
@@ -85,7 +85,6 @@ export function parseParams(search: string): { params: Params; warnings: string[
   const params: Params = { stats: flag(q.get('stats')), snap: flag(q.get('snap')) };
   const warnings: string[] = [];
   if (flag(q.get('director'))) params.director = true;
-  if (flag(q.get('why'))) params.why = true;
 
   const scenario = q.get('scenario');
   if (scenario !== null) {
@@ -93,7 +92,7 @@ export function parseParams(search: string): { params: Params; warnings: string[
     else warnings.push(`scenario: invalid id "${scenario}"`);
   }
 
-  const ms = (key: 't' | 'intro' | 'zoom') => {
+  const ms = (key: 't' | 'intro' | 'zoom' | 'replay') => {
     const v = q.get(key);
     if (v === null) return;
     const n = Number(v);
@@ -103,6 +102,7 @@ export function parseParams(search: string): { params: Params; warnings: string[
   ms('t');
   ms('intro');
   ms('zoom');
+  ms('replay');
 
   const exp = q.get('exp');
   if (exp !== null) {

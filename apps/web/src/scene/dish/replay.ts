@@ -1,4 +1,6 @@
 import type { Action, Fly, Hands, Item, World, WorldEvent } from '@fly/sim';
+import type { DecisionEvent } from './loop';
+import type { WhyHop } from './why';
 
 /** A clip starts this long before the sense came on and ends this long after the decision, sim ms. */
 export const LEAD = 50;
@@ -6,6 +8,13 @@ export const TAIL = 200;
 
 /** What the dish shows, as the scene reads it (a live `World` or a recorded frame). */
 export type Shown = Pick<World, 'fly' | 'items' | 'hands'>;
+
+/** What a run's replay explains: its first decision, or the norm's one it missed (`missed`). */
+export interface Recorded {
+  e: DecisionEvent | null;
+  why: WhyHop[] | null;
+  missed: boolean;
+}
 
 /** One sim tick of a run: the world after the step, the events on the way, the hologram heat. */
 export interface Frame {

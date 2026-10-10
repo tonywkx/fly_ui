@@ -8,6 +8,7 @@ import { type Key, num, t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import type { BrainData } from '@/scene/dish/holo';
 import type { DishRun, DishStatus } from '@/scene/dish/run';
+import type { TakeResult } from '@/scene/dish/take';
 import { scenarioFor } from '@/scene/dish/zoom';
 import { QUALITY } from '@/scene/quality';
 import { app } from '@/state/app';
@@ -19,12 +20,13 @@ import { DishCard } from './DishCard';
 import { OpsStatus } from './DishOps';
 import { DishPalette } from './DishPalette';
 import { DishSheet } from './DishSheet';
-import { DishWhy } from './DishWhy';
 import { LangSwitch } from './LangSwitch';
+import { paintReplay, ReplayBar, type ReplayRefs } from './ReplayBar';
 import { ViewSwitch, viewHref } from './ViewSwitch';
 
 function timecode(s: DishStatus): string {
   if (s.loading) return t('dish.loading');
+  if (s.replay) return t('exp.replay.title', { t: num(s.t / 1000, undefined, 3), slow: s.slow });
   const word = s.paused ? t('dish.paused') : t(`dish.state.${s.flash ?? s.action}` as Key);
   return `${t('dish.timecode', { t: num(s.t / 1000, undefined, 3), slow: s.slow })} · ${word}`;
 }
@@ -47,6 +49,7 @@ export const Dish = observer(function Dish() {
   const chrome = useRef<HTMLDivElement>(null);
   const foot = useRef<HTMLDivElement>(null);
   const progress = useRef<HTMLDivElement>(null);
+  const bar = useRef<ReplayRefs>({ range: null, play: null });
 
   // the dish centres in the band the chrome leaves: phone, under the strip and over the sheet
   // (it grows per tab); desktop, between the palette and the experiment card
@@ -147,11 +150,13 @@ export const Dish = observer(function Dish() {
           ),
         onCells: (n) => dish.setCells(n),
         onVerdict: (op, o) => dish.setNow(op, o),
-        onDecision: (d, why) => dish.setDecision(d, why),
+        onDecision: (d) => dish.setDecision(d),
+        onRecorded: (r) => dish.setRecorded(r),
         onStatus: (s) => {
           const text = timecode(s);
           if (line.current && line.current.textContent !== text) line.current.textContent = text;
           if (progress.current) progress.current.style.scale = `${s.trial ?? 0} 1`;
+          if (s.replay) paintReplay(bar.current, s.replay);
           const b = remove.current;
           hovered.current = s.hover?.id ?? null;
           if (!b) return;
@@ -170,7 +175,12 @@ export const Dish = observer(function Dish() {
           if (!stim) return;
           dish.putDown();
           dish.setPulls();
-          if (!run.trial(stim, (r) => trial.finish(r))) trial.stop();
+          const done = (r: TakeResult) => {
+            trial.finish(r);
+            // snaps: the replay paused at `replay=` ms
+            if (app.params.replay !== undefined) trial.replay();
+          };
+          if (!run.trial(stim, done)) trial.stop();
         },
       );
       const stops = reaction(
@@ -208,14 +218,10 @@ export const Dish = observer(function Dish() {
         (keys) => run.setPulls(keys),
         { fireImmediately: true },
       );
-      // the «why?» card freezes the dish; snaps (`why=1`) open it on the last decision
-      const hold = reaction(
-        () => dish.whyOpen,
-        (on) => run.hold(on),
-      );
-      const ask = reaction(
-        () => dish.why,
-        (w) => app.params.why && w && dish.setWhyOpen(true),
+      // the replay holds the live dish; nothing recorded = nothing to open
+      const replay = reaction(
+        () => trial.replaying,
+        (on) => run.replay(on, app.params.replay) || trial.closeReplay(),
       );
       dispose = () => {
         runs();
@@ -225,8 +231,7 @@ export const Dish = observer(function Dish() {
         quality();
         surgery();
         puppet();
-        hold();
-        ask();
+        replay();
         run.dispose();
         setRun(null);
       };
@@ -291,11 +296,11 @@ export const Dish = observer(function Dish() {
         >
           ×
         </Button>
-        {run && <DishPalette input={run.input} />}
+        {run && !trial.replaying && <DishPalette input={run.input} />}
         <DishCard progress={progress} />
         <OpsStatus />
         <DishCaption />
-        <DishWhy />
+        {run && <ReplayBar run={run} bar={bar} />}
         <div
           ref={foot}
           className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-1 p-4 md:flex-row md:items-end md:justify-between md:p-8"
