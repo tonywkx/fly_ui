@@ -3,7 +3,6 @@ import {
   COMMANDS,
   diffDrive,
   type Group,
-  mulberry32,
   OPERATIONS,
   PATHS,
   PUPPET,
@@ -89,7 +88,7 @@ export interface DishRunOptions extends DishSceneOptions {
 
 /** Owns the dish scene, the world, the live sim and the ×1/6 clock. */
 export class DishRun {
-  readonly world = new World(mulberry32(SEED));
+  readonly world = new World(SEED);
   readonly input: DishInput;
   paused = false;
   private readonly scene: DishScene;

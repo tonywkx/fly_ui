@@ -1,4 +1,4 @@
-import { type Command, type Drive, type Group, mulberry32, SENSES, World } from '@fly/sim';
+import { type Command, type Drive, type Group, SENSES, World } from '@fly/sim';
 import { describe, expect, it } from 'vitest';
 import { DishLoop } from './loop';
 
@@ -37,7 +37,7 @@ function log(rows: number[], from: number, until: number, every = 1) {
 
 const setup = () => {
   const drives: Drive[] = [];
-  const loop = new DishLoop(new World(mulberry32(1)), senses, commands, { drive: (d) => drives.push(d) });
+  const loop = new DishLoop(new World(1), senses, commands, { drive: (d) => drives.push(d) });
   return { loop, drives };
 };
 
@@ -67,6 +67,18 @@ describe('DishLoop', () => {
     loop.advance(10, log([], 0, 100));
     expect(drives).toHaveLength(2);
     expect([...(drives[1]?.hz ?? [])]).toEqual([0, 0]);
+  });
+
+  it('reruns a pair after reset to the same decision and fly', () => {
+    const { loop } = setup();
+    const take = () => {
+      loop.world.add('sugar', 6, 2);
+      loop.advance(1500, log([3], 400, 1500));
+      return { d: { ...loop.decisions[0] }, fly: { ...loop.world.fly } };
+    };
+    const a = take();
+    loop.reset();
+    expect(take()).toEqual(a);
   });
 
   it('reports a decision with the time since its sense came on', () => {

@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { Action, Senses } from './bridge';
-import { mulberry32 } from './rng';
 import { AIR_MS, ARENA_R, DOWN_MS, SWAT_MS, World, type WorldEvent } from './world';
 
-const world = (seed = 1) => new World(mulberry32(seed));
+const world = (seed = 1) => new World(seed);
 
 /** Step `ms` in 1 ms ticks, collecting events. */
 function run(w: World, action: Action, ms: number): WorldEvent[] {
@@ -26,6 +25,17 @@ describe('World', () => {
     run(c, 'walk', 3000);
     expect(a.fly).toEqual(b.fly);
     expect(a.fly.x).not.toBe(c.fly.x);
+  });
+
+  it('reset reseeds: a rerun retraces the first run', () => {
+    const w = world(7);
+    w.add('sugar', 5, 0);
+    run(w, 'walk', 2000);
+    const first = { ...w.fly };
+    w.reset();
+    w.add('sugar', 5, 0);
+    run(w, 'walk', 2000);
+    expect(w.fly).toEqual(first);
   });
 
   it('keeps the walking fly inside the arena', () => {

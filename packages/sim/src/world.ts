@@ -1,5 +1,5 @@
 import { type Action, eyes, type Senses } from './bridge';
-import type { Rng } from './rng';
+import { mulberry32, type Rng } from './rng';
 
 // Terrarium world (docs/TERRARIUM-SHAPE.md): a 2D dish, a fly, items and the visitor's hands.
 // Units: mm, ms, rad (x right, y up, heading CCW from +x; bearing + = left, as in `eyes`).
@@ -112,7 +112,12 @@ export class World {
   private nextId = 1;
   private readonly tasted = new Set<number>();
 
-  constructor(private readonly rng: Rng) {}
+  private rng: Rng;
+
+  /** `reset` reseeds, so a rerun with the same inputs retraces the first. */
+  constructor(private readonly seed: number) {
+    this.rng = mulberry32(seed);
+  }
 
   /** Place an item; null when off the dish or a second odor / female. */
   add(kind: ItemKind, x: number, y: number): number | null {
@@ -140,8 +145,9 @@ export class World {
     return true;
   }
 
-  /** Items, fly and hands back to the start (operations live in the sim, not here). */
+  /** Items, fly, hands and rng back to the start (operations live in the sim, not here). */
   reset(): void {
+    this.rng = mulberry32(this.seed);
     this.fly = freshFly();
     this.items = [];
     this.hands = { shadow: null, swatter: null };
