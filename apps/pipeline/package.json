@@ -12,7 +12,8 @@
     "graph": "tsx src/graph.ts",
     "explore:gf": "tsx src/explore/gfRoute.ts",
     "explore:terrarium": "tsx src/explore/terrarium.ts",
-    "explore:simperf": "tsx src/explore/simperf.ts"
+    "explore:simperf": "tsx src/explore/simperf.ts",
+    "explore:norm": "tsx src/explore/norm.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",
