@@ -24,7 +24,7 @@ function Hop({ h, last }: { h: WhyHop; last: boolean }) {
           lit ? 'bg-saffron' : 'bg-void ring-1 ring-ash/60',
         )}
       />
-      <span title={`${h.type} · ${name(h.type)}`} className="min-w-0 truncate text-label text-bone">
+      <span className="min-w-0 text-label text-bone">
         <span className="font-mono">{h.type}</span> <span className="text-mist">· {name(h.type)}</span>
       </span>
       <span className={cn('shrink-0 font-mono text-caption tabular-nums', silent ? 'text-ash' : 'text-bone')}>

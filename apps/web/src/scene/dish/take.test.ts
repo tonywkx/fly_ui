@@ -21,6 +21,13 @@ describe('Take', () => {
     expect(k.result(peak)).toMatchObject({ result: 'jump', ms: 35, hz: 230 });
   });
 
+  it('knows its first decision and a hit', () => {
+    const k = new Take(0);
+    k.feed([dec('back', 230, null)], [hit]);
+    expect(k.decision?.action).toBe('back');
+    expect(k.struck).toBe(true);
+  });
+
   it('keeps a copy of every command peak (the card reads the norm command)', () => {
     const k = new Take(0);
     const p = { ...peak };

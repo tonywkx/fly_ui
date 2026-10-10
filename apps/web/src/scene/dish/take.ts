@@ -24,6 +24,11 @@ export class Take {
 
   constructor(readonly t0: number) {}
 
+  /** The swatter hit the fly in this run. */
+  get struck(): boolean {
+    return this.hit;
+  }
+
   /** The run's first decision so far. */
   get decision(): DecisionEvent | null {
     return this.first;

@@ -596,10 +596,13 @@ export class DishRun {
       k.onset = { t, side: typeof v === 'number' ? null : v.L >= v.R ? 'L' : 'R' };
   }
 
-  /** The finished run's clip: around its first decision, or around the norm's decision it missed. */
+  /**
+   * The finished run's clip: around its first decision, or around the norm's decision it missed
+   * (none, or struck first: whatever she does once shattered is not the answer).
+   */
   private keep(k: NonNullable<DishRun['take']>, t1: number): void {
-    let e = k.take.decision;
-    let why = k.why;
+    let e = k.take.struck ? null : k.take.decision;
+    let why = e ? k.why : null;
     let missed = false;
     const n = NORM[k.stim].none;
     if (!e && n.action !== 'walk' && k.onset) {

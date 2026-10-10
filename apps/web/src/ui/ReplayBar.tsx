@@ -62,7 +62,8 @@ export const ReplayBar = observer(function ReplayBar({
 
   if (!trial.replaying) return null;
   return (
-    <div className="pointer-events-auto absolute inset-x-4 bottom-36 z-10 mx-auto flex max-w-[32rem] items-center gap-2 md:bottom-8 md:max-w-[max(16rem,min(32rem,100vw-44rem))]">
+    // phones: in the foot's flow over the caption; desktop: centred under the arena
+    <div className="pointer-events-auto z-10 flex items-center gap-2 md:absolute md:inset-x-4 md:bottom-8 md:mx-auto md:max-w-[max(16rem,min(32rem,100vw-44rem))]">
       <Button
         ref={(el) => {
           bar.current.play = el;
@@ -89,7 +90,7 @@ export const ReplayBar = observer(function ReplayBar({
         onInput={(e) => run.seekReplay(Number(e.currentTarget.value))}
         className="h-8 min-w-0 flex-1 cursor-pointer appearance-none bg-transparent focus-visible:outline-none [&::-moz-range-thumb]:size-2.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-bone [&::-moz-range-track]:h-px [&::-moz-range-track]:bg-bone/30 [&::-webkit-slider-runnable-track]:h-px [&::-webkit-slider-runnable-track]:bg-bone/30 [&::-webkit-slider-thumb]:-mt-[0.3125rem] [&::-webkit-slider-thumb]:size-2.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-bone focus-visible:[&::-webkit-slider-thumb]:ring-2 focus-visible:[&::-webkit-slider-thumb]:ring-bone/60"
       />
-      {/* phones: the card (and its «Закрыть») is in the sheet from 9.8 */}
+      {/* phones: the card's «Закрыть» */}
       <Button
         aria-label={t('exp.replay.close')}
         onClick={() => trial.closeReplay()}

@@ -22,6 +22,7 @@ import { DishPalette } from './DishPalette';
 import { DishSheet } from './DishSheet';
 import { LangSwitch } from './LangSwitch';
 import { paintReplay, ReplayBar, type ReplayRefs } from './ReplayBar';
+import { ReplayCaption } from './ReplayCaption';
 import { ViewSwitch, viewHref } from './ViewSwitch';
 
 function timecode(s: DishStatus): string {
@@ -300,12 +301,22 @@ export const Dish = observer(function Dish() {
         <DishCard progress={progress} />
         <OpsStatus />
         <DishCaption />
-        {run && <ReplayBar run={run} bar={bar} />}
         <div
           ref={foot}
           className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-1 p-4 md:flex-row md:items-end md:justify-between md:p-8"
         >
-          {run && <DishSheet input={run.input} onClearBrain={clearBrain} />}
+          {run && trial.replaying && <ReplayBar run={run} bar={bar} />}
+          {/* phones: the replay's caption stands in for the sheet (its tabs come back on close) */}
+          {trial.replaying ? (
+            <section
+              aria-label={t('exp.replay')}
+              className="pointer-events-auto max-h-[40vh] overflow-y-auto rounded-xl bg-panel py-3 backdrop-blur-md md:hidden"
+            >
+              <ReplayCaption />
+            </section>
+          ) : (
+            run && <DishSheet input={run.input} onClearBrain={clearBrain} />
+          )}
           <div className="flex items-center justify-between md:block">
             <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
               fly_ui
