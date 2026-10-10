@@ -1,4 +1,5 @@
 export * from './bridge';
+export * from './deliver';
 export * from './kernel';
 export * from './lif';
 export * from './net';
