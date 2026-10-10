@@ -125,6 +125,7 @@ export const Dish = observer(function Dish() {
       trial.setOp(ops[0]);
       dish.setOpen(ops[0]);
     }
+    if (app.params.tab) trial.setTab(app.params.tab);
     if (snap) {
       app.waitFor('sim');
       app.waitFor('holo');

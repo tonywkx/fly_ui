@@ -3,15 +3,15 @@ import {
   type CardStimulus,
   chips,
   DISCOVERIES,
-  decides,
   type Discovery,
+  decides,
   discovery,
   normOf,
   type Pair,
   pairId,
   parsePair,
-  readCell,
   type Result,
+  readCell,
   shuffle,
 } from '../scene/dish/discoveries';
 import { type Brain, NORM, type Norm } from '../scene/dish/table';
@@ -104,9 +104,9 @@ export class TrialStore {
     return this.found.length === DISCOVERIES.length;
   }
 
-  /** Tabs stay put while a run is on. */
+  /** Tabs stay put while a run or its replay is on. */
   setTab(tab: CardTab): void {
-    if (this.phase !== 'running') this.tab = tab;
+    if (this.phase !== 'running' && !this.replaying) this.tab = tab;
   }
 
   setStim(s: CardStimulus | null): void {
@@ -125,6 +125,7 @@ export class TrialStore {
   start(force = false): boolean {
     if (!(this.canRun || (force && this.phase !== 'running' && this.pair))) return false;
     this.phase = 'running';
+    this.tab = 'exp';
     this.outcome = null;
     this.replaying = false;
     this.run++;
@@ -199,6 +200,7 @@ export class TrialStore {
     this.stim = stim;
     this.op = op;
     this.bet = null;
+    this.tab = 'exp';
     this.fresh();
   }
 }

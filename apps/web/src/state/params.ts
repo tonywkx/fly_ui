@@ -9,6 +9,7 @@ import { TABS, type Tab } from './dish';
 import { MAX_PROBES } from './experiment';
 import { decodeExperiment, type SharedExperiment } from './share';
 import type { TourStep } from './tour';
+import type { CardTab } from './trial';
 
 /** Colour modes (2.6) + layer isolation: `cloud` / `shells` show only that background layer. */
 export const DEBUG_MODES = ['soma-dist', 'id', 'nt', 'region', 'cloud', 'shells', 'neurons'] as const;
@@ -71,6 +72,8 @@ export interface Params {
   run?: true;
   /** Dish, phone: the sheet's tab (snaps). */
   sheet?: Tab;
+  /** Dish: the experiment card's tab (`found` = «Открытия»). */
+  tab?: CardTab;
   /** First-visit tour: 0 = off, 1..4 = open at that step (see `state/tour.ts`). */
   tour?: TourStep;
 }
@@ -111,6 +114,12 @@ export function parseParams(search: string): { params: Params; warnings: string[
     else warnings.push(`exp: expected stim[:op] from the card, got "${exp}"`);
   }
   if (flag(q.get('run'))) params.run = true;
+
+  const tab = q.get('tab');
+  if (tab !== null) {
+    if (tab === 'exp' || tab === 'found') params.tab = tab;
+    else warnings.push(`tab: unknown card tab "${tab}" (exp | found)`);
+  }
 
   const sheet = q.get('sheet');
   if (sheet !== null) {

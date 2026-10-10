@@ -37,6 +37,8 @@
 
   /* Motion (animate skill): strong ease-out for entrances/exits. */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  /* …and for things moving across the screen. */
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 
   --radius-panel: 24px;
   --spacing: 6px;

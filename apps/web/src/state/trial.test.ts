@@ -149,7 +149,7 @@ describe('TrialStore', () => {
     expect(s.stim).toBe('shadow');
   });
 
-  it('two tabs; repeat goes back to the experiment; no switching while running', () => {
+  it('two tabs; a slot change, repeat or run goes back to the experiment; locked while running', () => {
     const { s } = setup();
     expect(s.tab).toBe('exp');
     s.setTab('found');
@@ -157,11 +157,16 @@ describe('TrialStore', () => {
     s.repeat('shadow:panic');
     expect(s.tab).toBe('exp');
     s.setTab('found');
+    s.repeat('shadow:panic');
+    expect(s.tab).toBe('exp');
+    s.setTab('found');
     s.repeat('banana:none');
     expect(s.tab).toBe('found');
-    s.setTab('exp');
-    s.setBet('jump');
-    s.start();
+    s.setStim('sugar');
+    expect(s.tab).toBe('exp');
+    s.setTab('found');
+    s.start(true);
+    expect(s.tab).toBe('exp');
     s.setTab('found');
     expect(s.tab).toBe('exp');
   });

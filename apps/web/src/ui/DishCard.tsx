@@ -1,20 +1,20 @@
 import { OPERATIONS } from '@fly/sim';
 import { observer } from 'mobx-react-lite';
-import { type ReactNode, type Ref, useEffect, useId, useRef, useState } from 'react';
+import { type ReactNode, type Ref, type RefObject, useEffect, useId, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { type Key, t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { CARD_STIMULI, type CardStimulus, DISCOVERIES } from '@/scene/dish/discoveries';
 import type { Brain } from '@/scene/dish/table';
 import { OPS, type Op } from '@/scene/dish/verdict';
+import { app } from '@/state/app';
 import { dish } from '@/state/dish';
-import { type Outcome, trial } from '@/state/trial';
+import { type CardTab, type Outcome, trial } from '@/state/trial';
+import { DishFound } from './DishFound';
 import { GLYPH } from './DishPalette';
-import { betLine, headline, isHe, nowLine, usualLine } from './expText';
+import { betLine, headline, OP_CELL as ID, isHe, nowLine, usualLine } from './expText';
 import { ReplayCaption } from './ReplayCaption';
 
-/** Mono term per operation (as on the old cards). */
-const ID: Record<Op, string> = { panic: 'DNp01', moon: 'MDN', sugar: 'LB3', p1: 'P1' };
 /** Types inferred, not named in the dataset (LB3 = sugar, pC1 = P1): source chip «inferred». */
 const GUESS: ReadonlySet<Op> = new Set(['sugar', 'p1']);
 /** The swatter lands this long after the run starts, sim s (as in free play). */
@@ -276,7 +276,78 @@ const Running = observer(function Running({ progress }: { progress: Ref<HTMLDivE
   );
 });
 
-const Result = observer(function Result({ o }: { o: Outcome }) {
+/** Sends a copy of the ✦ over to the tab counter (on-screen move: ease-in-out). */
+function fly(from: HTMLElement, to: HTMLElement): Animation {
+  const a = from.getBoundingClientRect();
+  const b = to.getBoundingClientRect();
+  const star = from.cloneNode(true) as HTMLElement;
+  star.setAttribute('aria-hidden', 'true');
+  Object.assign(star.style, {
+    position: 'fixed',
+    left: `${a.left}px`,
+    top: `${a.top}px`,
+    margin: '0',
+    pointerEvents: 'none',
+    zIndex: '50',
+  });
+  document.body.append(star);
+  const dx = b.left + b.width / 2 - (a.left + a.width / 2);
+  const dy = b.top + b.height / 2 - (a.top + a.height / 2);
+  const ease = getComputedStyle(document.documentElement).getPropertyValue('--ease-in-out').trim();
+  const anim = star.animate(
+    [
+      { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+      { transform: `translate(${dx}px, ${dy}px) scale(0.6)`, opacity: 0.3 },
+    ],
+    { duration: 520, delay: 250, easing: ease || 'ease-in-out', fill: 'forwards' },
+  );
+  const drop = () => star.remove();
+  anim.addEventListener('finish', drop);
+  anim.addEventListener('cancel', drop);
+  return anim;
+}
+
+/** «✦ Открытие n/12: …»; on show the ✦ travels to the counter, which ticks when it lands. */
+function Unlock({ o, to, onLand }: { o: Outcome; to: RefObject<HTMLElement | null>; onLand?: () => void }) {
+  const star = useRef<HTMLSpanElement>(null);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: once per unlock line
+  useEffect(() => {
+    const from = star.current;
+    const target = to.current;
+    // landed already (the line comes back after a replay or the other tab)
+    if (!onLand) return;
+    if (!from || !target || app.reducedMotion || app.params.snap) return onLand();
+    const anim = fly(from, target);
+    anim.addEventListener('finish', onLand);
+    return () => {
+      anim.cancel();
+      onLand();
+    };
+  }, []);
+  if (!o.unlocked) return null;
+  return (
+    <p className="px-2 text-label text-saffron">
+      <span ref={star} className="inline-block text-saffron">
+        ✦
+      </span>{' '}
+      {t('exp.unlock', {
+        n: trial.found.length,
+        of: DISCOVERIES.length,
+        title: t(`found.${o.unlocked.stim}.${o.unlocked.op}` as Key),
+      }).replace(/^✦\s*/, '')}
+    </p>
+  );
+}
+
+const Result = observer(function Result({
+  o,
+  counter,
+  onLand,
+}: {
+  o: Outcome;
+  counter: RefObject<HTMLElement | null>;
+  onLand?: () => void;
+}) {
   const bet = betLine(o);
   return (
     <>
@@ -293,15 +364,7 @@ const Result = observer(function Result({ o }: { o: Outcome }) {
           </>
         )}
       </dl>
-      {o.unlocked && (
-        <p className="px-2 text-label text-saffron">
-          {t('exp.unlock', {
-            n: trial.found.length,
-            of: DISCOVERIES.length,
-            title: t(`found.${o.unlocked.stim}.${o.unlocked.op}` as Key),
-          })}
-        </p>
-      )}
+      {o.unlocked && <Unlock o={o} to={counter} onLand={onLand} />}
       <div className="flex items-center gap-1">
         {dish.recorded && (
           <Button variant="primary" aria-keyshortcuts="W" onClick={() => trial.replay()}>
@@ -342,15 +405,24 @@ function Replay() {
  */
 export const DishCard = observer(function DishCard({ progress }: { progress: Ref<HTMLDivElement> }) {
   const o = trial.outcome;
-  const head = useRef<HTMLHeadingElement>(null);
+  const head = useRef<HTMLButtonElement>(null);
   const card = useRef<HTMLElement>(null);
-  const { phase, replaying } = trial;
+  const counter = useRef<HTMLSpanElement>(null);
+  const { phase, replaying, tab } = trial;
+  const n = trial.found.length;
+  // the counter holds the old number while the ✦ is on its way (`Unlock` lands it)
+  const [shown, setShown] = useState(n);
+  const flying = !!o?.unlocked && phase === 'result' && !replaying && tab === 'exp';
+  useEffect(() => {
+    if (!flying) setShown(n);
+  }, [n, flying]);
   // the button that was pressed unmounts with its phase: keep focus in the card
   // biome-ignore lint/correctness/useExhaustiveDependencies: runs on a phase change
   useEffect(() => {
     const a = document.activeElement;
     if (a === document.body || (a && card.current?.contains(a) && !a.isConnected)) head.current?.focus();
-  }, [phase, o, replaying]);
+  }, [phase, o, replaying, tab]);
+  const locked = phase === 'running' || replaying;
   return (
     <section
       ref={card}
@@ -358,29 +430,104 @@ export const DishCard = observer(function DishCard({ progress }: { progress: Ref
       aria-label={t('exp.tab')}
       className="pointer-events-auto absolute top-24 right-8 z-10 hidden max-h-[calc(100%-14rem)] w-57 flex-col gap-3 overflow-y-auto rounded-xl bg-panel p-2 backdrop-blur-md md:flex"
     >
-      <header className="flex items-baseline gap-2 px-2 pt-1 text-label">
-        <h2 ref={head} tabIndex={-1} className="text-bone outline-none">
-          {t('exp.tab')}
-        </h2>
-        <span aria-hidden="true" className="text-ash">
-          ·
+      <Tabs tab={tab} locked={locked} head={head}>
+        <span ref={counter} className={cn('inline-flex overflow-hidden', trial.allFound && 'text-saffron')}>
+          {/* keyed: each tick slides the new number in */}
+          <span
+            key={shown}
+            className="motion-safe:transition-[opacity,translate] motion-safe:duration-200 motion-safe:ease-out motion-safe:starting:translate-y-2 motion-safe:starting:opacity-0"
+          >
+            {t('exp.found.tab', { n: shown, of: DISCOVERIES.length })}
+          </span>
         </span>
-        <span className="text-ash tabular-nums">
-          {t('exp.found.tab', { n: trial.found.length, of: DISCOVERIES.length })}
-        </span>
-      </header>
-      {phase === 'running' ? (
-        <Running progress={progress} />
-      ) : o && replaying ? (
-        <Replay />
-      ) : o ? (
-        <Result o={o} />
-      ) : (
-        <Setup />
-      )}
+      </Tabs>
+      <div role="tabpanel" id={`card-${tab}`} aria-labelledby={`tab-${tab}`} className="flex flex-col gap-3">
+        {tab === 'found' ? (
+          <DishFound />
+        ) : phase === 'running' ? (
+          <Running progress={progress} />
+        ) : o && replaying ? (
+          <Replay />
+        ) : o ? (
+          <Result
+            o={o}
+            counter={counter}
+            onLand={shown < n ? () => setShown(trial.found.length) : undefined}
+          />
+        ) : (
+          <Setup />
+        )}
+      </div>
       <p role="status" className="sr-only">
         {o && `${headline(o)}. ${t('exp.now')}: ${nowLine(o)}`}
       </p>
     </section>
   );
 });
+
+const TABS: readonly CardTab[] = ['exp', 'found'];
+
+/** «Опыт · Открытия n/12»: ghost-word tabs; ←/→ move between them, locked while a run or replay is on. */
+function Tabs({
+  tab,
+  locked,
+  head,
+  children,
+}: {
+  tab: CardTab;
+  locked: boolean;
+  head: Ref<HTMLButtonElement>;
+  children: ReactNode;
+}) {
+  const refs = useRef<Record<CardTab, HTMLButtonElement | null>>({ exp: null, found: null });
+  const go = (k: CardTab) => {
+    trial.setTab(k);
+    refs.current[k]?.focus();
+  };
+  return (
+    <div
+      role="tablist"
+      aria-label={t('exp.tab')}
+      className="flex items-baseline gap-1 px-1 pt-1 text-label"
+      onKeyDown={(e) => {
+        if (locked || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
+        e.preventDefault();
+        go(tab === 'exp' ? 'found' : 'exp');
+      }}
+    >
+      {TABS.map((k, i) => (
+        <span key={k} className="flex items-baseline gap-1">
+          {i > 0 && (
+            <span aria-hidden="true" className="text-ash">
+              ·
+            </span>
+          )}
+          <button
+            ref={(el) => {
+              refs.current[k] = el;
+              if (k === tab && head) {
+                if (typeof head === 'function') head(el);
+                else head.current = el;
+              }
+            }}
+            type="button"
+            role="tab"
+            id={`tab-${k}`}
+            aria-selected={k === tab}
+            aria-controls={`card-${k}`}
+            aria-disabled={locked && k !== tab}
+            tabIndex={k === tab ? 0 : -1}
+            className={cn(
+              'rounded-md px-1 tabular-nums outline-none transition-colors duration-150 focus-visible:ring-1 focus-visible:ring-bone/60',
+              k === tab ? 'text-bone' : 'text-ash hover:text-mist',
+              locked && k !== tab && 'pointer-events-none',
+            )}
+            onClick={() => !locked && go(k)}
+          >
+            {k === 'exp' ? t('exp.tab') : children}
+          </button>
+        </span>
+      ))}
+    </div>
+  );
+}

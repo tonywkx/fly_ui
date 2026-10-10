@@ -90,7 +90,9 @@ export interface PathCell {
 /** Which cells: the stimulus's path with the operated cell marked, or added after it. */
 export function cellPath(p: Pair): PathCell[] {
   const op = p.op === 'none' ? null : { cell: OP_CELL[p.op], mode: OPERATIONS[p.op].mode };
-  const out: PathCell[] = PATH[p.stim].map((cell) => (op?.cell === cell ? { cell, mode: op.mode } : { cell }));
+  const out: PathCell[] = PATH[p.stim].map((cell) =>
+    op?.cell === cell ? { cell, mode: op.mode } : { cell },
+  );
   if (op && !PATH[p.stim].includes(op.cell)) out.push({ ...op, extra: true });
   return out;
 }
