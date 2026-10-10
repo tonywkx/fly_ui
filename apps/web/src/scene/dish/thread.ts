@@ -38,3 +38,24 @@ export function cut(points: readonly Vec3[], share: number): Vec3[] {
 }
 
 const dist = (a: Vec3, b: Vec3) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+
+/** Replay: after the decision the thread holds, then fades, sim ms (the clip's tail). */
+export const REPLAY_HOLD = 120;
+export const REPLAY_FADE = 80;
+
+/**
+ * Thread look in a replay at sim time `t`: the pulse leaves the sense organ at the onset and
+ * reaches the legs at the decision (the real latency); forced cells draw it whole at the decision.
+ */
+export function threadReplay(
+  t: number,
+  e: { t: number; ms: number | null },
+  reducedMotion: boolean,
+): { drawn: number; alpha: number } | null {
+  const from = e.t - (e.ms ?? 0);
+  const after = t - e.t;
+  if (t < from || after >= REPLAY_HOLD + REPLAY_FADE) return null;
+  const drawn = reducedMotion || !e.ms ? 1 : Math.min(1, (t - from) / e.ms);
+  const alpha = after <= REPLAY_HOLD ? 1 : 1 - (after - REPLAY_HOLD) / REPLAY_FADE;
+  return { drawn, alpha };
+}
