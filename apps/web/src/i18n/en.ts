@@ -219,7 +219,7 @@ export const en: Shape<typeof ru> = {
   'puppet.up': 'jump',
   'puppet.down': 'reverse',
   'puppet.steer': 'steer',
-  'puppet.scripted': 'scripted',
+  'puppet.scripted': 'no neurons',
   'puppet.hint.tap': 'hold a key — the cells fire while you hold',
   'dish.controls': 'Dish controls',
   'puppet.steer.note': 'Simplified: the model has no turning cells, steering is scripted.',
