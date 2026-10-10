@@ -268,7 +268,7 @@ export class DishRun {
   toggleReplay(): void {
     const rp = this.rp;
     const r = this.recording;
-    if (!rp || !r) return;
+    if (!rp || !r || this.o.reducedMotion) return;
     if (!rp.playing && rp.t >= r.clip.t1) rp.t = r.clip.t0;
     rp.playing = !rp.playing;
   }

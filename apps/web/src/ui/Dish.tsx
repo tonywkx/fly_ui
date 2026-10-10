@@ -309,8 +309,10 @@ export const Dish = observer(function Dish() {
           {/* phones: the replay's caption stands in for the sheet (its tabs come back on close) */}
           {trial.replaying ? (
             <section
+              // biome-ignore lint/a11y/noNoninteractiveTabindex: it scrolls; keyboards reach it
+              tabIndex={0}
               aria-label={t('exp.replay')}
-              className="pointer-events-auto max-h-[40vh] overflow-y-auto rounded-xl bg-panel py-3 backdrop-blur-md md:hidden"
+              className="pointer-events-auto max-h-[40vh] overflow-y-auto rounded-xl bg-panel py-3 backdrop-blur-md focus-visible:ring-2 focus-visible:ring-bone/40 focus-visible:outline-none md:hidden"
             >
               <ReplayCaption />
             </section>

@@ -3,6 +3,7 @@ import { type RefObject, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
 import type { DishRun, ReplayStatus } from '@/scene/dish/run';
+import { app } from '@/state/app';
 import { dish } from '@/state/dish';
 import { trial } from '@/state/trial';
 
@@ -30,7 +31,7 @@ export function paintReplay(b: ReplayRefs, s: ReplayStatus): void {
 }
 
 const typing = (el: EventTarget | null) =>
-  el instanceof HTMLElement && !!el.closest('input, textarea, button, [contenteditable]');
+  el instanceof HTMLElement && !!el.closest('input:not([type=range]), textarea, button, [contenteditable]');
 
 /**
  * The replay's controls under the arena (EXPERIMENT-SHAPE §Replay): play / pause and a hairline
@@ -69,6 +70,8 @@ export const ReplayBar = observer(function ReplayBar({
           bar.current.play = el;
         }}
         data-playing="false"
+        // reduced motion: the decision frame, scrubbed by hand, never played
+        disabled={app.reducedMotion}
         aria-label={t('exp.replay.play')}
         aria-keyshortcuts="Space"
         onClick={() => run.toggleReplay()}
@@ -88,15 +91,15 @@ export const ReplayBar = observer(function ReplayBar({
         aria-label={t('exp.replay.scrub')}
         aria-keyshortcuts="ArrowLeft ArrowRight"
         onInput={(e) => run.seekReplay(Number(e.currentTarget.value))}
-        className="h-8 min-w-0 flex-1 cursor-pointer appearance-none bg-transparent focus-visible:outline-none [&::-moz-range-thumb]:size-2.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-bone [&::-moz-range-track]:h-px [&::-moz-range-track]:bg-bone/30 [&::-webkit-slider-runnable-track]:h-px [&::-webkit-slider-runnable-track]:bg-bone/30 [&::-webkit-slider-thumb]:-mt-[0.3125rem] [&::-webkit-slider-thumb]:size-2.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-bone focus-visible:[&::-webkit-slider-thumb]:ring-2 focus-visible:[&::-webkit-slider-thumb]:ring-bone/60"
+        className="h-8 min-w-0 flex-1 cursor-pointer touch-none appearance-none focus-visible:[&::-moz-range-thumb]:ring-2 focus-visible:[&::-moz-range-thumb]:ring-bone/60 bg-transparent focus-visible:outline-none [&::-moz-range-thumb]:size-2.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-bone [&::-moz-range-track]:h-px [&::-moz-range-track]:bg-bone/50 [&::-webkit-slider-runnable-track]:h-px [&::-webkit-slider-runnable-track]:bg-bone/50 [&::-webkit-slider-thumb]:-mt-[0.3125rem] [&::-webkit-slider-thumb]:size-2.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-bone focus-visible:[&::-webkit-slider-thumb]:ring-2 focus-visible:[&::-webkit-slider-thumb]:ring-bone/60"
       />
       {/* phones: the card's «Закрыть» */}
       <Button
         aria-label={t('exp.replay.close')}
         onClick={() => trial.closeReplay()}
-        className="size-8 shrink-0 rounded-full p-0 font-mono text-label text-mist hover:text-bone md:hidden"
+        className="h-8 shrink-0 rounded-full px-2 text-caption text-mist ring-1 ring-bone/30 hover:text-bone md:hidden"
       >
-        ×
+        {t('exp.replay.close')}
       </Button>
     </div>
   );
