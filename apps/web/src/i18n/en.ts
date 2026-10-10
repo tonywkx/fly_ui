@@ -244,6 +244,8 @@ export const en: Shape<typeof ru> = {
   'exp.done': 'done',
   'exp.give.short': 'Give',
   'exp.change.short': 'Change',
+  'exp.why.stim': 'pick what to give first',
+  'exp.why.bet': 'make a guess first',
   'exp.give': 'What the fly gets',
   'exp.change': 'What we change in her brain',
   'exp.give.pick': 'choose',

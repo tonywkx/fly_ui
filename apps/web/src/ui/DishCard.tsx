@@ -81,7 +81,7 @@ function Slot({
         trigger.current?.focus();
       }}
     >
-      <h3 id={`${id}-l`} title={phone ? label : undefined} className={cn(LABEL, 'px-2', phone && 'w-20')}>
+      <h3 id={`${id}-l`} title={phone ? label : undefined} className={cn(LABEL, 'px-2', phone && 'w-14')}>
         {phone ? short : label}
       </h3>
       <Button
@@ -126,6 +126,7 @@ function Slot({
       {/* phone: the list stands in for the card's body; «готово» brings the rest back */}
       {open && phone && (
         <Button
+          aria-keyshortcuts="Escape"
           className="col-span-2 h-8 justify-self-end px-3 text-caption text-mist"
           onClick={() => {
             onToggle();
@@ -291,6 +292,9 @@ const Setup = observer(function Setup({ onClearBrain }: { onClearBrain: () => vo
   const phone = useContext(Phone);
   const solo = phone && open !== null;
   const more = useMore();
+  const whyId = useId();
+  // what still keeps «Запустить» off
+  const why = !live || trial.canRun ? null : t(trial.stim ? 'exp.why.bet' : 'exp.why.stim');
   return (
     <>
       {/* phone: the slots and the bet scroll, «Запустить» stays in view under them */}
@@ -319,10 +323,19 @@ const Setup = observer(function Setup({ onClearBrain }: { onClearBrain: () => vo
       </div>
       {!solo && (
         <div className="flex items-center gap-1">
-          {onboarding.step !== 0 && <Skip />}
+          {onboarding.step !== 0 ? (
+            <Skip />
+          ) : (
+            why && (
+              <p id={whyId} className="px-2 text-caption text-ash">
+                {why}
+              </p>
+            )
+          )}
           <Button
             variant="primary"
             className="ml-auto"
+            aria-describedby={why && onboarding.step === 0 ? whyId : undefined}
             disabled={!live || !trial.canRun}
             onClick={() => trial.start()}
           >
@@ -678,8 +691,8 @@ function markMore(el: HTMLElement): void {
   el.toggleAttribute('data-more', el.scrollHeight - el.scrollTop - el.clientHeight > 4);
 }
 
-/** More below: the bottom edge fades out. */
-const MORE = 'data-more:[mask-image:linear-gradient(to_bottom,black_calc(100%-2rem),transparent)]';
+/** More below: the bottom 3rem fades out. */
+const MORE = 'data-more:[mask-image:linear-gradient(to_bottom,black_calc(100%-3rem),transparent)]';
 
 /** A scroller's `data-more`, re-measured after each render and on any resize of it or its content. */
 function useMore() {

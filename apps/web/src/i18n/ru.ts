@@ -257,6 +257,8 @@ export const ru = {
   'exp.done': 'готово',
   'exp.give.short': 'Даём',
   'exp.change.short': 'Меняем',
+  'exp.why.stim': 'сначала выбери, что даём',
+  'exp.why.bet': 'сначала прогноз',
   'exp.give': 'Что даём мухе',
   'exp.change': 'Что меняем в мозге',
   'exp.give.pick': 'выбрать',

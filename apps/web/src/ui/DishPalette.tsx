@@ -239,7 +239,7 @@ export const PutPanel = observer(function PutPanel({ input }: { input: PaletteIn
         <p className="pl-2 text-caption text-balance text-ash">{hint}</p>
         <Button
           aria-expanded={more}
-          className="h-8 shrink-0 gap-1.5 px-2 font-mono text-caption tracking-widest text-ash uppercase"
+          className="h-8 min-w-11 shrink-0 gap-1.5 px-2 font-mono text-caption tracking-widest text-ash uppercase"
           onClick={() => setMore(!more)}
         >
           {more ? t('puppet.title') : t('pal.more')}
