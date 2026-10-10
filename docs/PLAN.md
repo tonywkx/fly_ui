@@ -111,7 +111,7 @@ Stage 1 — MVP wow (desktop):
 - [x] 8.9 "From fly to neuron" zoom: click the fly → one continuous camera flight into its head → full brain view → operate → back to the dish. **[V]**
 
 Stage 2 — deeper:
-- [ ] 8.10 Odor navigation — 8.1: no L/R steering in the model → drop unless the model changes.
+- [~] 8.10 (dropped 2026-10-10) Odor navigation — 8.1: no L/R steering in the model → drop unless the model changes.
 - [x] 8.11 "Why did she do that?" — explanation card for the last decision. **[UI]**
 - [x] 8.12 Puzzle levels (3–5) with a hint ladder and a success moment. **[V]** **[UI]**
 - [x] 8.13 Puppet mode: arrow keys → command neurons.
@@ -119,10 +119,23 @@ Stage 2 — deeper:
 
 Stage 3 — release:
 - [x] 8.15 Perf (live sim + dish, 60 fps at "high") — lazy LIF; desktop dish framed between palette and ops card; smoke "Terrarium loads + an operation changes behaviour"; visual-qa + ui-critic (no P1). No clip (user, 2026-10-07). **[V]** **[UI]**
-- [ ] 8.16 Russian copy pass: the user dislikes much of the RU text. Walk `apps/web/src/i18n/ru.ts` (~370 strings) by screen with the user (intro, tour, brain HUD, terrarium: palette, ops cards, puzzles, why-card, puppet, captions); rewrite, keep EN in step, re-snap RU 1600/390 for overflow. **[UI]**
+- [x] 8.16 Russian copy pass: the user dislikes much of the RU text. Walk `apps/web/src/i18n/ru.ts` (~370 strings) by screen with the user (intro, tour, brain HUD, terrarium: palette, ops cards, puzzles, why-card, puppet, captions); rewrite, keep EN in step, re-snap RU 1600/390 for overflow. **[UI]**
+
+## Phase 9 — Terrarium home: the experiment loop (≈3–4 weeks)
+Goal: the Terrarium is the home page and a newcomer knows what to do in seconds. Today five modes compete (items, hands, puppet, Neurosurgeon, puzzles), there is no experiment structure and no before/after. One loop instead: stimulus → (brain operation) → predict → result next to the normal fly → slow-mo replay of the decision → discovery. The brain view becomes "look inside" (reached from the fly). Palette stays, made clearer. Done when: home = Terrarium, a visitor completes an experiment with prediction, replay and a discovery on desktop and phone, RU + EN, smoke green, 60 fps.
+- [ ] 9.1 Shape: `docs/EXPERIMENT-SHAPE.md` (`impeccable` shape), wireframes 1600/390 — home terrarium (palette left, experiment card right), card states setup → predict → running → result, result with the norm + «Повтор», discoveries grid + unlock moment, 3–4 step first-visit onboarding, what hides (puppet under «ещё», puzzle strip gone, why-card merges into result/replay), RU copy. User approves before code. **[S]** **[UI]**
+- [ ] 9.2 Norm table + determinism: Node script in `apps/pipeline/src/explore/` runs every stimulus × operation (6 × 5 incl. none) headless → behaviour, latency, command rate; table `apps/web/src/scene/dish/table.ts`, findings in `docs/TERRARIUM.md`; pick 10–12 discoveries and the prediction choices. `World.reset()` reseeds its rng (today one `World` per `DishRun`, reruns differ); test: two runs of a pair → same decision. **[T]**
+- [ ] 9.3 Experiment model (pure + tests): `state/experiment.ts` — slots (stimulus, op), prediction, phases, scripted delivery (sugar ahead of the fly, shadow sweeps itself, swatter strikes at t — no aiming), result = `Verdicts` outcome vs the norm table, journal, discovery unlocks persisted in `fly_ui.found`; the 4 puzzles (`levels.ts`) become the first guided discoveries. **[T]**
+- [ ] 9.4 Experiment card + clearer palette: protocol card on the right (slots «Что даём мухе / Что меняем в мозге», prediction, «Запустить», result «норма → сейчас»); Neurosurgeon list becomes the op-slot picker (reuse `DishOps` copy / `nowLine`); palette items say what the fly will do, «in hand» state obvious, click fills the stimulus slot, drag/free play kept; puppet under «ещё»; drop `DishLevels`. **[V]** **[UI]**
+- [ ] 9.5 Decision replay: pure ring buffer of world frames (fly pose, items, hands, ~1.5 sim s) + tests; `DishScene` replay mode in slow-mo with the decision thread (`thread.ts`) and hologram heat from `LiveClient.log`; «Повтор» in the result, auto-plays after the first result; `DishWhy` becomes the replay's caption. **[V]**
+- [ ] 9.6 Discoveries: grid «Открытия N/12» (what we did → what happened → which neurons, «Повторить опыт» fills the slots), unlock moment (motion per `animate`), counter in the top line. **[V]** **[UI]**
+- [ ] 9.7 Terrarium home: default view = dish, brain at `?view=brain`, old links (`?view=dish`, `?scenario=`) keep working (`main.tsx`, `App.tsx`, `state/params.ts`); «Заглянуть в мозг» from the fly (8.9 zoom) + a small link, simpler `ViewSwitch`; first-visit onboarding in the Terrarium; brain tour only on the first brain visit (or cut); ≤15 MB before first frame. **[V]**
+- [ ] 9.8 Phone: sheet tabs for the loop (e.g. «Опыт · Положить · Открытия»), replay + discoveries at 390, snaps. **[V]** **[UI]**
+- [ ] 9.9 Release check: smoke (home = Terrarium, an experiment reaches a result, a discovery unlocks), visual-qa RU/EN 1600/390, ui-critic no P1, 60 fps. **[V]** **[UI]**
 
 ## Backlog / spin-offs (not scheduled)
-- Phase 9 candidates: fly-first home layout (big fly, brain as "what happens inside"); 3-step mini tours for Sugar and Song. (Simple mode + missions of the old phase 8 are absorbed by 8.7 / 8.12 / 8.14.)
+- Ghost of the norm: a translucent trail of the unoperated fly in the same situation over the arena (user, 2026-10-10: after Phase 9).
+- Phase 10 candidates: 3-step mini tours for Sugar and Song (fly-first home is Phase 9). (Simple mode + missions of the old phase 8 are absorbed by 8.7 / 8.12 / 8.14.)
 - Tablet widths (768–1151 px): the open Inspector still overlaps the tool stack (the stack only shifts aside from 72rem). Make the Inspector a bottom sheet there, or show tools from `lg` up.
 - Dust close-up: sprites are sized in µm, so at deep zoom they become big discs that clutter the view (seen in a live recording). Clamp on-screen size and fade dust near the camera.
 - Cheap dense dust: lod1/lod2 (+900k sprites) halve fps on M4 whatever the pixel ratio (primitive-bound instanced quads). Try one triangle per sprite, native 1 px points, or a baked density volume; then raise `QUALITY.high.dustTiers` (`apps/web/src/scene/quality.ts`).
