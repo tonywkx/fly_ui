@@ -13,6 +13,7 @@ import { scenarioFor } from '@/scene/dish/zoom';
 import { QUALITY } from '@/scene/quality';
 import { app } from '@/state/app';
 import { dish } from '@/state/dish';
+import { onbMemory, onboarding, startOnb } from '@/state/onboarding';
 import { trial } from '@/state/trial';
 import { Credit } from './Credit';
 import { DishCaption } from './DishCaption';
@@ -120,6 +121,15 @@ export const Dish = observer(function Dish() {
     const arriving = from === 'brain';
     // black until the flight out of the head: no chrome over the void
     if (arriving) dish.setZooming(true);
+    // first visit: the card walks through one experiment (desktop; the phone sheet gets it in 9.8)
+    if (matchMedia('(width >= 48rem)').matches && !arriving)
+      onboarding.begin(
+        startOnb({
+          params: app.params,
+          done: onbMemory.done(),
+          journal: Object.keys(trial.pairs).length > 0,
+        }),
+      );
     if (app.params.exp) trial.repeat(`${app.params.exp.stim}:${app.params.exp.op}`);
     else if (ops?.[0]) {
       trial.setOp(ops[0]);
@@ -264,6 +274,16 @@ export const Dish = observer(function Dish() {
     };
   }, [manifest]);
 
+  useEffect(() => onboarding.attach(), []);
+
+  // «заглянуть в мозг»: the fly zoom (8.9); a click mid-run / mid-flight is swallowed (no reload);
+  // before the scene is up the link navigates
+  const peek = () => {
+    if (!run) return false;
+    if (!run.zooming && trial.phase !== 'running' && !trial.replaying) run.dive();
+    return true;
+  };
+
   const clearBrain = () => {
     run?.clearBrain();
     // a reload must not bring it back
@@ -325,14 +345,31 @@ export const Dish = observer(function Dish() {
               fly_ui
             </h1>
             <div className="-mx-1 flex items-center gap-1 md:mt-1">
-              <ViewSwitch />
+              <ViewSwitch onPeek={peek} />
               <LangSwitch />
+              <OnbRestart />
             </div>
           </div>
           <Credit />
         </div>
       </div>
     </>
+  );
+});
+
+/** «?»: the first-visit steps again (desktop: they live in the card). */
+const OnbRestart = observer(function OnbRestart() {
+  const label = t('onb.again');
+  return (
+    <Button
+      aria-label={label}
+      title={label}
+      disabled={trial.phase === 'running' || trial.replaying || onboarding.step === 1}
+      onClick={() => onboarding.restart()}
+      className="pointer-events-auto hidden h-6 w-6 rounded-full font-mono text-caption md:inline-flex"
+    >
+      ?
+    </Button>
   );
 });
 

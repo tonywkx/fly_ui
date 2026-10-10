@@ -9,6 +9,7 @@ import type { Brain } from '@/scene/dish/table';
 import { OPS, type Op } from '@/scene/dish/verdict';
 import { app } from '@/state/app';
 import { dish } from '@/state/dish';
+import { onboarding } from '@/state/onboarding';
 import { type CardTab, type Outcome, trial } from '@/state/trial';
 import { DishFound } from './DishFound';
 import { GLYPH } from './DishPalette';
@@ -198,9 +199,16 @@ const Change = observer(function Change({ open, onToggle }: { open: boolean; onT
 const Bet = observer(function Bet() {
   const stim = trial.stim;
   if (!stim || !trial.needsBet) return null;
+  const step = onboarding.step;
+  const onb = step === 1 ? 'onb.1' : step === 3 ? 'onb.3' : null;
   return (
     <fieldset className="flex flex-col gap-1.5">
-      <legend className={cn(LABEL, 'px-2 pb-1')}>{t(isHe(stim) ? 'exp.bet.he' : 'exp.bet.she')}</legend>
+      {/* the onboarding's line asks the question itself */}
+      {onb ? (
+        <legend className="px-2 pb-1 text-body leading-tight text-bone">{t(onb)}</legend>
+      ) : (
+        <legend className={cn(LABEL, 'px-2 pb-1')}>{t(isHe(stim) ? 'exp.bet.he' : 'exp.bet.she')}</legend>
+      )}
       <div className="flex flex-wrap gap-1 px-1">
         {trial.chips.map((r) => (
           <Button
@@ -224,7 +232,8 @@ const Setup = observer(function Setup() {
   return (
     <>
       <Give open={open === 'give'} onToggle={() => toggle('give')} />
-      <div className="flex flex-col gap-0.5">
+      <div className="relative flex flex-col gap-0.5">
+        {onboarding.step === 3 && <Glow />}
         <Change open={open === 'change'} onToggle={() => toggle('change')} />
         {dish.brain && (
           <p className="px-2 text-caption text-ash">
@@ -233,17 +242,51 @@ const Setup = observer(function Setup() {
         )}
       </div>
       <Bet />
-      <Button
-        variant="primary"
-        className="self-end"
-        disabled={!live || !trial.canRun}
-        onClick={() => trial.start()}
-      >
-        {live ? t('exp.run') : t('exp.loading')}
-      </Button>
+      <div className="flex items-center gap-1">
+        {onboarding.step !== 0 && <Skip />}
+        <Button
+          variant="primary"
+          className="ml-auto"
+          disabled={!live || !trial.canRun}
+          onClick={() => trial.start()}
+        >
+          {live ? t('exp.run') : t('exp.loading')}
+        </Button>
+      </div>
     </>
   );
 });
+
+/** Onboarding step 3: the op slot lights up once (a saffron hairline, opacity only). */
+function Glow() {
+  const el = useRef<HTMLSpanElement>(null);
+  const still = app.reducedMotion;
+  useEffect(() => {
+    if (still) return;
+    const a = el.current?.animate({ opacity: [0, 1, 0] }, { duration: 1200, easing: 'ease-in-out' });
+    return () => a?.cancel();
+  }, []);
+  return (
+    <span
+      ref={el}
+      aria-hidden="true"
+      // reduced motion: the ring just stays for the step
+      className={cn(
+        'pointer-events-none absolute -inset-0.5 rounded-lg ring-1 ring-saffron',
+        still ? 'opacity-60' : 'opacity-0',
+      )}
+    />
+  );
+}
+
+const Skip = ({ className }: { className?: string }) => (
+  <Button
+    className={cn('h-8 px-2 text-caption text-mist hover:text-bone', className)}
+    onClick={() => onboarding.skip()}
+  >
+    {t('onb.skip')}
+  </Button>
+);
 
 /** One line: what we give × what we changed. */
 function summary(stim: CardStimulus, op: Brain): string {
@@ -350,6 +393,7 @@ const Result = observer(function Result({
   onLand?: () => void;
 }) {
   const bet = betLine(o);
+  const step = onboarding.step;
   return (
     <>
       <p className="px-2 text-body leading-tight text-bone">{headline(o)}</p>
@@ -366,22 +410,59 @@ const Result = observer(function Result({
         )}
       </dl>
       {o.unlocked && <Unlock o={o} to={counter} onLand={onLand} />}
-      <div className="flex items-center gap-1">
-        {dish.recorded && (
-          <Button variant="primary" aria-keyshortcuts="W" onClick={() => trial.replay()}>
-            {t('exp.replay')}
+      {step === 2 || step === 4 ? (
+        <OnbResult step={step} />
+      ) : (
+        <div className="flex items-center gap-1">
+          {dish.recorded && (
+            <Button variant="primary" aria-keyshortcuts="W" onClick={() => trial.replay()}>
+              {t('exp.replay')}
+            </Button>
+          )}
+          <Button className="ml-auto h-8 px-2 text-caption text-mist" onClick={() => trial.again()}>
+            {t('exp.again')}
           </Button>
-        )}
-        <Button className="ml-auto h-8 px-2 text-caption text-mist" onClick={() => trial.again()}>
-          {t('exp.again')}
-        </Button>
-        <Button className="h-8 px-2 text-caption text-mist" onClick={() => trial.fresh()}>
-          {t('exp.new')}
-        </Button>
-      </div>
+          <Button className="h-8 px-2 text-caption text-mist" onClick={() => trial.fresh()}>
+            {t('exp.new')}
+          </Button>
+        </div>
+      )}
     </>
   );
 });
+
+/** Onboarding after a result: step 2 leads on to the operation, step 4 hands the card over. */
+function OnbResult({ step }: { step: 2 | 4 }) {
+  return (
+    <>
+      <p role="status" className="px-2 text-body leading-tight text-bone">
+        {t(step === 2 ? 'onb.2' : 'onb.4')}
+      </p>
+      {/* the long pill takes its own line when the card is narrow, «пропустить» under it */}
+      <div className="flex flex-wrap-reverse items-center justify-end gap-1">
+        {step === 2 ? (
+          <>
+            <Skip className="mr-auto" />
+            <Button variant="primary" onClick={() => onboarding.next()}>
+              {t('onb.2.pill')}
+            </Button>
+          </>
+        ) : (
+          <>
+            {dish.recorded && (
+              <Button variant="primary" aria-keyshortcuts="W" onClick={() => trial.replay()}>
+                {t('exp.replay')}
+              </Button>
+            )}
+            <Button className="ml-auto h-8 px-2 text-caption text-mist" onClick={() => onboarding.finish()}>
+              {t('onb.ok')}
+            </Button>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
 
 /** The replay's side of the card: its caption and the way back to the result. */
 function Replay() {
@@ -425,7 +506,7 @@ export const DishCard = observer(function DishCard({ progress }: { progress: Ref
   useEffect(() => {
     const a = document.activeElement;
     if (a === document.body || (a && card.current?.contains(a) && !a.isConnected)) head.current?.focus();
-  }, [phase, o, replaying, tab]);
+  }, [phase, o, replaying, tab, onboarding.step]);
   const locked = phase === 'running' || replaying;
   return (
     <section

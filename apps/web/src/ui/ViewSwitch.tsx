@@ -5,8 +5,9 @@ import { cn } from '@/lib/utils';
 import { app } from '@/state/app';
 
 /**
- * A view's address: the dish is `?view=dish`, the brain the bare page; a pinned language stays.
- * The zoom adds where it came `from`, the brain's scenario and the experiment code (`x`) it carries.
+ * A view's address: the dish is the bare page, the brain `?view=brain`; a pinned language stays.
+ * The zoom adds where it came `from`, the brain's scenario and the experiment code (`x`) it carries
+ * (with `x` the dish names itself: alone, `x` is an old brain link).
  */
 export function viewHref(o: {
   dish: boolean;
@@ -15,7 +16,8 @@ export function viewHref(o: {
   x?: string;
 }): string {
   const q = new URLSearchParams();
-  if (o.dish) q.set('view', 'dish');
+  if (!o.dish) q.set('view', 'brain');
+  else if (o.x) q.set('view', 'dish');
   if (o.scenario) q.set('scenario', o.scenario);
   if (o.from) q.set('from', o.from);
   if (o.x) q.set('x', o.x);
@@ -24,34 +26,36 @@ export function viewHref(o: {
   return s ? `?${s}` : window.location.pathname;
 }
 
-const href = (dish: boolean) => viewHref({ dish });
-
 /**
- * «Мозг · Террариум»: two ghost words, the current one bone, the other ash (like Dala nav). The
- * view is chosen at boot (`main.tsx`), so switching is a plain navigation.
+ * The other view as one ghost link: «заглянуть в мозг» from the dish, «в террариум» from the brain.
+ * `onPeek` takes the click when it can fly there (the dish's zoom into her head); else it navigates.
  */
-export const ViewSwitch = observer(function ViewSwitch({ className }: { className?: string }) {
+export const ViewSwitch = observer(function ViewSwitch({
+  onPeek,
+  className,
+}: {
+  onPeek?: () => boolean;
+  className?: string;
+}) {
   const dish = app.params.view === 'dish';
   return (
-    <nav aria-label={t('view.switch')} className={cn('pointer-events-auto flex items-center', className)}>
-      {([false, true] as const).map((d, i) => (
-        <span key={String(d)} className="flex items-center">
-          {i > 0 && (
-            <span aria-hidden className="px-0.5 text-caption text-ash">
-              ·
-            </span>
-          )}
-          <Button
-            variant="ghost"
-            asChild
-            className="h-8 px-2 text-caption text-ash aria-[current=page]:text-bone md:h-6 md:px-1"
-          >
-            <a href={href(d)} aria-current={d === dish ? 'page' : undefined}>
-              {t(d ? 'view.dish' : 'view.brain')}
-            </a>
-          </Button>
-        </span>
-      ))}
-    </nav>
+    <Button
+      variant="ghost"
+      asChild
+      className={cn(
+        'pointer-events-auto h-8 px-2 text-caption text-ash hover:text-bone md:h-6 md:px-1',
+        className,
+      )}
+    >
+      <a
+        href={viewHref({ dish: !dish })}
+        onClick={(e) => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+          if (onPeek?.()) e.preventDefault();
+        }}
+      >
+        {t(dish ? 'view.peek' : 'view.home')}
+      </a>
+    </Button>
   );
 });
