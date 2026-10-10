@@ -1,5 +1,4 @@
 import { makeAutoObservable } from 'mobx';
-import { HINTS, LEVELS, nextHint, solves } from '../scene/dish/levels';
 import type { DecisionEvent, Pull } from '../scene/dish/loop';
 import type { Op, Outcome } from '../scene/dish/verdict';
 import type { WhyHop } from '../scene/dish/why';
@@ -41,74 +40,9 @@ export class DishStore {
   zooming = false;
   /** Cells the brain view silenced / drove, now on in the fly (null = none). */
   brain: { off: number; on: number } | null = null;
-  /** The puzzle on the strip (index into `LEVELS`); null = free play. */
-  level: number | null = null;
-  /** Hint rungs shown for it. */
-  hint = 0;
-  /** The outcome that solved it, once solved. */
-  won: Outcome | null = null;
-  /** Puzzles solved, remembered per browser. */
-  solved: Set<number>;
-  /** Bumped on each (re)start of a puzzle: the dish resets and lays it out. */
-  round = 0;
 
-  constructor(private readonly memory: LevelMemory = levelMemory) {
-    this.solved = new Set(memory.load().solved);
-    makeAutoObservable<this, 'memory'>(this, { memory: false });
-  }
-
-  /**
-   * The puzzle to open with: `?level=` (0 = none), else none when the visitor closed the strip, came
-   * with a set-up dish or solved them all, else the first unsolved one.
-   */
-  firstLevel(param: number | undefined, setUp: boolean): number | null {
-    if (param !== undefined) return param > 0 ? param - 1 : null;
-    if (setUp || this.memory.load().closed) return null;
-    const i = LEVELS.findIndex((_, i) => !this.solved.has(i));
-    return i < 0 ? null : i;
-  }
-
-  /** Lay a puzzle out: operations off, no card open, its tool in hand; the dish resets (`round`). */
-  startLevel(i: number): void {
-    const l = LEVELS[i];
-    if (!l) return;
-    this.level = i;
-    this.hint = 0;
-    this.won = null;
-    this.ops.clear();
-    this.open = null;
-    this.hand = l.hand;
-    this.tab = 'items';
-    this.round++;
-  }
-
-  nextLevel(): void {
-    if (this.level !== null) this.startLevel(this.level + 1);
-  }
-
-  /** One more rung; the last opens the answer's card. */
-  showHint(): void {
-    if (this.level === null) return;
-    this.hint = nextHint(this.hint);
-    if (this.hint === HINTS) this.setOpen(LEVELS[this.level]?.op ?? null);
-  }
-
-  setHint(h: number): void {
-    this.hint = Math.min(Math.max(h, 0), HINTS);
-    if (this.hint === HINTS && this.level !== null) this.setOpen(LEVELS[this.level]?.op ?? null);
-  }
-
-  /** Free play; remembered, so the strip stays closed on the next visit. */
-  closeLevels(): void {
-    this.level = null;
-    this.memory.save({ solved: [...this.solved], closed: true });
-  }
-
-  /** Back to the puzzles at the first unsolved one (or the first). */
-  openLevels(): void {
-    const i = LEVELS.findIndex((_, i) => !this.solved.has(i));
-    this.memory.save({ solved: [...this.solved], closed: false });
-    this.startLevel(Math.max(i, 0));
+  constructor() {
+    makeAutoObservable(this);
   }
 
   setBrain(n: { off: number; on: number } | null): void {
@@ -174,12 +108,6 @@ export class DishStore {
   setNow(op: Op, o: Outcome): void {
     this.now[op] = o;
     this.last = op;
-    const l = this.level === null ? undefined : LEVELS[this.level];
-    if (this.level !== null && l && !this.won && solves(l, op, o)) {
-      this.won = o;
-      this.solved.add(this.level);
-      this.memory.save({ solved: [...this.solved], closed: false });
-    }
   }
 
   /** Pick a tool up; the same tool again puts it down. */
@@ -195,32 +123,5 @@ export class DishStore {
     this.empty = empty;
   }
 }
-
-export interface LevelMemory {
-  load(): { solved: number[]; closed: boolean };
-  save(m: { solved: number[]; closed: boolean }): void;
-}
-
-const LEVELS_KEY = 'fly_ui.levels';
-
-/** localStorage-backed; missing / throwing storage = nothing solved, nothing remembered. */
-export const levelMemory: LevelMemory = {
-  load() {
-    try {
-      const m = JSON.parse(localStorage.getItem(LEVELS_KEY) ?? 'null');
-      const solved = Array.isArray(m?.solved) ? m.solved.filter(Number.isInteger) : [];
-      return { solved, closed: m?.closed === true };
-    } catch {
-      return { solved: [], closed: false };
-    }
-  },
-  save(m) {
-    try {
-      localStorage.setItem(LEVELS_KEY, JSON.stringify(m));
-    } catch {
-      // not remembered: fine
-    }
-  },
-};
 
 export const dish = new DishStore();

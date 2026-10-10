@@ -64,7 +64,7 @@ export const DishSheet = observer(function DishSheet({
                 <ItemButtons input={input} />
               </section>
               <section aria-label={t('dish.hands')} className="flex gap-1">
-                <HandButtons />
+                <HandButtons input={input} />
               </section>
             </div>
           </div>

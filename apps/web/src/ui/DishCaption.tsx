@@ -6,6 +6,7 @@ import { num, t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { app } from '@/state/app';
 import { dish } from '@/state/dish';
+import { trial } from '@/state/trial';
 import { PULL_GLYPH, puppetHops } from './puppet';
 
 /** Wall ms a decision's caption stays up (snaps keep it). */
@@ -14,6 +15,7 @@ const SHOW_MS = 4000;
 /**
  * The last decision under the dish, in the Captions format: phrase + mono term, e.g.
  * «Тень → прыжок · LC4 → DNp01 → TTMn · 8 мс». Forced cells (no sense) name only the command.
+ * Before any, on desktop: the palette hint.
  */
 export const DishCaption = observer(function DishCaption() {
   const d = dish.decision;
@@ -46,6 +48,10 @@ export const DishCaption = observer(function DishCaption() {
         'pointer-events-none absolute inset-x-4 top-[calc(var(--band-top,6rem)+0.25rem)] z-10 mx-auto flex max-w-[32rem] flex-col items-center gap-1 text-center md:top-auto md:bottom-8 md:max-w-[max(16rem,min(32rem,100vw-44rem))]',
       )}
     >
+      {/* desktop: how the palette works, until the first encounter or run */}
+      {!d && dish.empty && trial.run === 0 && (
+        <p className="hidden text-caption text-ash md:block">{t('pal.hint')}</p>
+      )}
       <p
         aria-live="off"
         data-empty={!shown}

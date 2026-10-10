@@ -1,5 +1,5 @@
 import type { ChunkEntry, Manifest } from '@fly/data';
-import { reaction } from 'mobx';
+import { reaction, when } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -7,16 +7,16 @@ import { data } from '@/data/store';
 import { type Key, num, t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import type { BrainData } from '@/scene/dish/holo';
-import { LEVELS } from '@/scene/dish/levels';
 import type { DishRun, DishStatus } from '@/scene/dish/run';
 import { scenarioFor } from '@/scene/dish/zoom';
 import { QUALITY } from '@/scene/quality';
 import { app } from '@/state/app';
 import { dish } from '@/state/dish';
+import { trial } from '@/state/trial';
 import { Credit } from './Credit';
 import { DishCaption } from './DishCaption';
-import { DishLevels } from './DishLevels';
-import { DishOps, OpsStatus } from './DishOps';
+import { DishCard } from './DishCard';
+import { OpsStatus } from './DishOps';
 import { DishPalette } from './DishPalette';
 import { DishSheet } from './DishSheet';
 import { DishWhy } from './DishWhy';
@@ -46,9 +46,10 @@ export const Dish = observer(function Dish() {
   const [run, setRun] = useState<DishRun | null>(null);
   const chrome = useRef<HTMLDivElement>(null);
   const foot = useRef<HTMLDivElement>(null);
+  const progress = useRef<HTMLDivElement>(null);
 
   // the dish centres in the band the chrome leaves: phone, under the strip and over the sheet
-  // (it grows per tab); desktop, between the palette and the operations
+  // (it grows per tab); desktop, between the palette and the experiment card
   useEffect(() => {
     const el = host.current;
     const box = chrome.current;
@@ -89,15 +90,13 @@ export const Dish = observer(function Dish() {
     // desktop columns: the palette widens with the language and the reset button
     for (const c of box.querySelectorAll('[data-band-left], [data-band-right]')) ro.observe(c);
     wide.addEventListener('change', measure);
-    // the puzzle strip remounts as it changes
-    const strip = reaction(() => [dish.level, dish.hint, dish.won, app.lang], measure, {
-      fireImmediately: true,
-    });
+    // the card changes its width with the language and its content with the phase
+    const card = reaction(() => [trial.phase, app.lang], measure, { fireImmediately: true });
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
       wide.removeEventListener('change', measure);
-      strip();
+      card();
     };
   }, [run]);
 
@@ -117,8 +116,9 @@ export const Dish = observer(function Dish() {
     const arriving = from === 'brain';
     // black until the flight out of the head: no chrome over the void
     if (arriving) dish.setZooming(true);
-    if (ops?.[0]) {
-      dish.setOps(ops);
+    if (app.params.exp) trial.repeat(`${app.params.exp.stim}:${app.params.exp.op}`);
+    else if (ops?.[0]) {
+      trial.setOp(ops[0]);
       dish.setOpen(ops[0]);
     }
     if (snap) {
@@ -151,6 +151,7 @@ export const Dish = observer(function Dish() {
         onStatus: (s) => {
           const text = timecode(s);
           if (line.current && line.current.textContent !== text) line.current.textContent = text;
+          if (progress.current) progress.current.style.scale = `${s.trial ?? 0} 1`;
           const b = remove.current;
           hovered.current = s.hover?.id ?? null;
           if (!b) return;
@@ -161,24 +162,39 @@ export const Dish = observer(function Dish() {
       });
       for (const it of items ?? []) run.input.place(it.kind, it);
       setRun(run);
-      // a puzzle (re)start: a fresh dish laid out for it
-      const round = reaction(
-        () => dish.round,
+      // an experiment run: a clean take, hands let go (EXPERIMENT-SHAPE §Loop)
+      const runs = reaction(
+        () => trial.run,
         () => {
-          run.reset();
-          for (const it of LEVELS[dish.level ?? -1]?.items ?? []) run.input.place(it.kind, it);
+          const stim = trial.stim;
+          if (!stim) return;
+          dish.putDown();
+          dish.setPulls();
+          if (!run.trial(stim, (r) => trial.finish(r))) trial.stop();
         },
       );
+      const stops = reaction(
+        () => trial.phase,
+        (ph, was) => was === 'running' && ph === 'setup' && run.stopTrial(),
+      );
       const p = app.params;
-      const first = dish.firstLevel(p.level, !!(items || ops || from || p.experiment));
-      if (first !== null) {
-        dish.startLevel(first);
-        dish.setHint(p.hint ?? 0);
-      }
+      // snaps: run the `?exp=` pair as soon as the live brain is up
+      const auto = p.run
+        ? when(
+            () => dish.cells !== null,
+            () => trial.start(true),
+          )
+        : () => {};
       if (p.sheet) dish.setTab(p.sheet);
       const quality = reaction(
         () => app.quality,
         (q) => run.applyQuality(QUALITY[q]),
+      );
+      // the card's op is live state: free play uses it too
+      const slot = reaction(
+        () => trial.op,
+        (op) => dish.setOps(op === 'none' ? [] : [op]),
+        { fireImmediately: true },
       );
       const surgery = reaction(
         () => [...dish.ops],
@@ -202,7 +218,10 @@ export const Dish = observer(function Dish() {
         (w) => app.params.why && w && dish.setWhyOpen(true),
       );
       dispose = () => {
-        round();
+        runs();
+        stops();
+        auto();
+        slot();
         quality();
         surgery();
         puppet();
@@ -273,9 +292,8 @@ export const Dish = observer(function Dish() {
           ×
         </Button>
         {run && <DishPalette input={run.input} />}
-        {run && <DishOps onClearBrain={clearBrain} />}
+        <DishCard progress={progress} />
         <OpsStatus />
-        <DishLevels />
         <DishCaption />
         <DishWhy />
         <div
