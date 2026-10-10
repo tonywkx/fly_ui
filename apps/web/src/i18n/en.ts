@@ -187,7 +187,7 @@ export const en: Shape<typeof ru> = {
   'why.title.jump': 'Why did the fly jump?',
   'why.title.eat': 'Why is the fly eating?',
   'why.title.back': 'Why is the fly backing off?',
-  'why.title.court': 'Why is the fly courting?',
+  'why.title.court': 'Why is the male courting?',
   'why.sense.loom': 'Shadow',
   'why.sense.sugar': 'Sugar under the proboscis',
   'why.sense.bitter': 'Bitter under the proboscis',
