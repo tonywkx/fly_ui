@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-10 — 9.2 Norm table + determinism
+Done: `World(seed)` reseeds on `reset()` (reruns retrace; tests in `world.test.ts`, `loop.test.ts`). `packages/sim/src/deliver.ts`: scripted delivery per stimulus (`STIMULI`, `delivery(stim)` tick before each step), shared by pipeline + card. `apps/pipeline/src/explore/norm.ts` (`explore:norm [--write]`, ≈4.5 min) → `apps/web/src/scene/dish/table.ts` (`NORM[stim][brain]`), findings + 12 discoveries with bet chips in `docs/TERRARIUM.md` §Norm table; EXPERIMENT-SHAPE §Open settled.
+State: tests 568 / typecheck / lint green. No UI change.
+Next: 9.3 experiment model `state/experiment.ts` (slots, bet, phases, run end = decision + 300 ms or 600 ms, result vs `NORM`, journal, `fly_ui.found`; puzzles = discoveries 5–8).
+Gotchas: banana is out of the stimulus slot (never decides) but stays in `STIMULI`. MDN-on × shadow/swatter and P1 on flicker (not robust) — not discoveries, P1 on not a card op. Latency in `NORM` is from sense onset in the closed loop (eat 61, back 60, court 110, jump 24–35), not `USUAL.ms` (8.1 open-loop first spike). Swatter × DNp01 off = hit in all seeds (`hit: true`, action 'back' is after reassembly). Discovery titles/teasers are EN drafts — RU copy with the user in 9.6.
+
 ## 2026-10-10 — 9.1 Experiment shape
 Done: `docs/EXPERIMENT-SHAPE.md` (approved): loop give → change → bet → run → result (обычно / сейчас / прогноз) → replay → discovery; card states, replay, discoveries tab, 4-step onboarding in the card, phone tabs «Опыт · Положить · Открытия», what goes (DishLevels, why-card popover, multi-op list), states, RU/EN copy table.
 State: docs only, no code. PLAN 9.1 ticked.
@@ -23,9 +29,3 @@ Done: `packages/sim/src/lif.ts` lazy integration — only neurons that could rea
 State: sugar 127 → 764 sim ms/s headless (spike counts unchanged), browser dish 2494 sim ms/s, 60 fps, clock 100 % of ×1/6. Tests/typecheck/lint green. Pre-existing biome error in `DishLevels.tsx` fixed with an ignore (test-runner tried `[]` deps — would break focus; reverted).
 Next: rest of 8.15 — 1280×800 rim vs palette/panel, smoke «Terrarium loads + an operation changes behaviour», visual-qa RU/EN 1600/390, ui-critic.
 Gotchas: the slowdown was never sugar-specific — any sustained input woke ~80k neurons (QUIET 1e-4 kept every kicked cell stepped ~150 ms). Now delivery-bound (~35M edge hits per sim s with sugar); loom (311 cells) is the slowest input at ~630. The test-runner agent may apply biome *unsafe* fixes via `pnpm fix` — check its diff.
-
-## 2026-10-07 — 8.14 Phone
-Done: `ui/DishSheet.tsx` (tabs «Предметы · Нейрохирург · Кукла», roving tabindex, Home/End); `DishOps` → `OpsList` (`compact`: 2×2 heads + open body; fact hidden on phones, term/«обычно» hidden under 760 px tall) + `OpsStatus`; `DishPalette` → `ItemButtons`/`HandButtons`/`Puppet phone`; `DishStore.tab` (`setOpen` → ops tab, `startLevel` → items), param `sheet=`; `DishScene.frameBand` (camera view offset glides the dish into the band between top chrome and the sheet, measured in `Dish.tsx`; `--band-top` places the caption); `scene/dish/slowmo.ts` (+ test) → timecode `×1/{slow}` = real slow-motion; levels + why-card CTA on phones; `pnpm perf --cpu=N`, dish clock pace + `[sim]` lines.
-State: e2e 390×844 live sim (tap item, panic off + ↑ no jump, ↑ jumps, why CTA → ops tab) green; tests/typecheck/lint/smoke green; snaps 390/375×667 RU/EN OK, desktop unchanged. Live brain on phones (DECISIONS).
-Next: 8.15 perf — the sim worker slows ~2× once sugar is in the dish (84 sim ms/s vs 167 target, desktop too); then 1280×800 rim vs palette/panel, smoke for the Terrarium (no clip).
-Gotchas: CDP `setCPUThrottlingRate` doesn't reach the dedicated worker — phone sim speed can't be emulated headless. `snap=1` freezes the dish clock (perf needs `--snap=0`). On iPhone SE with 3 hint rungs the fly sits just above the ops panel (tight). The level strip's focus effect ran twice under StrictMode (fixed by comparing values). A class named `Pace` clashed with `sim/client`'s `Pace` type.
