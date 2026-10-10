@@ -15,7 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { type Key, t } from '@/i18n';
 import { cn } from '@/lib/utils';
-import { CARD_STIMULI, type CardStimulus, DISCOVERIES } from '@/scene/dish/discoveries';
+import { CARD_STIMULI, type CardStimulus, DISCOVERIES, type Discovery } from '@/scene/dish/discoveries';
 import type { Brain } from '@/scene/dish/table';
 import { OPS, type Op } from '@/scene/dish/verdict';
 import { app } from '@/state/app';
@@ -258,7 +258,7 @@ const Bet = observer(function Bet() {
     <fieldset
       // phone: the onboarding's question is the point of the step, scroll the sheet to it
       ref={(el) => {
-        if (el && onb && phone) el.scrollIntoView({ block: 'nearest' });
+        if (el && onb && phone) el.scrollIntoView({ block: 'start' });
       }}
       className="flex flex-col gap-1.5"
     >
@@ -300,7 +300,9 @@ const Setup = observer(function Setup({ onClearBrain }: { onClearBrain: () => vo
       {/* phone: the slots and the bet scroll, «Запустить» stays in view under them */}
       <div
         {...more}
-        className={phone ? cn('-mx-2 flex min-h-0 flex-col gap-3 overflow-y-auto px-2', MORE) : 'contents'}
+        className={
+          phone ? cn('-mx-2 flex min-h-0 flex-col gap-3 overflow-y-auto px-2 pb-1', MORE) : 'contents'
+        }
       >
         {(!solo || open === 'give') && <Give open={open === 'give'} onToggle={() => toggle('give')} />}
         {(!solo || open === 'change') && (
@@ -461,14 +463,10 @@ function Unlock({ o, to, onLand }: { o: Outcome; to: RefObject<HTMLElement | nul
   if (!o.unlocked) return null;
   return (
     <p className="px-2 text-label text-saffron">
-      <span ref={star} className="inline-block text-saffron">
+      <span ref={star} aria-hidden="true" className="inline-block text-saffron">
         ✦
       </span>{' '}
-      {t('exp.unlock', {
-        n: trial.found.length,
-        of: DISCOVERIES.length,
-        title: t(`found.${o.unlocked.stim}.${o.unlocked.op}` as Key),
-      }).replace(/^✦\s*/, '')}
+      {unlockLine(o.unlocked)}
     </p>
   );
 }
@@ -525,10 +523,12 @@ const Result = observer(function Result({
 
 /** Onboarding after a result: step 2 leads on to the operation, step 4 hands the card over. */
 function OnbResult({ step }: { step: 2 | 4 }) {
+  // phone: the stimuli are under «Положить», not on the left
+  const phone = useContext(Phone);
   return (
     <>
       <p role="status" className="px-2 text-body leading-tight text-bone">
-        {t(step === 2 ? 'onb.2' : 'onb.4')}
+        {t(step === 2 ? 'onb.2' : phone ? 'onb.4.phone' : 'onb.4')}
       </p>
       {/* the long pill takes its own line when the card is narrow, «пропустить» under it */}
       <div className="flex flex-wrap-reverse items-center justify-end gap-1">
@@ -679,7 +679,8 @@ export const DishCard = observer(function DishCard({
           )}
         </div>
         <p role="status" className="sr-only">
-          {o && `${headline(o)}. ${t('exp.now')}: ${nowLine(o)}`}
+          {o &&
+            `${headline(o)}. ${t('exp.now')}: ${nowLine(o)}${o.unlocked ? `. ${unlockLine(o.unlocked)}` : ''}`}
         </p>
       </section>
     </Phone.Provider>
@@ -691,8 +692,8 @@ function markMore(el: HTMLElement): void {
   el.toggleAttribute('data-more', el.scrollHeight - el.scrollTop - el.clientHeight > 4);
 }
 
-/** More below: the bottom 3rem fades out. */
-const MORE = 'data-more:[mask-image:linear-gradient(to_bottom,black_calc(100%-3rem),transparent)]';
+/** More below: the bottom 1.5rem fades out (3rem ate a whole chip row in a 700-tall sheet). */
+const MORE = 'data-more:[mask-image:linear-gradient(to_bottom,black_calc(100%-1.5rem),transparent)]';
 
 /** A scroller's `data-more`, re-measured after each render and on any resize of it or its content. */
 function useMore() {
@@ -787,4 +788,13 @@ function Tabs({
       ))}
     </div>
   );
+}
+
+/** «Открытие n/12: …» — the result's line and its announcement. */
+function unlockLine(d: Discovery): string {
+  return t('exp.unlock', {
+    n: trial.found.length,
+    of: DISCOVERIES.length,
+    title: t(`found.${d.stim}.${d.op}` as Key),
+  });
 }
