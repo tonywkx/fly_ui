@@ -297,9 +297,6 @@ Discovery titles and teasers (12 + 12) are written in 9.2 with the list; the fou
 
 ## Open (for 9.2+)
 
-- **The 12 discoveries and their 3 bet choices** — picked from the norm table in 9.2 (pairs where the op changes the outcome, plus 2–3 "normal" pairs that teach the norm, e.g. sugar → eats).
-- **Banana in the stimulus slot**: alone it never reaches a decision (TERRARIUM.md: no steering, decides only at a source). Either drop it from the slot (palette-only free play) or deliver it with sugar at the source. 9.2 decides from the table.
-- **«Ничего» as a stimulus** for «Нейрон заднего хода · включить» (MDN on needs no stimulus): keep a «Ничего не даём» row, or have the op imply it. 9.2.
-- **Run timeout and tail** (sim ms) — 9.2 from the latencies (sugar 22 ms … bitter 52 ms; the walk-in for sugar is scripted and longer).
+Settled in 9.2 from the norm table (docs/TERRARIUM.md §Norm table): the 12 discoveries and their bet chips; banana leaves the stimulus slot (6 rows: sugar, bitter, female, shadow, swatter, «Ничего не даём»); run = first decision + 300 ms tail, or 600 ms timeout; P1 on is not a card op (flickers with back).
+
 - **Replay of the normal fly** («как было бы обычно») — needs a second recorded run; backlog with the ghost-of-the-norm trail unless 9.5 gets it cheap.
-- **P1 on** as a fifth op (pIP10 188 Hz → courts with no female) — only if 9.2 shows it's robust; the slot design holds 5–6 ops.

@@ -102,3 +102,99 @@ Findings:
 
 ### Long run (8.5, world + sim headless, 1.5 s, seeds 1–3)
 The 300 ms table above misses a slow drift: under sustained sugar or female drive MDN creeps to 47–135 Hz after 450–600 ms and broke off eating / courting into `back`. Fixes: an ongoing eat / court yields to back only at `PREEMPT_BACK` = 150 Hz (bitter from walk still uses 60); court + gate kernels τ = 120 ms (pIP10 fires in bursts; 40 ms dropped courtship between them); female seen at full strength within 3 mm (world `FEMALE_FULL`; at 3 mm to the side the old linear falloff gave pC1 ≈ 2 Hz < gate 3). After: sugar → eat for the whole run on all seeds; female ahead / left → court (seed 3 hesitates once into back ≈ 300 ms when court dips below its off level); bitter → back; empty dish → walk.
+
+## Norm table (9.2)
+
+Script: `pnpm -C apps/pipeline explore:norm [--write]` ([explore/norm.ts](../apps/pipeline/src/explore/norm.ts)): world + sim headless, 1 ms ticks as `DishLoop`, scripted delivery from `packages/sim/src/deliver.ts` (the same take the experiment card runs), 7 stimuli × (none + 4 ops + exploratory P1 on) × seeds 1–3, ≈ 4.5 min. `--write` regenerates `apps/web/src/scene/dish/table.ts` (card ops only).
+
+Seeds 1–3, 1500 ms. Columns: brain state (none, DNp01 off, MDN on, sugar GRNs off, P1 off, P1 on).
+
+First decision · ms from sense onset · `~` = seeds disagree · ✗hit = swatter hit.
+
+| stimulus | none | panic | moon | sugar | p1 | p1on |
+| --- | --- | --- | --- | --- | --- | --- |
+| sugar | eat 61 | eat 61 | back | walk | eat 61 | court |
+| bitter | back 60 | back 60 | back 2 | back 60 | back 60 | court |
+| banana | walk | walk | back | walk | walk | court |
+| female | court 110 | court 110 | back | court 110 | walk | court 28 |
+| shadow | jump 35 | walk | back | jump 35 | jump 35 | court |
+| swatter | jump 24 | back ✗hit | ~back | jump 24 | jump 24 | jump 27 |
+| none | walk | walk | back | walk | walk | court |
+
+Per seed: action sequence @ first decision ms (peak Hz TTMn / MDN / MN9 / pIP10 / pC1)
+
+- sugar × none: eat @84 (0/104/259/4/0); eat @82 (0/78/260/0/0); eat @81 (0/79/258/0/0)
+- sugar × panic: eat @84 (0/104/259/4/0); eat @82 (0/78/260/0/0); eat @81 (0/79/258/0/0)
+- sugar × moon: back @26 (57/154/91/39/2); back @29 (76/183/91/37/2); back @16 (91/221/0/0/0)
+- sugar × sugar: walk (0/0/0/0/0); walk (0/0/0/0/0); walk (0/0/0/0/0)
+- sugar × p1: eat @84 (0/104/259/4/0); eat @82 (0/78/260/0/0); eat @81 (0/79/258/0/0)
+- sugar × p1on: court→back @59 (0/191/38/216/135); court→back→court→back→court→back→court @44 (0/229/0/214/134); court→back @60 (0/213/33/214/135)
+- bitter × none: back @82 (74/177/0/0/0); back @81 (39/129/99/41/3); back @79 (46/139/100/40/3)
+- bitter × panic: back @82 (74/177/0/0/0); back @81 (39/129/99/41/3); back @79 (46/139/100/40/3)
+- bitter × moon: back @23 (93/234/81/24/1); back @35 (29/167/92/38/2); back @16 (91/221/0/0/0)
+- bitter × sugar: back @82 (74/177/0/0/0); back @81 (39/129/99/41/3); back @79 (46/139/100/40/3)
+- bitter × p1: back @82 (44/177/0/0/0); back @81 (48/129/103/36/0); back @79 (29/139/88/31/0)
+- bitter × p1on: court→back→court→back→court @45 (0/223/38/216/135); court→back→court→back→court→back→court→back @43 (0/225/0/211/134); court→back @52 (0/214/33/214/135)
+- banana × none: walk (0/0/0/0/0); walk (0/0/0/0/0); walk (0/0/0/0/0)
+- banana × panic: walk (0/0/0/0/0); walk (0/0/0/0/0); walk (0/0/0/0/0)
+- banana × moon: back @23 (78/163/95/32/2); back @23 (25/220/97/37/2); back @16 (91/221/0/0/0)
+- banana × sugar: walk (0/0/0/0/0); walk (0/0/0/0/0); walk (0/0/0/0/0)
+- banana × p1: walk (0/0/0/0/0); walk (0/0/0/0/0); walk (0/0/0/0/0)
+- banana × p1on: court→back→court @49 (0/212/38/215/135); court→back→court→back @47 (0/202/0/203/133); court→back @47 (0/193/33/224/135)
+- female × none: court @99 (0/0/89/132/20); court @111 (0/0/12/131/20); court @113 (0/12/0/127/18)
+- female × panic: court @99 (0/0/89/132/20); court @111 (0/0/12/131/20); court @113 (0/12/0/127/18)
+- female × moon: back @36 (26/179/91/53/9); back @39 (32/176/107/62/10); back @25 (25/178/90/54/9)
+- female × sugar: court @99 (0/0/89/132/20); court @111 (0/0/12/131/20); court @113 (0/12/0/127/18)
+- female × p1: walk (45/8/116/83/0); walk (37/12/130/72/0); walk (49/14/96/77/0)
+- female × p1on: court @29 (0/0/40/306/138); court @24 (0/0/23/288/134); court @29 (0/0/55/293/137)
+- shadow × none: jump @35 (237/0/0/0/0); jump→back→jump @38 (242/135/0/0/0); jump @36 (222/23/92/43/3)
+- shadow × panic: walk (84/0/0/0/1); walk (139/0/0/0/1); walk (152/0/0/0/1)
+- shadow × moon: back→jump→back→jump→back→jump→back→jump→back @22 (215/167/88/35/2); back→jump→back→jump→back→jump→back→jump→back @35 (235/250/78/32/2); back→jump→back→jump→back→jump→back→jump→back @23 (234/211/87/35/2)
+- shadow × sugar: jump @35 (237/0/0/0/0); jump→back→jump @38 (242/135/0/0/0); jump @36 (222/23/92/43/3)
+- shadow × p1: jump→back→jump→back @35 (248/149/0/0/0); jump→back @38 (232/99/0/0/0); jump @36 (216/13/91/33/0)
+- shadow × p1on: court→jump→court→back→jump→back→jump→back @52 (222/187/43/213/135); court→jump→court→jump→court→jump→court @48 (209/0/110/243/133); court→jump→court→back→jump→back→jump→back→court→back @65 (198/196/33/202/133)
+- swatter × none: jump @25 (227/32/101/43/3); jump→back @25 (233/76/101/42/3); jump @25 (244/48/99/43/3)
+- swatter × panic: back @300 (133/164/0/0/0); back @232 (132/240/0/0/1); back @228 (130/138/0/0/1)
+- swatter × moon: back→jump→back @17 (233/182/86/31/2); jump→back @25 (226/222/62/26/1); back→jump→back @23 (228/195/88/36/2)
+- swatter × sugar: jump @25 (227/32/101/43/3); jump→back @25 (233/76/101/42/3); jump @25 (244/48/99/43/3)
+- swatter × p1: jump→back @25 (226/210/12/8/0); jump @25 (233/17/101/35/0); jump→back @25 (244/92/94/36/0)
+- swatter × p1on: jump→court→back @29 (237/230/0/208/134); jump→court→back→court→back→court→back→court @28 (213/224/0/206/134); jump→court→back→court→back→court→back @28 (232/186/0/220/134)
+- none × none: walk (0/0/0/0/0); walk (0/0/0/0/0); walk (0/0/0/0/0)
+- none × panic: walk (0/0/0/0/0); walk (0/0/0/0/0); walk (0/0/0/0/0)
+- none × moon: back @23 (78/163/95/32/2); back @23 (25/220/97/37/2); back @16 (91/221/0/0/0)
+- none × sugar: walk (0/0/0/0/0); walk (0/0/0/0/0); walk (0/0/0/0/0)
+- none × p1: walk (0/0/0/0/0); walk (0/0/0/0/0); walk (0/0/0/0/0)
+- none × p1on: court→back→court @49 (0/212/38/215/135); court→back→court→back @47 (0/202/0/203/133); court→back @47 (0/193/33/224/135)
+
+### Findings
+- **Every normal pair is robust** over seeds: sugar → eat, bitter → back, female → court, shadow → jump, swatter → jump (escapes, no hit), nothing / banana → walk. Latency from sense onset: swatter 24, shadow 35, bitter 60, sugar 61, female 110 ms (onset = first tick the sense is on; the sugar walk-in before contact is ≈ 20 ms more). These replace `USUAL.ms` (8.1 first-spike numbers, open loop) for the card's «обычно» row.
+- **Ops are specific**: each changes only its own path (DNp01 off leaves eat / back / court alone; sugar GRNs off leaves bitter, loom and female alone; P1 off leaves loom and taste alone).
+- **DNp01 off**: shadow → walk (TTMn peaks 84–152 < 170); swatter → **hit** in every seed (the fly backs only after it reassembles, not an escape). The strongest result in the table.
+- **MDN on** backs with any stimulus and with nothing (onset ≈ 16–23 ms after start); it overrides eat and court. With loom it flickers back ↔ jump (both commands high), so shadow / swatter × MDN on are not robust → not discoveries.
+- **P1 on** (pC1 at 150 Hz) courts with anything, but flickers court ↔ back (MDN 190–230 Hz) in 5 of 7 stimuli; robust only with the female (court at 24–29 ms instead of 110). **Not added as a fifth op.**
+- **Banana** never reaches a decision (no steering from the connectome, nothing at the source).
+
+### Decisions (EXPERIMENT-SHAPE §Open)
+- **Stimulus slot = 6 rows**: sugar, bitter, female, shadow, swatter, «Ничего не даём». Banana leaves the slot (palette free play only). «Ничего» stays: it is the clean MDN-on experiment and the control for every op.
+- **Run end**: first decision + 300 ms tail (the action plays out; a swatter hit is at 120 ms), or 600 ms with no decision (latest normal decision 113 ms sim; slowest op result — swatter hit — at 120).
+- **Ops**: the four card ops stay; P1 on stays a brain-view edit.
+
+### Discoveries (12) and bets
+Bet chips: «Съест» (eat) · «Попятится» (back) · «Взлетит» (jump) · «Будет ухаживать» (court) · «Пойдёт дальше» (walk) · «Не успеет» (hit). Three per pair: the norm, the actual result, one plausible distractor (order shuffled per visit). Titles and teasers are drafts for the RU copy pass in 9.6.
+
+| # | stimulus × op | result (norm) | bet chips | teaser (locked) |
+| --- | --- | --- | --- | --- |
+| 1 | sugar × none | eat | eat · walk · back | What does she do with sugar? |
+| 2 | bitter × none | back | back · eat · walk | And with something bitter? |
+| 3 | shadow × none | jump | jump · back · walk | A shadow from above. |
+| 4 | female × none | court (he) | court · walk · back | A female nearby. |
+| 5 | swatter × DNp01 off | **hit** (norm jump) | jump · hit · back | Let the swatter land (puzzle 1) |
+| 6 | sugar × sugar GRNs off | **walk** (norm eat) | eat · walk · back | Sugar she ignores (puzzle 2) |
+| 7 | female × P1 off | **walk** (norm court) | court · walk · back | A female he ignores (puzzle 3) |
+| 8 | nothing × MDN on | **back** (norm walk) | walk · back · jump | Backwards with nothing at all (puzzle 4) |
+| 9 | shadow × DNp01 off | **walk** (norm jump) | jump · walk · back | A shadow that doesn't scare |
+| 10 | sugar × MDN on | **back** (norm eat) | eat · back · walk | Sugar she backs away from |
+| 11 | female × MDN on | **back** (norm court) | court · back · walk | Backing away from a female |
+| 12 | bitter × sugar GRNs off | back (unchanged) | back · walk · eat | Sugar off — does bitter still work? |
+
+1–4 teach the norm (found on the first run of each stimulus); 5–8 are the Phase 8 puzzles (first guided discoveries); 9–12 show reach (one cell, one escape), override (MDN beats eat, court) and specificity (an op only touches its own path).
