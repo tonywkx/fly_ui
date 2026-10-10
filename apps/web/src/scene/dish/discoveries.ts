@@ -25,7 +25,7 @@ export interface Pair {
 
 export interface Discovery extends Pair {
   id: string;
-  /** The Phase 8 puzzle (index into `LEVELS`) this discovery replaces. */
+  /** The Phase 8 puzzle (its index in `fly_ui.levels`) this discovery replaces. */
   level?: number;
 }
 

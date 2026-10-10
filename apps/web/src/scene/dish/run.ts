@@ -1,6 +1,7 @@
 import {
   type Action,
   COMMANDS,
+  delivery,
   diffDrive,
   type Group,
   OPERATIONS,
@@ -9,6 +10,7 @@ import {
   type PuppetKey,
   SENSE_HZ,
   SENSES,
+  type Stimulus,
   World,
   type WorldEvent,
 } from '@fly/sim';
@@ -22,6 +24,7 @@ import type { BrainData } from './holo';
 import { DishInput } from './input';
 import { type DecisionEvent, DishLoop, type Pull } from './loop';
 import { SlowMo } from './slowmo';
+import { Take, type TakeResult, TIMEOUT } from './take';
 import { OPS, type Op, type Outcome } from './verdict';
 import { explain, type PathRow, type WhyHop } from './why';
 
@@ -61,6 +64,8 @@ export interface DishStatus {
   slow: number;
   /** Hovered item: its canvas px (for the remove button), or null. */
   hover: { id: number; x: number; y: number } | null;
+  /** An experiment run's share of its timeout (0–1), or null with none running. */
+  trial: number | null;
 }
 
 export interface DishRunOptions extends DishSceneOptions {
@@ -112,6 +117,8 @@ export class DishRun {
   private senseCells: Partial<Record<keyof typeof SENSES, number>> = {};
   /** Paused by the «why?» card (its close resumes). */
   private held = false;
+  /** The experiment run in progress and who wants its result. */
+  private take: { take: Take; done: (r: TakeResult) => void } | null = null;
   private readonly heat = new Map<string, number>();
   private clock = 0;
   /** The real slow-motion (the world waits for a slow brain): the timecode's «×1/N». */
@@ -196,8 +203,28 @@ export class DishRun {
     this.applyDrive();
   }
 
+  /**
+   * An experiment run (EXPERIMENT-SHAPE §Loop): a clean dish, the stimulus delivered by script,
+   * `done` at the first decision + a tail or at the timeout. False while the live brain loads.
+   */
+  trial(stim: Stimulus, done: (r: TakeResult) => void): boolean {
+    const l = this.loop;
+    if (!l) return false;
+    this.reset();
+    l.script = delivery(stim);
+    this.take = { take: new Take(l.t), done };
+    return true;
+  }
+
+  /** Aborts the run: the script stops, nothing is reported. */
+  stopTrial(): void {
+    this.take = null;
+    if (this.loop) this.loop.script = null;
+  }
+
   /** Items, fly, trail, clock and the brain back to t = 0; operations and held keys stay on. */
   reset(): void {
+    this.take = null;
     this.loop?.reset();
     if (!this.loop) this.world.reset();
     this.steer();
@@ -370,7 +397,13 @@ export class DishRun {
         this.scene.decide(d);
         this.o.onDecision?.(d, explain(d, c.log, this.pathRows, this.senseCells[PATHS[d.action].sense] ?? 0));
       }
+      this.take?.take.feed(l.decisions, ev);
       l.decisions.length = 0;
+      if (this.take?.take.done(l.t)) {
+        const { take, done } = this.take;
+        this.take = null;
+        done(take.result(l.peak));
+      }
       this.measureHeat(l.t, c.log);
       if (until !== undefined && l.t >= until && !this.ready) {
         this.ready = true;
@@ -398,6 +431,7 @@ export class DishRun {
       flash: this.flash?.word ?? null,
       slow: this.pace.slow,
       hover: it ? { id: it.id, ...this.scene.project(it.x, it.y) } : null,
+      trial: this.take ? Math.min(1, (t - this.take.take.t0) / TIMEOUT) : null,
     });
   }
 

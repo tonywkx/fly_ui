@@ -104,9 +104,9 @@ export class TrialStore {
     this.bet = b;
   }
 
-  /** Starts a run if it can; the scene reacts to `run`. */
-  start(): boolean {
-    if (!this.canRun) return false;
+  /** Starts a run if it can (`force`: without the bet, `?run=1`); the scene reacts to `run`. */
+  start(force = false): boolean {
+    if (!(this.canRun || (force && this.phase !== 'running' && this.pair))) return false;
     this.phase = 'running';
     this.outcome = null;
     this.run++;

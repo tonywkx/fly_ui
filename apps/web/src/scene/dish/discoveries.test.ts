@@ -11,7 +11,6 @@ import {
   type Result,
   shuffle,
 } from './discoveries';
-import { LEVELS } from './levels';
 
 /** Bet chips of docs/TERRARIUM.md §Discoveries, in table order. */
 const BETS: Result[][] = [
@@ -60,7 +59,13 @@ describe('discoveries', () => {
   it('the puzzles are discoveries 5–8, one per level', () => {
     const guided = DISCOVERIES.filter((d) => d.level !== undefined);
     expect(guided.map((d) => DISCOVERIES.indexOf(d))).toEqual([4, 5, 6, 7]);
-    for (const d of guided) expect(LEVELS[d.level ?? -1]?.op).toBe(d.op);
+    // Phase 8 order (`fly_ui.levels` indices): swatter, sugar, P1, MDN
+    expect(guided.map((d) => [d.level, d.op])).toEqual([
+      [0, 'panic'],
+      [1, 'sugar'],
+      [2, 'p1'],
+      [3, 'moon'],
+    ]);
   });
 
   it('shuffle is a seeded permutation', () => {

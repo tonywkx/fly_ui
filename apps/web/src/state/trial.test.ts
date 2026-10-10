@@ -28,6 +28,15 @@ describe('TrialStore', () => {
     expect(s.canRun).toBe(true);
   });
 
+  it('a forced start (`?run=1`) skips the bet but still needs a stimulus', () => {
+    const { s } = setup();
+    expect(s.start(true)).toBe(false);
+    s.setStim('swatter');
+    expect(s.start(true)).toBe(true);
+    s.finish(take());
+    expect(s.outcome).toMatchObject({ bet: null, first: true });
+  });
+
   it('setup → running → result; the first run unlocks its discovery and is remembered', () => {
     const { s, mem } = setup();
     s.setStim('swatter');

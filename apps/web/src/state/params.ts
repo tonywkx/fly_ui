@@ -1,7 +1,7 @@
 import type { ItemKind } from '@fly/sim';
 import { COLOR_BY, type ColorBy, isColorBy } from '../data/colorBy';
 import { isLang, LANGS, type Lang } from '../i18n';
-import { HINTS, LEVELS } from '../scene/dish/levels';
+import { type Pair, parsePair } from '../scene/dish/discoveries';
 import { PULLS, type Pull } from '../scene/dish/loop';
 import { OPS, type Op } from '../scene/dish/verdict';
 import { isQuality, QUALITIES, type Quality } from '../scene/quality';
@@ -65,10 +65,10 @@ export interface Params {
   puppet?: Pull[];
   /** Dish: open the «why?» card on the last decision (snaps). */
   why?: true;
-  /** Dish puzzle to open, 1..4 (0 = free play, no puzzle strip). */
-  level?: number;
-  /** Hint rungs shown for that puzzle, 0..3 (snaps). */
-  hint?: number;
+  /** Dish: the experiment card's slots (`stim[:op]`, e.g. `swatter:panic`). */
+  exp?: Pair;
+  /** Dish: run that experiment once the live brain is up (snaps). */
+  run?: true;
   /** Dish, phone: the sheet's tab (snaps). */
   sheet?: Tab;
   /** First-visit tour: 0 = off, 1..4 = open at that step (see `state/tour.ts`). */
@@ -104,15 +104,13 @@ export function parseParams(search: string): { params: Params; warnings: string[
   ms('intro');
   ms('zoom');
 
-  const int = (key: 'level' | 'hint', max: number) => {
-    const v = q.get(key);
-    if (v === null) return;
-    const n = Number(v);
-    if (v !== '' && Number.isInteger(n) && n >= 0 && n <= max) params[key] = n;
-    else warnings.push(`${key}: expected an integer 0..${max}, got "${v}"`);
-  };
-  int('level', LEVELS.length);
-  int('hint', HINTS);
+  const exp = q.get('exp');
+  if (exp !== null) {
+    const p = parsePair(exp);
+    if (p) params.exp = p;
+    else warnings.push(`exp: expected stim[:op] from the card, got "${exp}"`);
+  }
+  if (flag(q.get('run'))) params.run = true;
 
   const sheet = q.get('sheet');
   if (sheet !== null) {

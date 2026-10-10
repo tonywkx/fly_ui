@@ -190,15 +190,16 @@ describe('parseParams', () => {
     expect(bad.warnings).toHaveLength(2);
   });
 
-  it('reads a puzzle level and its hint rung', () => {
-    const { params, warnings } = parseParams('?view=dish&level=2&hint=3');
-    expect(params).toMatchObject({ level: 2, hint: 3 });
+  it('reads an experiment pair and the run flag, ignoring old puzzle params', () => {
+    const { params, warnings } = parseParams('?exp=swatter:panic&run=1&level=2&hint=3');
+    expect(params.exp).toEqual({ stim: 'swatter', op: 'panic' });
+    expect(params.run).toBe(true);
+    expect(params).not.toHaveProperty('level');
     expect(warnings).toEqual([]);
-    expect(parseParams('?level=0').params.level).toBe(0);
-    const bad = parseParams('?level=9&hint=1.5');
-    expect(bad.params.level).toBeUndefined();
-    expect(bad.params.hint).toBeUndefined();
-    expect(bad.warnings).toHaveLength(2);
+    expect(parseParams('?exp=sugar').params.exp).toEqual({ stim: 'sugar', op: 'none' });
+    const bad = parseParams('?exp=banana:panic');
+    expect(bad.params.exp).toBeUndefined();
+    expect(bad.warnings).toHaveLength(1);
   });
 
   it('reads the phone sheet tab', () => {

@@ -1,11 +1,13 @@
 import { FLY_LEN, type ItemKind, type World } from '@fly/sim';
 import { reaction } from 'mobx';
 import { dish, type Hand } from '@/state/dish';
+import { trial } from '@/state/trial';
 import type { DishScene } from './DishScene';
+import type { CardStimulus } from './discoveries';
 import type { Pull } from './loop';
 import { ahead, inDish, itemAt, type Spot } from './place';
 
-/** Keys 1–4 place, 5–6 pick up a hand (TERRARIUM-SHAPE §Layout). */
+/** Palette rows by key 1–6 (TERRARIUM-SHAPE §Layout); a key or a tap fills the card's stimulus slot. */
 export const ITEM_KEYS: readonly ItemKind[] = ['sugar', 'bitter', 'odor', 'female'];
 export const HAND_KEYS: readonly Hand[] = ['shadow', 'swatter'];
 /** Puppet mode: arrows held → cells driven (↑ ↓) or steering (← →). */
@@ -15,7 +17,15 @@ export const PULL_KEYS: Readonly<Record<string, Pull>> = {
   ArrowLeft: 'left',
   ArrowRight: 'right',
 };
-/** A palette press that moves less than this (px) is a tap: place ahead of the fly. */
+/** The card's stimulus for a palette row (banana is free play only: a tap places it). */
+export const SLOT_OF: Readonly<Partial<Record<ItemKind | Hand, CardStimulus>>> = {
+  sugar: 'sugar',
+  bitter: 'bitter',
+  female: 'female',
+  shadow: 'shadow',
+  swatter: 'swatter',
+};
+/** A palette press that moves less than this (px) is a tap (the slot, or placed ahead of the fly). */
 const TAP_PX = 6;
 /** A floor point this close to the fly (mm) is on her. */
 const FLY_HIT = 0.6 * FLY_LEN;
@@ -115,9 +125,9 @@ export class DishInput {
 
   /**
    * A press on a palette row: dragging shows a ghost and drops into the dish on release; a tap
-   * places ahead of the fly. Pointer capture keeps the moves coming to the row.
+   * calls `tap` (default: place ahead of the fly). Pointer capture keeps the moves coming to the row.
    */
-  dragNew(kind: ItemKind, e: PointerEvent): void {
+  dragNew(kind: ItemKind, e: PointerEvent, tap = () => void this.place(kind)): void {
     const el = e.currentTarget as HTMLElement;
     el.setPointerCapture(e.pointerId);
     const x0 = e.clientX;
@@ -137,11 +147,34 @@ export class DishInput {
       el.removeEventListener('pointercancel', end);
       this.scene.aim(null);
       if (ev.type === 'pointercancel') return;
-      if (!moved) this.place(kind);
+      if (!moved) tap();
       else {
         const p = spot(ev);
         if (p) this.place(kind, p);
       }
+    };
+    el.addEventListener('pointermove', mv);
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+  }
+
+  /** A press on a hand's row: dragged out, the hand becomes the cursor tool; a tap calls `tap`. */
+  dragHand(h: Hand, e: PointerEvent, tap: () => void): void {
+    const el = e.currentTarget as HTMLElement;
+    el.setPointerCapture(e.pointerId);
+    const x0 = e.clientX;
+    const y0 = e.clientY;
+    let moved = false;
+    const mv = (ev: PointerEvent) => {
+      if (moved || Math.hypot(ev.clientX - x0, ev.clientY - y0) <= TAP_PX) return;
+      moved = true;
+      if (dish.hand !== h) dish.toggleHand(h);
+    };
+    const end = (ev: PointerEvent) => {
+      el.removeEventListener('pointermove', mv);
+      el.removeEventListener('pointerup', end);
+      el.removeEventListener('pointercancel', end);
+      if (ev.type !== 'pointercancel' && !moved) tap();
     };
     el.addEventListener('pointermove', mv);
     el.addEventListener('pointerup', end);
@@ -173,6 +206,8 @@ export class DishInput {
       e.stopPropagation();
       return;
     }
+    // a run is a clean take: the camera still orbits
+    if (trial.phase === 'running') return;
     const p = this.scene.pick(e.clientX, e.clientY);
     const hand = dish.hand;
     if (hand) {
@@ -255,13 +290,16 @@ export class DishInput {
       return;
     }
     const n = Number(e.key);
-    const kind = ITEM_KEYS[n - 1];
-    const hand = HAND_KEYS[n - 5];
-    if (kind) {
+    const row = ITEM_KEYS[n - 1] ?? HAND_KEYS[n - 5];
+    const slot = row && SLOT_OF[row];
+    // a run: only stop (Esc) and pause
+    if (trial.phase === 'running' && e.key !== 'Escape' && e.code !== 'Space') return;
+    if (e.key === 'Escape' && trial.phase === 'running') trial.stop();
+    else if (slot) trial.setStim(slot);
+    else if (row === 'odor') {
       const p = this.pointer && this.scene.pick(this.pointer.x, this.pointer.y);
-      this.place(kind, p);
-    } else if (hand) dish.toggleHand(hand);
-    else if (e.key === 'Escape' && dish.hand) dish.putDown();
+      this.place(row, p);
+    } else if (e.key === 'Escape' && dish.hand) dish.putDown();
     else if (e.code === 'KeyR') this.reset();
     else if (e.code === 'Space') this.run.togglePause();
     else return;
