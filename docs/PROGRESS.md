@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-10 — 9.5 Decision replay
+Done: `scene/dish/replay.ts` (+test: `snap`, ring `Tape`, `Clip.at/between/events`, `span` = sense onset − 50 → decision + 200 ms, `Recorded`); `DishLoop.record` hook per tick; `threadReplay` (thread by sim time: organ at onset → legs at decision); `DishRun` records frames + heat while a take runs, `replay/toggleReplay/seekReplay/stepReplay` (×60, live dish holds, back-seek = clear + resync), missed decision (none or struck) = norm's decision from its sense onset, thread stops at the silent hop; `ui/ReplayBar.tsx` (play + range, Space/←→/Esc/W), `ui/ReplayCaption.tsx` (was `DishWhy` popover — gone), card «Повтор» / «Закрыть», `trial.replaying` (auto on the first result ever), `?replay=<ms>` (replaces `?why=1`).
+State: tests 605 / typecheck / lint green; visual-qa PASS (shadow RU/EN, swatter × DNp01 off «Почему муха не взлетела?», phone 390); ui-critic P1 fixed.
+Next: 9.6 discoveries grid «Открытия N/12» + unlock moment.
+Gotchas: heat is stored in frames (log keeps only 2 s). `DishRun.zooming` is also true during a replay (input inert). Phone replay = bar + caption panel in place of the sheet (full layout in 9.8). The live caption no longer gets a `why` chain (only the run's first decision is explained). After a swatter hit the fly may «back» forced (MDN) while shattered — ignored for the caption.
+
 ## 2026-10-10 — 9.4 Experiment card + palette
 Done: `ui/DishCard.tsx` (slots with in-card pickers, bet chips, «Запустить», running line + hairline, result «обычно / сейчас / прогноз», unlock line; header «Опыт · Открытия n/12»); `ui/expText.ts` (+test) row text; `DishRun.trial/stopTrial` feeds `Take`, `onStatus.trial` = progress; palette rows with `pal.does.*`, saffron dot «в опыте», tap/keys 1–6 → `trial.setStim` (banana = free play), hand dragged out = tool (`DishInput.dragHand`), puppet under «ещё ▾», dimmed + inert while running; `?exp=stim:op`, `&run=1` (`trial.start(true)`, no bet). Dropped `DishLevels`, `levels.ts`, puzzle state in `dish.ts`, `?level/?hint`, `level.*` copy; desktop `DishOps` column gone.
 State: tests 588 / typecheck / lint green; visual-qa PASS (setup, bet, running, result RU/EN, phone untouched); ui-critic fixes applied (focus kept on phase change, Esc + focus return in pickers, reduced motion).
@@ -23,9 +29,3 @@ Done: `docs/EXPERIMENT-SHAPE.md` (approved): loop give → change → bet → ru
 State: docs only, no code. PLAN 9.1 ticked.
 Next: 9.2 norm table + determinism (`apps/pipeline/src/explore/`, `scene/dish/table.ts`, `World.reset()` reseeds rng); also settle the shape's §Open: the 12 discoveries + 3 bet choices per pair, banana in the slot, «Ничего» stimulus for MDN on, run timeout.
 Gotchas: bet/result copy is gender-neutral on purpose («прогноз: взлетит · вышло иначе», no «ты думал(а)»); the bet subject flips to «он» for the female stimulus.
-
-## 2026-10-10 — 8.16 Russian copy pass + Phase 9 plan
-Done: `apps/web/src/i18n/ru.ts` rewritten block by block with the user (glossary → terrarium → ops/puzzles → why-card → tour/captions → brain HUD); EN names kept in step (`en.ts`); glossary in DECISIONS. `ui/DishLevels.tsx` strip wraps (label nowrap, title drops below on phones); nbsp before units in op lines. Phase 9 written in `docs/PLAN.md` (terrarium home, experiment loop, prediction, replay, discoveries).
-State: tests 561 / typecheck / lint green; RU snaps 1600/390 OK for dish, ops, puzzles, puppet, tour, legend. Not snapped: why-card + dish caption (needs a live decision), inspector, an open op card on the phone.
-Next: 9.1 shape — `docs/EXPERIMENT-SHAPE.md` with wireframes 1600/390 via `impeccable`; user approves before code.
-Gotchas: the dish slow-mo factor isn't fixed (`SlowMo.slow` can be any integer), so RU can't say «в N раз» without plurals. visual-qa hit its turn limit on a 6-state brief — give it ≤3 states per call. `?why=1` shows nothing in a static snap (no decision yet).
