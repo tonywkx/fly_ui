@@ -9,6 +9,7 @@ import {
   type Group,
   PATHS,
   type PuppetKey,
+  type Rates,
   type SENSES,
   type Senses,
   senseDrive,
@@ -71,6 +72,10 @@ export class DishLoop {
   readonly changed = new Set<Op>();
   /** Decisions since the caller last drained this list. */
   readonly decisions: DecisionEvent[] = [];
+  /** Each command's peak rate since the last reset, Hz per cell (a run's numbers). */
+  readonly peak: Rates = { jump: 0, back: 0, eat: 0, court: 0, gate: 0 };
+  /** Scripted delivery (`delivery(stim)`), called before each world step; reset drops it. */
+  script: ((w: World) => void) | null = null;
   private readonly meter: CommandMeter;
   /** Per sense: rising edge, last tick on and side (null = off for longer than `TAIL_MS`). */
   private onset: Partial<Record<Sense, { t0: number; last: number; side: Side | null }>> = {};
@@ -96,9 +101,11 @@ export class DishLoop {
       if (i1 > i0) this.meter.add({ t: log.times.subarray(i0, i1), row: log.rows.subarray(i0, i1) });
       this.t += TICK;
       const r = this.meter.rates(this.t);
+      for (const k of Object.keys(r) as Command[]) this.peak[k] = Math.max(this.peak[k], r[k]);
       const prev = this.action;
       this.action = decide(r, prev);
       if (this.action !== prev && this.action !== 'walk') this.decided(this.action);
+      this.script?.(this.world);
       const step = this.world.step(TICK, this.action);
       ev.push(...step);
       const s = this.world.sense();
@@ -118,6 +125,8 @@ export class DishLoop {
     this.verdicts.reset();
     this.changed.clear();
     this.decisions.length = 0;
+    for (const k of Object.keys(this.peak) as Command[]) this.peak[k] = 0;
+    this.script = null;
     this.onset = {};
     this.send(new Map());
   }

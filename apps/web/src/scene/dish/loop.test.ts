@@ -110,4 +110,25 @@ describe('DishLoop', () => {
     expect(loop.decisions).toHaveLength(0);
     expect([...(drives.at(-1)?.hz ?? [])]).toEqual([0, 0]);
   });
+  it('runs the script before each world step; reset drops it', () => {
+    const { loop } = setup();
+    const at: number[] = [];
+    loop.script = (w) => at.push(w.t);
+    loop.advance(3, log([], 0, 10));
+    expect(at).toEqual([0, 1, 2]);
+    loop.reset();
+    expect(loop.script).toBeNull();
+  });
+
+  it('keeps each command peak until reset', () => {
+    const { loop } = setup();
+    loop.advance(60, log([0, 1], 20, 60));
+    const p = loop.peak.jump;
+    expect(p).toBeGreaterThan(0);
+    loop.advance(300, log([], 0, 300));
+    expect(loop.peak.jump).toBe(p);
+    expect(loop.peak.eat).toBe(0);
+    loop.reset();
+    expect(loop.peak.jump).toBe(0);
+  });
 });
