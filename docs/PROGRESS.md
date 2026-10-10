@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-10 — 9.1 Experiment shape
+Done: `docs/EXPERIMENT-SHAPE.md` (approved): loop give → change → bet → run → result (обычно / сейчас / прогноз) → replay → discovery; card states, replay, discoveries tab, 4-step onboarding in the card, phone tabs «Опыт · Положить · Открытия», what goes (DishLevels, why-card popover, multi-op list), states, RU/EN copy table.
+State: docs only, no code. PLAN 9.1 ticked.
+Next: 9.2 norm table + determinism (`apps/pipeline/src/explore/`, `scene/dish/table.ts`, `World.reset()` reseeds rng); also settle the shape's §Open: the 12 discoveries + 3 bet choices per pair, banana in the slot, «Ничего» stimulus for MDN on, run timeout.
+Gotchas: bet/result copy is gender-neutral on purpose («прогноз: взлетит · вышло иначе», no «ты думал(а)»); the bet subject flips to «он» for the female stimulus.
+
 ## 2026-10-10 — 8.16 Russian copy pass + Phase 9 plan
 Done: `apps/web/src/i18n/ru.ts` rewritten block by block with the user (glossary → terrarium → ops/puzzles → why-card → tour/captions → brain HUD); EN names kept in step (`en.ts`); glossary in DECISIONS. `ui/DishLevels.tsx` strip wraps (label nowrap, title drops below on phones); nbsp before units in op lines. Phase 9 written in `docs/PLAN.md` (terrarium home, experiment loop, prediction, replay, discoveries).
 State: tests 561 / typecheck / lint green; RU snaps 1600/390 OK for dish, ops, puzzles, puppet, tour, legend. Not snapped: why-card + dish caption (needs a live decision), inspector, an open op card on the phone.
@@ -23,9 +29,3 @@ Done: `ui/DishSheet.tsx` (tabs «Предметы · Нейрохирург · �
 State: e2e 390×844 live sim (tap item, panic off + ↑ no jump, ↑ jumps, why CTA → ops tab) green; tests/typecheck/lint/smoke green; snaps 390/375×667 RU/EN OK, desktop unchanged. Live brain on phones (DECISIONS).
 Next: 8.15 perf — the sim worker slows ~2× once sugar is in the dish (84 sim ms/s vs 167 target, desktop too); then 1280×800 rim vs palette/panel, smoke for the Terrarium (no clip).
 Gotchas: CDP `setCPUThrottlingRate` doesn't reach the dedicated worker — phone sim speed can't be emulated headless. `snap=1` freezes the dish clock (perf needs `--snap=0`). On iPhone SE with 3 hint rungs the fly sits just above the ops panel (tight). The level strip's focus effect ran twice under StrictMode (fixed by comparing values). A class named `Pace` clashed with `sim/client`'s `Pace` type.
-
-## 2026-10-07 — 8.13 Puppet mode
-Done: `@fly/sim` `PUPPET` (↑ DNp01 @ 1000 Hz → jump, ↓ MDN @ `SENSE_HZ` → back) + `World.steer` (← → replace the wander, scripted); tests. `DishRun.setPulls` + one `applyDrive` (row → max Hz over «on» ops and keys, `diffDrive`; ↓ and «moon» share MDN), steering survives reset; `DishStore.pulls`; `DishInput` arrows keydown/keyup, blur lets go; `ui/DishPalette.tsx` group «Кукла · держи стрелки» (inverted-T caps, hold by pointer or Space, legend key · act · cell); `ui/puppet.ts` (`PULL_GLYPH`, `puppetHops`); caption «Ты нажал ↑ → прыжок · DNp01 → TTMn», why-card line `why.puppet`; param `puppet=up,left`; `explore:terrarium --puppet` sweep.
-State: e2e (live sim): ↑ jumps, panic off + ↑ no jump, ↓ backs, moon + ↓ released still backs; no console errors. visual-qa 1600/1280/390 OK after fix (palette now centred in the band `top-10…bottom-28`, tighter at max-height 860). ui-critic P1 fixed (keyboard hold, aria-keyshortcuts, steer note via aria-describedby).
-Next: 8.14 phone (tabbed layout; puppet caps + ops + why-card CTA on phones).
-Gotchas: DNp01 needs ~1000 Hz Poisson for TTMn ≥ 170 (150 Hz → 86); `gain` does nothing there. At 1280×800 the dish rim runs under the palette's right edge (kbd 5/6, puppet cell names) — legibility, 8.15. EN «back up» wrapped → «reverse».
