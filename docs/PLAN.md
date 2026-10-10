@@ -130,7 +130,7 @@ Goal: the Terrarium is the home page and a newcomer knows what to do in seconds.
 - [x] 9.5 Decision replay: pure ring buffer of world frames (fly pose, items, hands, ~1.5 sim s) + tests; `DishScene` replay mode in slow-mo with the decision thread (`thread.ts`) and hologram heat from `LiveClient.log`; «Повтор» in the result, auto-plays after the first result; `DishWhy` becomes the replay's caption. **[V]**
 - [x] 9.6 Discoveries: grid «Открытия N/12» (what we did → what happened → which neurons, «Повторить опыт» fills the slots), unlock moment (motion per `animate`), counter in the top line. **[V]** **[UI]**
 - [x] 9.7 Terrarium home: default view = dish, brain at `?view=brain`, old links (`?view=dish`, `?scenario=`) keep working (`main.tsx`, `App.tsx`, `state/params.ts`); «Заглянуть в мозг» from the fly (8.9 zoom) + a small link, simpler `ViewSwitch`; first-visit onboarding in the Terrarium; brain tour only on the first brain visit (or cut); ≤15 MB before first frame. **[V]**
-- [ ] 9.8 Phone: sheet tabs for the loop (e.g. «Опыт · Положить · Открытия»), replay + discoveries at 390, snaps. **[V]** **[UI]**
+- [x] 9.8 Phone: sheet tabs for the loop (e.g. «Опыт · Положить · Открытия»), replay + discoveries at 390, snaps. **[V]** **[UI]**
 - [ ] 9.9 Release check: smoke (home = Terrarium, an experiment reaches a result, a discovery unlocks), visual-qa RU/EN 1600/390, ui-critic no P1, 60 fps. **[V]** **[UI]**
 
 ## Backlog / spin-offs (not scheduled)
