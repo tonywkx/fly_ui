@@ -405,7 +405,7 @@ function Replay() {
  */
 export const DishCard = observer(function DishCard({ progress }: { progress: Ref<HTMLDivElement> }) {
   const o = trial.outcome;
-  const head = useRef<HTMLButtonElement>(null);
+  const head = useRef<HTMLHeadingElement>(null);
   const card = useRef<HTMLElement>(null);
   const counter = useRef<HTMLSpanElement>(null);
   const { phase, replaying, tab } = trial;
@@ -430,7 +430,11 @@ export const DishCard = observer(function DishCard({ progress }: { progress: Ref
       aria-label={t('exp.tab')}
       className="pointer-events-auto absolute top-24 right-8 z-10 hidden max-h-[calc(100%-14rem)] w-57 flex-col gap-3 overflow-y-auto rounded-xl bg-panel p-2 backdrop-blur-md md:flex"
     >
-      <Tabs tab={tab} locked={locked} head={head}>
+      {/* where focus lands when the pressed button goes away: unseen, the tabs come next */}
+      <h2 ref={head} tabIndex={-1} className="sr-only">
+        {t('exp.tab')}
+      </h2>
+      <Tabs tab={tab} locked={locked}>
         <span ref={counter} className={cn('inline-flex overflow-hidden', trial.allFound && 'text-saffron')}>
           {/* keyed: each tick slides the new number in */}
           <span
@@ -468,17 +472,7 @@ export const DishCard = observer(function DishCard({ progress }: { progress: Ref
 const TABS: readonly CardTab[] = ['exp', 'found'];
 
 /** «Опыт · Открытия n/12»: ghost-word tabs; ←/→ move between them, locked while a run or replay is on. */
-function Tabs({
-  tab,
-  locked,
-  head,
-  children,
-}: {
-  tab: CardTab;
-  locked: boolean;
-  head: Ref<HTMLButtonElement>;
-  children: ReactNode;
-}) {
+function Tabs({ tab, locked, children }: { tab: CardTab; locked: boolean; children: ReactNode }) {
   const refs = useRef<Record<CardTab, HTMLButtonElement | null>>({ exp: null, found: null });
   const go = (k: CardTab) => {
     trial.setTab(k);
@@ -505,10 +499,6 @@ function Tabs({
           <button
             ref={(el) => {
               refs.current[k] = el;
-              if (k === tab && head) {
-                if (typeof head === 'function') head(el);
-                else head.current = el;
-              }
             }}
             type="button"
             role="tab"

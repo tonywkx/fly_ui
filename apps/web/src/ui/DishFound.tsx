@@ -63,7 +63,7 @@ function Found({ d, e, open, onToggle }: { d: Discovery; e: Entry; open: boolean
       {open && (
         <div
           id={id}
-          className="flex flex-col gap-1 px-2 pb-1.5 motion-safe:transition-opacity motion-safe:duration-200 motion-safe:ease-out motion-safe:starting:opacity-0"
+          className="flex flex-col gap-1 px-2 pb-0.5 motion-safe:transition-opacity motion-safe:duration-200 motion-safe:ease-out motion-safe:starting:opacity-0"
         >
           <p className="font-mono text-caption text-mist tabular-nums">{foundLine(e, d)}</p>
           {e.bet && (
