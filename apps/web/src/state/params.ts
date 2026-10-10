@@ -7,6 +7,7 @@ import { OPS, type Op } from '../scene/dish/verdict';
 import { isQuality, QUALITIES, type Quality } from '../scene/quality';
 import { TABS, type Tab } from './dish';
 import { MAX_PROBES } from './experiment';
+import type { OnbStep } from './onboarding';
 import { decodeExperiment, type SharedExperiment } from './share';
 import type { TourStep } from './tour';
 import type { CardTab } from './trial';
@@ -52,8 +53,8 @@ export interface Params {
   director?: true;
   /** Interface language; overrides the stored choice (scripts pin `en`). */
   lang?: Lang;
-  /** Own view: the Terrarium dish instead of the brain. */
-  view?: 'dish';
+  /** The page: the Terrarium (home) or the brain (`?view=brain`, or any old brain link, see `BRAIN_KEYS`). */
+  view: 'dish' | 'brain';
   /** Arrived by the fly ↔ neuron zoom from this view: the page opens with the second half of the flight. */
   from?: 'dish' | 'brain';
   /** Freeze the dish's zoom flight at this many ms (snaps; with `from=brain` the way out, else the way in). */
@@ -76,7 +77,26 @@ export interface Params {
   tab?: CardTab;
   /** First-visit tour: 0 = off, 1..4 = open at that step (see `state/tour.ts`). */
   tour?: TourStep;
+  /** Dish, first visit: 0 = off, 1..4 = the onboarding at that step (snaps, see `state/onboarding.ts`). */
+  onb?: OnbStep;
 }
+
+/** Keys only the brain reads: a link without `view` that has one is an old brain link (the bare page was the brain). */
+const BRAIN_KEYS = [
+  'scenario',
+  'x',
+  'tour',
+  'select',
+  'probes',
+  'trace',
+  'pick',
+  'director',
+  'intro',
+  'sim',
+  'debug',
+  'color',
+  'ui',
+];
 
 const ITEM_KINDS: readonly ItemKind[] = ['sugar', 'bitter', 'odor', 'female'];
 
@@ -85,8 +105,17 @@ const flag = (v: string | null) => v !== null && v !== '0' && v !== 'false';
 /** Pure: never throws, invalid values are dropped and reported in `warnings`. */
 export function parseParams(search: string): { params: Params; warnings: string[] } {
   const q = new URLSearchParams(search);
-  const params: Params = { stats: flag(q.get('stats')), snap: flag(q.get('snap')) };
   const warnings: string[] = [];
+  const view = q.get('view');
+  if (view !== null && view !== 'dish' && view !== 'brain')
+    warnings.push(`view: expected "dish" | "brain", got "${view}"`);
+  const brain =
+    view === 'brain' || (view !== 'dish' && (q.get('from') === 'dish' || BRAIN_KEYS.some((k) => q.has(k))));
+  const params: Params = {
+    stats: flag(q.get('stats')),
+    snap: flag(q.get('snap')),
+    view: brain ? 'brain' : 'dish',
+  };
   if (flag(q.get('director'))) params.director = true;
 
   const scenario = q.get('scenario');
@@ -166,6 +195,12 @@ export function parseParams(search: string): { params: Params; warnings: string[
     else warnings.push(`tour: expected 0..4, got "${tour}"`);
   }
 
+  const onb = q.get('onb');
+  if (onb !== null) {
+    if (/^[0-4]$/.test(onb)) params.onb = Number(onb) as OnbStep;
+    else warnings.push(`onb: expected 0..4, got "${onb}"`);
+  }
+
   const sim = q.get('sim');
   if (sim !== null) {
     if (sim === 'baked' || sim === 'live') params.sim = sim;
@@ -206,12 +241,6 @@ export function parseParams(search: string): { params: Params; warnings: string[
     const e = decodeExperiment(x);
     if (e) params.experiment = e;
     else warnings.push(`x: not a shared experiment code "${x}"`);
-  }
-
-  const view = q.get('view');
-  if (view !== null) {
-    if (view === 'dish') params.view = view;
-    else warnings.push(`view: expected "dish", got "${view}"`);
   }
 
   const from = q.get('from');

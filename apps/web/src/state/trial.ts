@@ -59,6 +59,8 @@ export class TrialStore {
   phase: Phase = 'setup';
   tab: CardTab = 'exp';
   bet: Result | null = null;
+  /** Ask for a bet even on a pair already run (the onboarding's steps); cleared by a result. */
+  ask = false;
   /** Bumped on each start: the scene clears the arena and runs the pair. */
   run = 0;
   outcome: Outcome | null = null;
@@ -84,7 +86,7 @@ export class TrialStore {
 
   /** The pair was never run: «Запустить» waits for a bet. */
   get needsBet(): boolean {
-    return !!this.pair && !this.pairs[pairId(this.pair)];
+    return !!this.pair && (this.ask || !this.pairs[pairId(this.pair)]);
   }
 
   get canRun(): boolean {
@@ -121,6 +123,10 @@ export class TrialStore {
     this.bet = b;
   }
 
+  setAsk(on: boolean): void {
+    this.ask = on;
+  }
+
   /** Starts a run if it can (`force`: without the bet, `?run=1`); the scene reacts to `run`. */
   start(force = false): boolean {
     if (!(this.canRun || (force && this.phase !== 'running' && this.pair))) return false;
@@ -153,12 +159,13 @@ export class TrialStore {
       ...t,
       pair: p,
       norm,
-      bet: old ? old.bet : this.bet,
+      bet: old && !this.ask ? old.bet : this.bet,
       first: !old,
       unlocked: old ? null : discovery(p),
     };
     this.phase = 'result';
     this.bet = null;
+    this.ask = false;
     this.memory.save({ pairs: toJS(this.pairs), last: id });
   }
 

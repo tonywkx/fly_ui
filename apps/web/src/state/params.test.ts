@@ -4,7 +4,7 @@ import { encodeExperiment } from './share';
 
 describe('parseParams', () => {
   it('defaults to nothing set', () => {
-    expect(parseParams('')).toEqual({ params: { stats: false, snap: false }, warnings: [] });
+    expect(parseParams('')).toEqual({ params: { stats: false, snap: false, view: 'dish' }, warnings: [] });
   });
 
   it('reads every known param', () => {
@@ -13,6 +13,7 @@ describe('parseParams', () => {
     );
     expect(warnings).toEqual([]);
     expect(params).toEqual({
+      view: 'brain',
       scenario: 'escape',
       t: 40.5,
       debug: 'soma-dist',
@@ -27,7 +28,7 @@ describe('parseParams', () => {
 
   it('reads a pick point as viewport fractions', () => {
     expect(parseParams('?pick=0.5,0.25')).toEqual({
-      params: { stats: false, snap: false, pick: [0.5, 0.25] },
+      params: { stats: false, snap: false, view: 'brain', pick: [0.5, 0.25] },
       warnings: [],
     });
     for (const bad of ['0.5', '1.2,0.5', 'a,b', '0.5,-0.1', '0.5,0.5,0.5']) {
@@ -87,7 +88,7 @@ describe('parseParams', () => {
 
   it('drops invalid values with a warning', () => {
     const { params, warnings } = parseParams('?debug=bogus&t=-3&scenario=../x');
-    expect(params).toEqual({ stats: false, snap: false });
+    expect(params).toEqual({ stats: false, snap: false, view: 'brain' });
     expect(warnings).toHaveLength(3);
     expect(warnings.join()).toMatch(/debug.*bogus/);
   });
@@ -141,7 +142,7 @@ describe('parseParams', () => {
   it('reads a shared experiment code', () => {
     const e = { stimulated: [7], silenced: [10001], stim: { hz: 200, gain: 1.5 } };
     expect(parseParams(`?x=${encodeExperiment(e)}`)).toEqual({
-      params: { stats: false, snap: false, experiment: e },
+      params: { stats: false, snap: false, view: 'brain', experiment: e },
       warnings: [],
     });
     const { params, warnings } = parseParams('?x=zz');
@@ -166,7 +167,7 @@ describe('parseParams', () => {
 
   it('drops a bad view or item list', () => {
     const { params, warnings } = parseParams('?view=pond&items=salt@1,1');
-    expect(params.view).toBeUndefined();
+    expect(params.view).toBe('dish');
     expect(params.items).toBeUndefined();
     expect(warnings).toHaveLength(2);
   });
@@ -183,6 +184,32 @@ describe('parseParams', () => {
   it('reads a replay frame (sim ms)', () => {
     expect(parseParams('?exp=shadow&run=1&replay=120').params.replay).toBe(120);
     expect(parseParams('?replay=x').warnings).toHaveLength(1);
+  });
+
+  it('opens the dish by default, the brain on its own links', () => {
+    const view = (q: string) => parseParams(q).params.view;
+    expect(view('')).toBe('dish');
+    expect(view('?lang=en')).toBe('dish');
+    expect(view('?exp=swatter:panic&run=1')).toBe('dish');
+    expect(view('?from=brain&zoom=700')).toBe('dish');
+    expect(view('?view=brain')).toBe('brain');
+    // old links: the bare brain page carried a scenario, a shared code, a tour step…
+    for (const q of ['?scenario=escape', '?x=zz', '?tour=2', '?select=1', '?probes=1', '?trace=a>b'])
+      expect(view(q)).toBe('brain');
+    for (const q of ['?director=1', '?intro=0', '?sim=live', '?debug=id', '?color=nt', '?ui=x', '?pick=0,0'])
+      expect(view(q)).toBe('brain');
+    expect(view('?from=dish&scenario=sugar')).toBe('brain');
+    // an explicit view wins: the way back from the brain carries its code
+    expect(view('?view=dish&x=zz&from=brain')).toBe('dish');
+    expect(view('?view=brain&exp=sugar')).toBe('brain');
+  });
+
+  it('reads an onboarding step (snaps)', () => {
+    expect(parseParams('?onb=2').params.onb).toBe(2);
+    expect(parseParams('?onb=0').params.onb).toBe(0);
+    const bad = parseParams('?onb=5');
+    expect(bad.params.onb).toBeUndefined();
+    expect(bad.warnings).toHaveLength(1);
   });
 
   it('reads the zoom arrival and a frozen flight', () => {
