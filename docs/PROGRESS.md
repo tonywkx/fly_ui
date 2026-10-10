@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-10 — 9.6 Discoveries
+Done: `ui/DishFound.tsx` (12 tiles, 2 cols; found tile opens across both: `foundLine`, bet, `cellPath` with the operated cell in saffron, op fact, «повторить опыт →»; locked = glyph + «?» + `found.*.tease`; 12/12 line); `DishCard` tablist «Опыт · Открытия n/12» (←/→, locked while running/replaying, panel scrolls, tabs pinned), `Unlock` ✦ flight to the counter (WAAPI, `--ease-in-out`), keyed counter tick; `trial.tab/setTab/allFound`, tab → `exp` on slot change / start / repeat; journal `hz` = the «сейчас» command (`readCell` in `discoveries.ts`); `?tab=found`; snap `--found=<ids|all>` + `--click=<button>`.
+State: tests 610 / typecheck / lint green; visual-qa PASS (RU/EN 1600: 0/12, 4/12 open tile, 12/12, unlock 2/12); ui-critic no P1, P2s fixed.
+Next: 9.7 Terrarium home (default view = dish, `?view=brain`, old links, «Заглянуть в мозг», first-visit onboarding).
+Gotchas: card focus target is a sr-only `h2` (focusing a tab on load showed a ring). The ✦ flight is skipped after the first-ever result (auto-replay ticks the counter directly). WAAPI, not `motion/react` (not a dependency). Live caption after swatter × DNp01 off still reads «Нейрон включили → пятится · MDN» (from 9.4, still open). `?run=1` skips the bet, so no «прогноз» row in those snaps.
+
 ## 2026-10-10 — 9.5 Decision replay
 Done: `scene/dish/replay.ts` (+test: `snap`, ring `Tape`, `Clip.at/between/events`, `span` = sense onset − 50 → decision + 200 ms, `Recorded`); `DishLoop.record` hook per tick; `threadReplay` (thread by sim time: organ at onset → legs at decision); `DishRun` records frames + heat while a take runs, `replay/toggleReplay/seekReplay/stepReplay` (×60, live dish holds, back-seek = clear + resync), missed decision (none or struck) = norm's decision from its sense onset, thread stops at the silent hop; `ui/ReplayBar.tsx` (play + range, Space/←→/Esc/W), `ui/ReplayCaption.tsx` (was `DishWhy` popover — gone), card «Повтор» / «Закрыть», `trial.replaying` (auto on the first result ever), `?replay=<ms>` (replaces `?why=1`).
 State: tests 605 / typecheck / lint green; visual-qa PASS (shadow RU/EN, swatter × DNp01 off «Почему муха не взлетела?», phone 390); ui-critic P1 fixed.
@@ -23,9 +29,3 @@ Done: `World(seed)` reseeds on `reset()` (reruns retrace; tests in `world.test.t
 State: tests 568 / typecheck / lint green. No UI change.
 Next: 9.3 experiment model `state/experiment.ts` (slots, bet, phases, run end = decision + 300 ms or 600 ms, result vs `NORM`, journal, `fly_ui.found`; puzzles = discoveries 5–8).
 Gotchas: banana is out of the stimulus slot (never decides) but stays in `STIMULI`. MDN-on × shadow/swatter and P1 on flicker (not robust) — not discoveries, P1 on not a card op. Latency in `NORM` is from sense onset in the closed loop (eat 61, back 60, court 110, jump 24–35), not `USUAL.ms` (8.1 open-loop first spike). Swatter × DNp01 off = hit in all seeds (`hit: true`, action 'back' is after reassembly). Discovery titles/teasers are EN drafts — RU copy with the user in 9.6.
-
-## 2026-10-10 — 9.1 Experiment shape
-Done: `docs/EXPERIMENT-SHAPE.md` (approved): loop give → change → bet → run → result (обычно / сейчас / прогноз) → replay → discovery; card states, replay, discoveries tab, 4-step onboarding in the card, phone tabs «Опыт · Положить · Открытия», what goes (DishLevels, why-card popover, multi-op list), states, RU/EN copy table.
-State: docs only, no code. PLAN 9.1 ticked.
-Next: 9.2 norm table + determinism (`apps/pipeline/src/explore/`, `scene/dish/table.ts`, `World.reset()` reseeds rng); also settle the shape's §Open: the 12 discoveries + 3 bet choices per pair, banana in the slot, «Ничего» stimulus for MDN on, run timeout.
-Gotchas: bet/result copy is gender-neutral on purpose («прогноз: взлетит · вышло иначе», no «ты думал(а)»); the bet subject flips to «он» for the female stimulus.
