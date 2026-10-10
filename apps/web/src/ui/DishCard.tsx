@@ -282,7 +282,10 @@ function fly(from: HTMLElement, to: HTMLElement): Animation {
   const b = to.getBoundingClientRect();
   const star = from.cloneNode(true) as HTMLElement;
   star.setAttribute('aria-hidden', 'true');
+  const { fontSize, lineHeight } = getComputedStyle(from);
   Object.assign(star.style, {
+    fontSize,
+    lineHeight,
     position: 'fixed',
     left: `${a.left}px`,
     top: `${a.top}px`,
@@ -319,10 +322,8 @@ function Unlock({ o, to, onLand }: { o: Outcome; to: RefObject<HTMLElement | nul
     if (!from || !target || app.reducedMotion || app.params.snap) return onLand();
     const anim = fly(from, target);
     anim.addEventListener('finish', onLand);
-    return () => {
-      anim.cancel();
-      onLand();
-    };
+    // gone mid-flight: the card ticks the counter itself once the result is left
+    return () => anim.cancel();
   }, []);
   if (!o.unlocked) return null;
   return (
@@ -412,6 +413,9 @@ export const DishCard = observer(function DishCard({ progress }: { progress: Ref
   const n = trial.found.length;
   // the counter holds the old number while the ✦ is on its way (`Unlock` lands it)
   const [shown, setShown] = useState(n);
+  // the number slides in on a tick, not on load
+  const first = useRef(n);
+  const ticked = shown !== first.current;
   const flying = !!o?.unlocked && phase === 'result' && !replaying && tab === 'exp';
   useEffect(() => {
     if (!flying) setShown(n);
@@ -428,7 +432,7 @@ export const DishCard = observer(function DishCard({ progress }: { progress: Ref
       ref={card}
       data-band-right
       aria-label={t('exp.tab')}
-      className="pointer-events-auto absolute top-24 right-8 z-10 hidden max-h-[calc(100%-14rem)] w-57 flex-col gap-3 overflow-y-auto rounded-xl bg-panel p-2 backdrop-blur-md md:flex"
+      className="pointer-events-auto absolute top-24 right-8 z-10 hidden max-h-[calc(100%-14rem)] w-57 flex-col gap-3 overflow-hidden rounded-xl bg-panel p-2 backdrop-blur-md md:flex"
     >
       {/* where focus lands when the pressed button goes away: unseen, the tabs come next */}
       <h2 ref={head} tabIndex={-1} className="sr-only">
@@ -439,13 +443,22 @@ export const DishCard = observer(function DishCard({ progress }: { progress: Ref
           {/* keyed: each tick slides the new number in */}
           <span
             key={shown}
-            className="motion-safe:transition-[opacity,translate] motion-safe:duration-200 motion-safe:ease-out motion-safe:starting:translate-y-2 motion-safe:starting:opacity-0"
+            className={cn(
+              ticked &&
+                'motion-safe:transition-[opacity,translate] motion-safe:duration-200 motion-safe:ease-out motion-safe:starting:translate-y-2 motion-safe:starting:opacity-0',
+            )}
           >
             {t('exp.found.tab', { n: shown, of: DISCOVERIES.length })}
           </span>
         </span>
       </Tabs>
-      <div role="tabpanel" id={`card-${tab}`} aria-labelledby={`tab-${tab}`} className="flex flex-col gap-3">
+      <div
+        role="tabpanel"
+        id={`card-${tab}`}
+        aria-labelledby={`tab-${tab}`}
+        // the tabs stay put; the panel scrolls (12 tiles outgrow the card)
+        className="-mx-2 -mb-2 flex min-h-0 flex-col gap-3 overflow-y-auto px-2 pb-2"
+      >
         {tab === 'found' ? (
           <DishFound />
         ) : phase === 'running' ? (

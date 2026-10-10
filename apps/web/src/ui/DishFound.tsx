@@ -54,7 +54,10 @@ function Found({ d, e, open, onToggle }: { d: Discovery; e: Entry; open: boolean
       <Button
         aria-expanded={open}
         aria-controls={open ? id : undefined}
-        className="h-auto flex-col items-stretch gap-1 px-2 py-1.5 text-left whitespace-normal hover:bg-bone/5"
+        className={cn(
+          'h-auto flex-col items-stretch gap-1 px-2 py-1.5 text-left whitespace-normal',
+          open ? 'hover:bg-transparent' : 'hover:bg-bone/5',
+        )}
         onClick={onToggle}
       >
         <Did d={d} />
@@ -73,7 +76,10 @@ function Found({ d, e, open, onToggle }: { d: Discovery; e: Entry; open: boolean
           )}
           <Cells d={d} />
           {d.op !== 'none' && <p className="text-caption text-ash">{t(`op.${d.op}.fact` as Key)}</p>}
-          <Button className="h-8 self-start px-0 text-caption text-mist" onClick={() => trial.repeat(d.id)}>
+          <Button
+            className="-mx-1 h-8 self-start px-1 text-caption text-mist"
+            onClick={() => trial.repeat(d.id)}
+          >
             {t('exp.found.again')}
           </Button>
         </div>
