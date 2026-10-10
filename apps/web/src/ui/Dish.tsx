@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { data } from '@/data/store';
 import { type Key, num, t } from '@/i18n';
+import { useWide } from '@/lib/useWide';
 import { cn } from '@/lib/utils';
 import type { BrainData } from '@/scene/dish/holo';
 import type { DishRun, DishStatus } from '@/scene/dish/run';
@@ -20,10 +21,8 @@ import { DishCaption } from './DishCaption';
 import { DishCard } from './DishCard';
 import { OpsStatus } from './DishOps';
 import { DishPalette } from './DishPalette';
-import { DishSheet } from './DishSheet';
 import { LangSwitch } from './LangSwitch';
 import { paintReplay, ReplayBar, type ReplayRefs } from './ReplayBar';
-import { ReplayCaption } from './ReplayCaption';
 import { ViewSwitch, viewHref } from './ViewSwitch';
 
 function timecode(s: DishStatus): string {
@@ -52,6 +51,7 @@ export const Dish = observer(function Dish() {
   const foot = useRef<HTMLDivElement>(null);
   const progress = useRef<HTMLDivElement>(null);
   const bar = useRef<ReplayRefs>({ range: null, play: null });
+  const wide = useWide();
 
   // the dish centres in the band the chrome leaves: phone, under the strip and over the sheet
   // (it grows per tab); desktop, between the palette and the experiment card
@@ -121,8 +121,8 @@ export const Dish = observer(function Dish() {
     const arriving = from === 'brain';
     // black until the flight out of the head: no chrome over the void
     if (arriving) dish.setZooming(true);
-    // first visit: the card walks through one experiment (desktop; the phone sheet gets it in 9.8)
-    if (matchMedia('(width >= 48rem)').matches && !arriving)
+    // first visit: the card walks through one experiment (phone: the sheet's «Опыт»)
+    if (!arriving)
       onboarding.begin(
         startOnb({
           params: app.params,
@@ -207,7 +207,7 @@ export const Dish = observer(function Dish() {
             () => trial.start(true),
           )
         : () => {};
-      if (p.sheet) dish.setTab(p.sheet);
+      if (p.sheet) dish.setPut(true);
       const quality = reaction(
         () => app.quality,
         (q) => run.applyQuality(QUALITY[q]),
@@ -319,7 +319,7 @@ export const Dish = observer(function Dish() {
           ×
         </Button>
         {run && !trial.replaying && <DishPalette input={run.input} />}
-        <DishCard progress={progress} />
+        {wide && <DishCard progress={progress} onClearBrain={clearBrain} />}
         <OpsStatus />
         <DishCaption />
         <div
@@ -327,19 +327,8 @@ export const Dish = observer(function Dish() {
           className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-1 p-4 md:flex-row md:items-end md:justify-between md:p-8"
         >
           {run && trial.replaying && <ReplayBar run={run} bar={bar} />}
-          {/* phones: the replay's caption stands in for the sheet (its tabs come back on close) */}
-          {trial.replaying ? (
-            <section
-              // biome-ignore lint/a11y/noNoninteractiveTabindex: it scrolls; keyboards reach it
-              tabIndex={0}
-              aria-label={t('exp.replay')}
-              className="pointer-events-auto max-h-[40vh] overflow-y-auto rounded-xl bg-panel py-3 backdrop-blur-md focus-visible:ring-2 focus-visible:ring-bone/40 focus-visible:outline-none md:hidden"
-            >
-              <ReplayCaption />
-            </section>
-          ) : (
-            run && <DishSheet input={run.input} onClearBrain={clearBrain} />
-          )}
+          {/* phones: the card is the sheet, «Положить» its middle tab */}
+          {!wide && run && <DishCard progress={progress} input={run.input} onClearBrain={clearBrain} />}
           <div className="flex items-center justify-between md:block">
             <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
               fly_ui

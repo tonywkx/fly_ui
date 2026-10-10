@@ -1,25 +1,9 @@
-import { OPERATIONS } from '@fly/sim';
 import { observer } from 'mobx-react-lite';
-import { Button } from '@/components/ui/button';
-import { type Key, plural, t } from '@/i18n';
-import { cn } from '@/lib/utils';
-import { OPS, type Op, type Outcome, USUAL } from '@/scene/dish/verdict';
+import { type Key, t } from '@/i18n';
+import type { Op, Outcome } from '@/scene/dish/verdict';
 import { dish } from '@/state/dish';
 
-/** Mono term on the closed card. */
-const ID: Record<Op, string> = { panic: 'DNp01', moon: 'MDN', sugar: 'LB3', p1: 'P1' };
-/** Types inferred, not named in the dataset (LB3 = sugar, pC1 = P1): source chip «inferred». */
-const GUESS: ReadonlySet<Op> = new Set(['sugar', 'p1']);
-
-/** Short phones (SE): the card keeps role, now and the switch, so the fly stays in view. */
-const SHORT = 'max-md:[@media(max-height:759px)]:hidden';
-
 const k = (op: Op, part: string) => `op.${op}.${part}` as Key;
-
-function usual(op: Op): string {
-  const u = USUAL[op];
-  return op === 'moon' ? t('op.moon.usual') : t(k(op, 'did'), { hz: u.hz, ms: u.ms ?? 0 });
-}
 
 export function nowLine(op: Op, o: Outcome | undefined): string {
   if (!o) return t('op.try', { hint: t(k(op, 'try')) });
@@ -27,169 +11,12 @@ export function nowLine(op: Op, o: Outcome | undefined): string {
   return t(k(op, line), { hz: o.hz, ms: o.ms ?? 0 });
 }
 
-/** A card's header: the switch's dot, the name, the term while closed (`compact`: the phone grid, no term). */
-const Head = observer(function Head({ op, at, compact }: { op: Op; at: string; compact?: boolean }) {
-  const open = dish.open === op;
-  const on = dish.ops.has(op);
-  const body = `${at}-${op}`;
-  return (
-    <h3 className="contents">
-      <Button
-        id={`${body}-h`}
-        aria-expanded={open}
-        aria-controls={open ? body : undefined}
-        className={cn(
-          'h-8 w-full justify-start gap-2 px-2 text-mist focus-visible:ring-offset-0 hover:text-bone aria-expanded:text-bone',
-          compact && 'h-auto min-h-8 py-1 text-caption leading-tight whitespace-normal',
-        )}
-        onClick={() => dish.toggleOpen(op)}
-      >
-        <span
-          aria-hidden="true"
-          className={cn('size-1.5 shrink-0 rounded-full', on ? 'bg-saffron' : 'ring-1 ring-ash/60')}
-        />
-        {on && <span className="sr-only">{t('op.active')}</span>}
-        <span className={cn('flex-1 text-left', !compact && 'truncate')}>{t(k(op, 'name'))}</span>
-        {!open && !compact && <span className="font-mono text-caption text-ash">{ID[op]}</span>}
-      </Button>
-    </h3>
-  );
-});
-
-/** The open card: term, role, fact (not on phones: the fly stays in view), usually / now, the switch. */
-const Body = observer(function Body({ op, at }: { op: Op; at: string }) {
-  const on = dish.ops.has(op);
-  const o = dish.now[op];
-  const body = `${at}-${op}`;
-  return (
-    <section
-      id={body}
-      aria-labelledby={`${body}-h`}
-      className="flex flex-col gap-2 px-2 pb-2 motion-safe:transition-[opacity,translate] motion-safe:duration-200 motion-safe:ease-out motion-safe:starting:-translate-y-1 motion-safe:starting:opacity-0"
-    >
-      <p className={cn('font-mono text-caption text-mist', SHORT)}>
-        {t(k(op, 'term'))}
-        {dish.cells && <span className="tabular-nums"> · {plural('op.cells', dish.cells[op])}</span>}
-      </p>
-      <p className="text-label text-bone">{t(k(op, 'role'))}</p>
-      <p className="text-caption text-mist max-md:hidden">{t(k(op, 'fact'))}</p>
-      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-caption tabular-nums">
-        <dt className={cn('font-mono text-mist', SHORT)}>{t('op.usual')}</dt>
-        <dd className={cn('text-mist', SHORT)}>{usual(op)}</dd>
-        <dt className="font-mono text-mist">{t('op.now')}</dt>
-        <dd className={cn(!o ? 'text-ash' : o.line === 'verdict' ? 'text-saffron' : 'text-bone')}>
-          {nowLine(op, o)}
-        </dd>
-      </dl>
-      <div className="flex items-center justify-between gap-2">
-        <Button
-          variant="primary"
-          aria-pressed={on}
-          className="h-8 px-3 text-caption aria-pressed:bg-transparent aria-pressed:text-bone aria-pressed:ring-1 aria-pressed:ring-bone/40 aria-pressed:hover:bg-bone/10"
-          onClick={() => dish.toggleOp(op)}
-        >
-          {on ? t('op.restore') : t(OPERATIONS[op].mode === 'on' ? 'op.on' : 'op.off')}
-        </Button>
-        <span className="text-right font-mono text-caption text-mist">
-          {t(GUESS.has(op) ? 'op.src.guess' : 'op.src.data')}
-        </span>
-      </div>
-    </section>
-  );
-});
-
-const Card = observer(function Card({ op, at }: { op: Op; at: string }) {
-  const open = dish.open === op;
-  return (
-    <div className={cn('rounded-lg transition-colors duration-200 ease-out', open && 'bg-bone/5')}>
-      <Head op={op} at={at} />
-      {open && <Body op={op} at={at} />}
-    </div>
-  );
-});
-
-/** The four cards, what came back from the brain view, «undo all»: the desktop panel and the phone tab. */
-export const OpsList = observer(function OpsList({
-  onClearBrain,
-  at = 'op',
-  compact = false,
-}: {
-  onClearBrain: () => void;
-  /** Id prefix: both layouts are in the DOM, one hidden. */
-  at?: string;
-  /** Phone: the four names in a 2 × 2 grid, the open card under it (short enough to keep the fly in view). */
-  compact?: boolean;
-}) {
-  const { brain, open } = dish;
-  return (
-    <>
-      {compact ? (
-        <>
-          <div className="grid grid-cols-2 gap-0.5">
-            {OPS.map((op) => (
-              <div
-                key={op}
-                className={cn(
-                  'min-w-0 rounded-lg transition-colors duration-200 ease-out',
-                  open === op && 'bg-bone/5',
-                )}
-              >
-                <Head op={op} at={at} compact />
-              </div>
-            ))}
-          </div>
-          {open && <Body key={open} op={open} at={at} />}
-        </>
-      ) : (
-        OPS.map((op) => <Card key={op} op={op} at={at} />)
-      )}
-      {/* what the visitor did in the brain view, carried back by the zoom */}
-      {brain && (
-        <div className="mt-1 flex items-center justify-between gap-1 pl-2">
-          <p className="text-caption text-bone">
-            {t('op.brain')}{' '}
-            <span className="font-mono text-ash tabular-nums">{t('op.brain.cells', brain)}</span>
-          </p>
-          <Button className="h-8 px-2 text-caption text-mist" onClick={onClearBrain}>
-            {t('op.restore')}
-          </Button>
-        </div>
-      )}
-      {dish.ops.size > 0 && (
-        <Button
-          className="mt-1 h-8 justify-start px-2 text-caption text-mist"
-          onClick={() => dish.clearOps()}
-        >
-          {t('op.clear')}
-        </Button>
-      )}
-    </>
-  );
-});
-
-/** The latest outcome, announced from one live region that outlives the cards and the layouts. */
+/** The latest outcome of a free-play operation, announced from one live region. */
 export const OpsStatus = observer(function OpsStatus() {
   const { last } = dish;
   return (
     <p role="status" className="sr-only">
       {last && `${t(k(last, 'name'))}: ${nowLine(last, dish.now[last])}`}
     </p>
-  );
-});
-
-/**
- * The neurosurgeon (TERRARIUM-SHAPE §Operations): four famous-neuron cards, one open, each with a
- * switch on the live brain and «usually / now» lines. Desktop: the right column (phone: `DishSheet`).
- */
-export const DishOps = observer(function DishOps({ onClearBrain }: { onClearBrain: () => void }) {
-  return (
-    <section
-      data-band-right
-      aria-label={t('op.title')}
-      className="pointer-events-auto absolute top-1/2 right-8 z-10 hidden w-57 -translate-y-1/2 flex-col gap-0.5 rounded-xl bg-card p-2 backdrop-blur-md md:flex"
-    >
-      <h2 className="px-2 pb-1 font-mono text-caption tracking-widest text-ash uppercase">{t('op.title')}</h2>
-      <OpsList onClearBrain={onClearBrain} />
-    </section>
   );
 });

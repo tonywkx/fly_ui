@@ -1,6 +1,17 @@
 import { OPERATIONS } from '@fly/sim';
 import { observer } from 'mobx-react-lite';
-import { type ReactNode, type Ref, type RefObject, useEffect, useId, useRef, useState } from 'react';
+import {
+  createContext,
+  type ReactNode,
+  type Ref,
+  type RefObject,
+  type UIEvent,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from 'react';
 import { Button } from '@/components/ui/button';
 import { type Key, t } from '@/i18n';
 import { cn } from '@/lib/utils';
@@ -12,7 +23,7 @@ import { dish } from '@/state/dish';
 import { onboarding } from '@/state/onboarding';
 import { type CardTab, type Outcome, trial } from '@/state/trial';
 import { DishFound } from './DishFound';
-import { GLYPH } from './DishPalette';
+import { GLYPH, type PaletteInput, PutPanel } from './DishPalette';
 import { betLine, headline, OP_CELL as ID, isHe, nowLine, usualLine } from './expText';
 import { ReplayCaption } from './ReplayCaption';
 
@@ -22,6 +33,11 @@ const GUESS: ReadonlySet<Op> = new Set(['sugar', 'p1']);
 const SWAT_S = 0.12;
 
 const LABEL = 'font-mono text-caption tracking-widest text-ash uppercase';
+/** Phone, a short screen: what gives way first. */
+const SHORT = '[@media(max-height:759px)]:hidden';
+
+/** The card sits in the phone's sheet (EXPERIMENT-SHAPE §Phone): rows, not stacks. */
+const Phone = createContext(false);
 
 export const stimName = (s: CardStimulus): string =>
   t(s === 'none' ? 'exp.give.none' : s === 'shadow' || s === 'swatter' ? `dish.hand.${s}` : `dish.item.${s}`);
@@ -32,6 +48,7 @@ const opName = (op: Op) => t(`op.${op}.name` as Key);
 /** A slot: label, the chosen value as a ghost select, its list under it while open. */
 function Slot({
   label,
+  short,
   value,
   sub,
   open,
@@ -39,6 +56,8 @@ function Slot({
   children,
 }: {
   label: string;
+  /** Phone: the row's label («Даём»). */
+  short: string;
   value: ReactNode;
   sub?: string;
   open: boolean;
@@ -47,11 +66,14 @@ function Slot({
 }) {
   const id = useId();
   const trigger = useRef<HTMLButtonElement>(null);
+  const phone = useContext(Phone);
   return (
     // a pick or Esc closes the list and hands focus back to the slot
     <fieldset
       aria-labelledby={`${id}-l`}
-      className="flex flex-col gap-0.5"
+      className={
+        phone ? 'grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-1 gap-y-0.5' : 'flex flex-col gap-0.5'
+      }
       onKeyDown={(e) => {
         if (e.key !== 'Escape' || !open) return;
         e.stopPropagation();
@@ -59,19 +81,23 @@ function Slot({
         trigger.current?.focus();
       }}
     >
-      <h3 id={`${id}-l`} className={cn(LABEL, 'px-2')}>
-        {label}
+      <h3 id={`${id}-l`} title={phone ? label : undefined} className={cn(LABEL, 'px-2', phone && 'w-20')}>
+        {phone ? short : label}
       </h3>
       <Button
         ref={trigger}
         aria-expanded={open}
         aria-controls={open ? id : undefined}
-        className="h-auto min-h-8 w-full justify-between gap-2 px-2 py-1 text-left text-label whitespace-normal text-bone"
+        className={cn(
+          'h-auto w-full justify-between gap-2 px-2 py-1 text-left text-label whitespace-normal text-bone',
+          'min-h-8',
+        )}
         onClick={onToggle}
       >
         <span className="flex min-w-0 flex-1 flex-col">
+          {/* phone: one line, the list says the rest */}
           <span className="flex items-center gap-2">{value}</span>
-          {sub && <span className="text-caption text-ash">{sub}</span>}
+          {sub && !phone && <span className="text-caption text-ash">{sub}</span>}
         </span>
         <span
           aria-hidden="true"
@@ -88,10 +114,26 @@ function Slot({
         <ul
           id={id}
           onClick={() => trigger.current?.focus()}
-          className="flex flex-col gap-0.5 rounded-lg bg-bone/5 p-1 motion-safe:transition-[opacity,translate] motion-safe:duration-200 motion-safe:ease-out motion-safe:starting:-translate-y-1 motion-safe:starting:opacity-0"
+          className={cn(
+            'flex flex-col gap-0.5 rounded-lg bg-bone/5 p-1',
+            phone && 'col-span-2',
+            'motion-safe:transition-[opacity,translate] motion-safe:duration-200 motion-safe:ease-out motion-safe:starting:-translate-y-1 motion-safe:starting:opacity-0',
+          )}
         >
           {children}
         </ul>
+      )}
+      {/* phone: the list stands in for the card's body; «готово» brings the rest back */}
+      {open && phone && (
+        <Button
+          className="col-span-2 h-8 justify-self-end px-3 text-caption text-mist"
+          onClick={() => {
+            onToggle();
+            trigger.current?.focus();
+          }}
+        >
+          {t('exp.done')}
+        </Button>
       )}
     </fieldset>
   );
@@ -113,6 +155,7 @@ function Option({ on, onPick, children }: { on: boolean; onPick: () => void; chi
 
 const Give = observer(function Give({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   const s = trial.stim;
+  const phone = useContext(Phone);
   const pick = (x: CardStimulus) => {
     trial.setStim(x);
     onToggle();
@@ -120,16 +163,17 @@ const Give = observer(function Give({ open, onToggle }: { open: boolean; onToggl
   return (
     <Slot
       label={t('exp.give')}
+      short={t('exp.give.short')}
       open={open}
       onToggle={onToggle}
       value={
         s ? (
           <>
             {s !== 'none' && <span className={cn('[&_svg]:size-4', GLYPH[s].tone)}>{GLYPH[s].icon}</span>}
-            {stimName(s)}
+            <span className={cn(phone && 'truncate')}>{stimName(s)}</span>
           </>
         ) : (
-          <span className="text-ash">{t('exp.give.empty')}</span>
+          <span className="text-ash">{t(phone ? 'exp.give.pick' : 'exp.give.empty')}</span>
         )
       }
       sub={s ? t(`pal.does.${s}`) : undefined}
@@ -149,6 +193,7 @@ const Give = observer(function Give({ open, onToggle }: { open: boolean; onToggl
 
 const Change = observer(function Change({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   const op = trial.op;
+  const phone = useContext(Phone);
   const pick = (x: Brain) => {
     trial.setOp(x);
     onToggle();
@@ -156,6 +201,7 @@ const Change = observer(function Change({ open, onToggle }: { open: boolean; onT
   return (
     <Slot
       label={t('exp.change')}
+      short={t('exp.change.short')}
       open={open}
       onToggle={onToggle}
       value={
@@ -167,7 +213,7 @@ const Change = observer(function Change({ open, onToggle }: { open: boolean; onT
               op === 'none' ? 'ring-1 ring-ash/60' : 'bg-saffron',
             )}
           />
-          {op === 'none' ? t('exp.op.none') : opName(op)}
+          <span className={cn(phone && 'truncate')}>{op === 'none' ? t('exp.op.none') : opName(op)}</span>
         </>
       }
       sub={op === 'none' ? undefined : `${t(opMode(op) === 'on' ? 'exp.op.on' : 'exp.op.off')} · ${ID[op]}`}
@@ -183,7 +229,12 @@ const Change = observer(function Change({ open, onToggle }: { open: boolean; onT
           </span>
           <span className="text-caption text-mist">{t(`op.${x}.role` as Key)}</span>
           {/* the chosen op's fact: the list stays short and still */}
-          <span className="hidden text-caption text-ash group-aria-pressed:block">
+          <span
+            className={cn(
+              'hidden text-caption text-ash group-aria-pressed:block',
+              phone && '[@media(max-height:759px)]:group-aria-pressed:hidden',
+            )}
+          >
             {t(`op.${x}.fact` as Key)}
           </span>
           <span className="font-mono text-caption text-ash">
@@ -197,12 +248,19 @@ const Change = observer(function Change({ open, onToggle }: { open: boolean; onT
 });
 
 const Bet = observer(function Bet() {
+  const phone = useContext(Phone);
   const stim = trial.stim;
   if (!stim || !trial.needsBet) return null;
   const step = onboarding.step;
   const onb = step === 1 ? 'onb.1' : step === 3 ? 'onb.3' : null;
   return (
-    <fieldset className="flex flex-col gap-1.5">
+    <fieldset
+      // phone: the onboarding's question is the point of the step, scroll the sheet to it
+      ref={(el) => {
+        if (el && onb && phone) el.scrollIntoView({ block: 'nearest' });
+      }}
+      className="flex flex-col gap-1.5"
+    >
       {/* the onboarding's line asks the question itself */}
       {onb ? (
         <legend className="px-2 pb-1 text-body leading-tight text-bone">{t(onb)}</legend>
@@ -225,34 +283,53 @@ const Bet = observer(function Bet() {
   );
 });
 
-const Setup = observer(function Setup() {
+const Setup = observer(function Setup({ onClearBrain }: { onClearBrain: () => void }) {
   const [open, setOpen] = useState<'give' | 'change' | null>(null);
   const toggle = (k: 'give' | 'change') => setOpen(open === k ? null : k);
   const live = dish.cells !== null;
+  // phone: an open slot's list is the whole body (same tree, so focus stays on its trigger)
+  const phone = useContext(Phone);
+  const solo = phone && open !== null;
+  const more = useMore();
   return (
     <>
-      <Give open={open === 'give'} onToggle={() => toggle('give')} />
-      <div className="relative flex flex-col gap-0.5">
-        {onboarding.step === 3 && <Glow />}
-        <Change open={open === 'change'} onToggle={() => toggle('change')} />
-        {dish.brain && (
-          <p className="px-2 text-caption text-ash">
-            {t('exp.brainOps', { cells: t('op.brain.cells', dish.brain) })}
-          </p>
+      {/* phone: the slots and the bet scroll, «Запустить» stays in view under them */}
+      <div
+        {...more}
+        className={phone ? cn('-mx-2 flex min-h-0 flex-col gap-3 overflow-y-auto px-2', MORE) : 'contents'}
+      >
+        {(!solo || open === 'give') && <Give open={open === 'give'} onToggle={() => toggle('give')} />}
+        {(!solo || open === 'change') && (
+          <div className="relative flex flex-col gap-0.5">
+            {onboarding.step === 3 && <Glow />}
+            <Change open={open === 'change'} onToggle={() => toggle('change')} />
+            {dish.brain && !solo && (
+              <div className="flex items-center justify-between gap-1 pl-2">
+                <p className="text-caption text-ash">
+                  {t('exp.brainOps', { cells: t('op.brain.cells', dish.brain) })}
+                </p>
+                <Button className="h-8 px-2 text-caption text-mist" onClick={onClearBrain}>
+                  {t('op.restore')}
+                </Button>
+              </div>
+            )}
+          </div>
         )}
+        {!solo && <Bet />}
       </div>
-      <Bet />
-      <div className="flex items-center gap-1">
-        {onboarding.step !== 0 && <Skip />}
-        <Button
-          variant="primary"
-          className="ml-auto"
-          disabled={!live || !trial.canRun}
-          onClick={() => trial.start()}
-        >
-          {live ? t('exp.run') : t('exp.loading')}
-        </Button>
-      </div>
+      {!solo && (
+        <div className="flex items-center gap-1">
+          {onboarding.step !== 0 && <Skip />}
+          <Button
+            variant="primary"
+            className="ml-auto"
+            disabled={!live || !trial.canRun}
+            onClick={() => trial.start()}
+          >
+            {live ? t('exp.run') : t('exp.loading')}
+          </Button>
+        </div>
+      )}
     </>
   );
 });
@@ -394,6 +471,8 @@ const Result = observer(function Result({
 }) {
   const bet = betLine(o);
   const step = onboarding.step;
+  // phone, a short screen: a repeat run's bet gives way
+  const tight = useContext(Phone) && !o.first && SHORT;
   return (
     <>
       <p className="px-2 text-body leading-tight text-bone">{headline(o)}</p>
@@ -404,8 +483,8 @@ const Result = observer(function Result({
         <dd className="text-bone">{nowLine(o)}</dd>
         {bet && (
           <>
-            <dt className="font-mono text-ash">{t('exp.bet')}</dt>
-            <dd className={o.first ? 'text-mist' : 'text-ash'}>{bet}</dd>
+            <dt className={cn('font-mono text-ash', tight)}>{t('exp.bet')}</dt>
+            <dd className={cn(o.first ? 'text-mist' : 'text-ash', tight)}>{bet}</dd>
           </>
         )}
       </dl>
@@ -466,26 +545,42 @@ function OnbResult({ step }: { step: 2 | 4 }) {
 
 /** The replay's side of the card: its caption and the way back to the result. */
 function Replay() {
+  const phone = useContext(Phone);
   return (
     <>
       <ReplayCaption />
-      <Button
-        variant="primary"
-        aria-keyshortcuts="Escape"
-        className="self-end"
-        onClick={() => trial.closeReplay()}
-      >
-        {t('exp.replay.close')}
-      </Button>
+      {/* phone: the scrubber's own «Закрыть» */}
+      {!phone && (
+        <Button
+          variant="primary"
+          aria-keyshortcuts="Escape"
+          className="self-end"
+          onClick={() => trial.closeReplay()}
+        >
+          {t('exp.replay.close')}
+        </Button>
+      )}
     </>
   );
 }
 
 /**
  * The experiment card (EXPERIMENT-SHAPE §Card): what the fly gets × what we change in her brain,
- * the bet, «Запустить», the run and its result next to the norm. Desktop: the right column.
+ * the bet, «Запустить», the run and its result next to the norm. Desktop: the right column. Phone
+ * (`input` given): the sheet over the wordmark, with «Положить» as a third tab; its tabs step
+ * aside while a run or replay is on.
  */
-export const DishCard = observer(function DishCard({ progress }: { progress: Ref<HTMLDivElement> }) {
+export const DishCard = observer(function DishCard({
+  progress,
+  input,
+  onClearBrain,
+}: {
+  progress: Ref<HTMLDivElement>;
+  input?: PaletteInput;
+  /** Undo what the brain view carried back. */
+  onClearBrain: () => void;
+}) {
+  const phone = !!input;
   const o = trial.outcome;
   const head = useRef<HTMLHeadingElement>(null);
   const card = useRef<HTMLElement>(null);
@@ -497,7 +592,9 @@ export const DishCard = observer(function DishCard({ progress }: { progress: Ref
   // the number slides in on a tick, not on load
   const first = useRef(n);
   const ticked = shown !== first.current;
-  const flying = !!o?.unlocked && phase === 'result' && !replaying && tab === 'exp';
+  const put = phone && dish.put;
+  const fade = useMore();
+  const flying = !!o?.unlocked && phase === 'result' && !replaying && tab === 'exp' && !put;
   useEffect(() => {
     if (!flying) setShown(n);
   }, [n, flying]);
@@ -506,84 +603,145 @@ export const DishCard = observer(function DishCard({ progress }: { progress: Ref
   useEffect(() => {
     const a = document.activeElement;
     if (a === document.body || (a && card.current?.contains(a) && !a.isConnected)) head.current?.focus();
-  }, [phase, o, replaying, tab, onboarding.step]);
+  }, [phase, o, replaying, tab, put, onboarding.step]);
   const locked = phase === 'running' || replaying;
+  const at: SheetTab = put && !locked ? 'put' : tab;
   return (
-    <section
-      ref={card}
-      data-band-right
-      aria-label={t('exp.tab')}
-      className="pointer-events-auto absolute top-24 right-8 z-10 hidden max-h-[calc(100%-14rem)] w-57 flex-col gap-3 overflow-hidden rounded-xl bg-panel p-2 backdrop-blur-md md:flex"
-    >
-      {/* where focus lands when the pressed button goes away: unseen, the tabs come next */}
-      <h2 ref={head} tabIndex={-1} className="sr-only">
-        {t('exp.tab')}
-      </h2>
-      <Tabs tab={tab} locked={locked}>
-        <span ref={counter} className={cn('inline-flex overflow-hidden', trial.allFound && 'text-saffron')}>
-          {/* keyed: each tick slides the new number in */}
-          <span
-            key={shown}
-            className={cn(
-              ticked &&
-                'motion-safe:transition-[opacity,translate] motion-safe:duration-200 motion-safe:ease-out motion-safe:starting:translate-y-2 motion-safe:starting:opacity-0',
-            )}
-          >
-            {t('exp.found.tab', { n: shown, of: DISCOVERIES.length })}
-          </span>
-        </span>
-      </Tabs>
-      <div
-        role="tabpanel"
-        id={`card-${tab}`}
-        aria-labelledby={`tab-${tab}`}
-        // the tabs stay put; the panel scrolls (12 tiles outgrow the card)
-        className="-mx-2 -mb-2 flex min-h-0 flex-col gap-3 overflow-y-auto px-2 pb-2"
-      >
-        {tab === 'found' ? (
-          <DishFound />
-        ) : phase === 'running' ? (
-          <Running progress={progress} />
-        ) : o && replaying ? (
-          <Replay />
-        ) : o ? (
-          <Result
-            o={o}
-            counter={counter}
-            onLand={shown < n ? () => setShown(trial.found.length) : undefined}
-          />
-        ) : (
-          <Setup />
+    <Phone.Provider value={phone}>
+      <section
+        ref={card}
+        data-band-right={phone ? undefined : true}
+        aria-label={t('exp.tab')}
+        className={cn(
+          'pointer-events-auto flex flex-col overflow-hidden rounded-xl bg-panel p-2 backdrop-blur-md',
+          phone
+            ? 'max-h-[42svh] gap-1 [@media(max-height:759px)]:max-h-[38svh]'
+            : 'absolute top-24 right-8 z-10 max-h-[calc(100%-14rem)] w-57 gap-3',
         )}
-      </div>
-      <p role="status" className="sr-only">
-        {o && `${headline(o)}. ${t('exp.now')}: ${nowLine(o)}`}
-      </p>
-    </section>
+      >
+        {/* where focus lands when the pressed button goes away: unseen, the tabs come next */}
+        <h2 ref={head} tabIndex={-1} className="sr-only">
+          {t('exp.tab')}
+        </h2>
+        <Tabs tab={at} tabs={phone ? SHEET_TABS : TABS} locked={locked} hidden={phone && locked}>
+          <span ref={counter} className={cn('inline-flex overflow-hidden', trial.allFound && 'text-saffron')}>
+            {/* keyed: each tick slides the new number in */}
+            <span
+              key={shown}
+              className={cn(
+                ticked &&
+                  'motion-safe:transition-[opacity,translate] motion-safe:duration-200 motion-safe:ease-out motion-safe:starting:translate-y-2 motion-safe:starting:opacity-0',
+              )}
+            >
+              {t('exp.found.tab', { n: shown, of: DISCOVERIES.length })}
+            </span>
+          </span>
+        </Tabs>
+        <div
+          {...fade}
+          role="tabpanel"
+          id={`card-${at}`}
+          // the phone's run / replay has no tabs over it
+          aria-labelledby={phone && locked ? undefined : `tab-${at}`}
+          aria-label={phone && locked ? t('exp.tab') : undefined}
+          // the tabs stay put; the panel scrolls (12 tiles outgrow the card)
+          className={cn('-mx-2 -mb-2 flex min-h-0 flex-col gap-3 overflow-y-auto px-2 pb-2', MORE)}
+        >
+          {at === 'put' && input ? (
+            <PutPanel input={input} />
+          ) : at === 'found' ? (
+            <DishFound />
+          ) : phase === 'running' ? (
+            <Running progress={progress} />
+          ) : o && replaying ? (
+            <Replay />
+          ) : o ? (
+            <Result
+              o={o}
+              counter={counter}
+              onLand={shown < n ? () => setShown(trial.found.length) : undefined}
+            />
+          ) : (
+            <Setup onClearBrain={onClearBrain} />
+          )}
+        </div>
+        <p role="status" className="sr-only">
+          {o && `${headline(o)}. ${t('exp.now')}: ${nowLine(o)}`}
+        </p>
+      </section>
+    </Phone.Provider>
   );
 });
 
-const TABS: readonly CardTab[] = ['exp', 'found'];
+/** `data-more` while a scroller has more below its fold. */
+function markMore(el: HTMLElement): void {
+  el.toggleAttribute('data-more', el.scrollHeight - el.scrollTop - el.clientHeight > 4);
+}
 
-/** «Опыт · Открытия n/12»: ghost-word tabs; ←/→ move between them, locked while a run or replay is on. */
-function Tabs({ tab, locked, children }: { tab: CardTab; locked: boolean; children: ReactNode }) {
-  const refs = useRef<Record<CardTab, HTMLButtonElement | null>>({ exp: null, found: null });
-  const go = (k: CardTab) => {
-    trial.setTab(k);
+/** More below: the bottom edge fades out. */
+const MORE = 'data-more:[mask-image:linear-gradient(to_bottom,black_calc(100%-2rem),transparent)]';
+
+/** A scroller's `data-more`, re-measured after each render and on any resize of it or its content. */
+function useMore() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    markMore(el);
+    const ro = new ResizeObserver(() => markMore(el));
+    ro.observe(el);
+    for (const c of el.children) ro.observe(c);
+    return () => ro.disconnect();
+  });
+  return { ref, onScroll: (e: UIEvent<HTMLDivElement>) => markMore(e.currentTarget) };
+}
+
+/** The phone sheet's tabs: the card's two and «Положить» between them. */
+type SheetTab = CardTab | 'put';
+const TABS: readonly SheetTab[] = ['exp', 'found'];
+const SHEET_TABS: readonly SheetTab[] = ['exp', 'put', 'found'];
+const TAB_LABEL: Record<Exclude<SheetTab, 'found'>, Key> = { exp: 'exp.tab', put: 'dish.items' };
+
+/**
+ * «Опыт · Открытия n/12» (phone: «Опыт · Положить · Открытия n/12»): ghost-word tabs; ←/→ move
+ * between them, locked while a run or replay is on (phone: `hidden` then).
+ */
+function Tabs({
+  tab,
+  tabs,
+  locked,
+  hidden,
+  children,
+}: {
+  tab: SheetTab;
+  tabs: readonly SheetTab[];
+  locked: boolean;
+  hidden: boolean;
+  children: ReactNode;
+}) {
+  const refs = useRef<Partial<Record<SheetTab, HTMLButtonElement | null>>>({});
+  const phone = tabs.length > 2;
+  const go = (k: SheetTab) => {
+    dish.setPut(k === 'put');
+    if (k !== 'put') trial.setTab(k);
     refs.current[k]?.focus();
   };
   return (
     <div
       role="tablist"
       aria-label={t('exp.tab')}
-      className="flex items-baseline gap-1 px-1 pt-1 text-label"
+      // kept mounted while hidden: the ✦'s counter lives in it
+      hidden={hidden}
+      className={cn('flex items-baseline gap-1 px-1 text-label', phone ? 'justify-center' : 'pt-1')}
       onKeyDown={(e) => {
         if (locked || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
         e.preventDefault();
-        go(tab === 'exp' ? 'found' : 'exp');
+        const n = tabs.length;
+        const i = tabs.indexOf(tab) + (e.key === 'ArrowRight' ? 1 : -1);
+        go(tabs[(i + n) % n] as SheetTab);
       }}
     >
-      {TABS.map((k, i) => (
+      {tabs.map((k, i) => (
         <span key={k} className="flex items-baseline gap-1">
           {i > 0 && (
             <span aria-hidden="true" className="text-ash">
@@ -598,17 +756,19 @@ function Tabs({ tab, locked, children }: { tab: CardTab; locked: boolean; childr
             role="tab"
             id={`tab-${k}`}
             aria-selected={k === tab}
-            aria-controls={`card-${k}`}
+            // only the selected tab's panel is mounted
+            aria-controls={k === tab ? `card-${k}` : undefined}
             aria-disabled={locked && k !== tab}
             tabIndex={k === tab ? 0 : -1}
             className={cn(
               'rounded-md px-1 tabular-nums outline-none transition-colors duration-150 focus-visible:ring-1 focus-visible:ring-bone/60',
+              phone && 'h-8 px-1.5 whitespace-nowrap',
               k === tab ? 'text-bone' : 'text-ash hover:text-mist',
               locked && k !== tab && 'pointer-events-none',
             )}
             onClick={() => !locked && go(k)}
           >
-            {k === 'exp' ? t('exp.tab') : children}
+            {k === 'found' ? children : t(TAB_LABEL[k])}
           </button>
         </span>
       ))}

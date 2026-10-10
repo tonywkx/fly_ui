@@ -86,13 +86,18 @@ export const GLYPH: Record<ItemKind | Hand, { icon: ReactNode; tone: string }> =
   },
 };
 
-/** Glyph, name, hotkey; on desktop a second line with what the fly does, a dot when it is in the card. */
+/**
+ * Glyph, name, hotkey; a second line with what the fly does, a dot when it is in the card
+ * (desktop, or the phone's «Положить» grid: `phone`, no hotkey).
+ */
 const Row = observer(function Row({
   id,
   keyHint,
+  phone,
   children,
 }: {
   id: ItemKind | Hand;
+  phone: boolean;
   keyHint: number;
   children: ReactNode;
 }) {
@@ -101,7 +106,7 @@ const Row = observer(function Row({
   return (
     <>
       <span className={GLYPH[id].tone}>{GLYPH[id].icon}</span>
-      <span className="hidden min-w-0 flex-1 flex-col text-left md:flex">
+      <span className={cn('min-w-0 flex-1 flex-col text-left', phone ? 'flex' : 'hidden md:flex')}>
         <span className="flex items-center gap-1.5 text-label">
           {children}
           {inExp && (
@@ -114,7 +119,9 @@ const Row = observer(function Row({
           {inHand ? t('pal.inHand') : t(`pal.does.${id}`)}
         </span>
       </span>
-      <kbd className="hidden self-start pt-1 font-mono text-caption text-ash md:inline">{keyHint}</kbd>
+      {!phone && (
+        <kbd className="hidden self-start pt-1 font-mono text-caption text-ash md:inline">{keyHint}</kbd>
+      )}
     </>
   );
 });
@@ -145,22 +152,30 @@ function holdProps(k: Pull) {
   };
 }
 
-const ROW =
-  'pointer-events-auto size-8 justify-center gap-3 rounded-full text-mist md:h-auto md:w-44 md:items-start md:justify-start md:rounded-md md:px-2 md:py-1';
+const ROW = 'pointer-events-auto h-auto w-44 items-start justify-start gap-3 rounded-md px-2 py-1 text-mist';
+/** Phone: a cell of the «Положить» grid, ≥ 44 px tall (h-8 = 48). */
+const CELL =
+  'pointer-events-auto h-auto min-h-8 w-full items-start justify-start gap-2 rounded-md px-2 py-1.5 whitespace-normal text-mist';
+
+/** The stimulus goes in the card; on the phone the sheet then shows it («Опыт»). */
+function toSlot(s: Parameters<typeof trial.setStim>[0], phone: boolean): void {
+  trial.setStim(s);
+  if (phone) dish.setPut(false);
+}
 
 /**
- * Things to drag into the dish. A tap (or Enter) puts the stimulus in the card (`slot`, desktop);
- * without the card (phone, banana) it drops one ahead of the fly.
+ * Things to drag into the dish. A tap (or Enter) puts the stimulus in the card; one with no slot
+ * (banana) drops ahead of the fly.
  */
-export function ItemButtons({ input, slot = false }: { input: PaletteInput; slot?: boolean }) {
+export function ItemButtons({ input, phone = false }: { input: PaletteInput; phone?: boolean }) {
   return ITEM_KEYS.map((k, i) => {
-    const s = slot ? SLOT_OF[k] : undefined;
-    const tap = s ? () => trial.setStim(s) : () => void input.place(k);
+    const s = SLOT_OF[k];
+    const tap = s ? () => toSlot(s, phone) : () => void input.place(k);
     return (
       <Button
         key={k}
         aria-label={t(`dish.item.${k}`)}
-        className={cn(ROW, 'touch-none cursor-grab active:cursor-grabbing')}
+        className={cn(phone ? CELL : ROW, 'touch-none cursor-grab active:cursor-grabbing')}
         onPointerDown={(e) => {
           if (e.button === 0) input.dragNew(k, e.nativeEvent, tap);
         }}
@@ -169,7 +184,7 @@ export function ItemButtons({ input, slot = false }: { input: PaletteInput; slot
           if (e.detail === 0) tap();
         }}
       >
-        <Row id={k} keyHint={i + 1}>
+        <Row id={k} keyHint={i + 1} phone={phone}>
           {t(`dish.item.${k}`)}
         </Row>
       </Button>
@@ -178,15 +193,15 @@ export function ItemButtons({ input, slot = false }: { input: PaletteInput; slot
 }
 
 /**
- * The two tools. With the card (`slot`): a tap puts it in the experiment, a drag out takes it in
- * hand; without (phone): a tap picks it up. The one in hand is lit.
+ * The two tools: a tap puts it in the experiment, a drag out takes it in hand (then tap / drag on
+ * the arena). The one in hand is lit.
  */
 export const HandButtons = observer(function HandButtons({
   input,
-  slot = false,
+  phone = false,
 }: {
   input: PaletteInput;
-  slot?: boolean;
+  phone?: boolean;
 }) {
   return HAND_KEYS.map((h, i) => (
     <Button
@@ -194,19 +209,17 @@ export const HandButtons = observer(function HandButtons({
       aria-label={t(`dish.hand.${h}`)}
       aria-pressed={dish.hand === h}
       className={cn(
-        ROW,
-        'aria-pressed:bg-bone/15 aria-pressed:text-bone aria-pressed:ring-1 aria-pressed:ring-bone/40',
-        slot && 'touch-none',
+        phone ? CELL : ROW,
+        'touch-none aria-pressed:bg-bone/15 aria-pressed:text-bone aria-pressed:ring-1 aria-pressed:ring-bone/40',
       )}
       onPointerDown={(e) => {
-        if (slot && e.button === 0) input.dragHand(h, e.nativeEvent, () => trial.setStim(h));
+        if (e.button === 0) input.dragHand(h, e.nativeEvent, () => toSlot(h, phone));
       }}
       onClick={(e) => {
-        if (!slot) dish.toggleHand(h);
-        else if (e.detail === 0) trial.setStim(h);
+        if (e.detail === 0) toSlot(h, phone);
       }}
     >
-      <Row id={h} keyHint={i + 5}>
+      <Row id={h} keyHint={i + 5} phone={phone}>
         {t(`dish.hand.${h}`)}
       </Row>
     </Button>
@@ -214,8 +227,55 @@ export const HandButtons = observer(function HandButtons({
 });
 
 /**
+ * Phone, the sheet's «Положить» (EXPERIMENT-SHAPE §Phone): the glyph grid with what she does; a tap
+ * fills the stimulus slot and goes back to «Опыт», a drag onto the arena is free play. «ещё» → keys.
+ */
+export const PutPanel = observer(function PutPanel({ input }: { input: PaletteInput }) {
+  const [more, setMore] = useState(false);
+  const hint = dish.hand ? t(`dish.hand.tap.${dish.hand}`) : t('pal.hint.tap');
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center justify-between gap-1">
+        <p className="pl-2 text-caption text-balance text-ash">{hint}</p>
+        <Button
+          aria-expanded={more}
+          className="h-8 shrink-0 gap-1.5 px-2 font-mono text-caption tracking-widest text-ash uppercase"
+          onClick={() => setMore(!more)}
+        >
+          {more ? t('puppet.title') : t('pal.more')}
+          <span
+            aria-hidden="true"
+            className={cn(
+              'transition-transform duration-200 ease-out motion-reduce:transition-none',
+              more && 'rotate-180',
+            )}
+          >
+            ▾
+          </span>
+        </Button>
+      </div>
+      <div className="grid grid-cols-2 gap-0.5">
+        <ItemButtons input={input} phone />
+        <HandButtons input={input} phone />
+      </div>
+      {!dish.empty && (
+        <Button className="h-8 self-end px-2 text-caption text-mist" onClick={() => input.reset()}>
+          {t('dish.reset')}
+        </Button>
+      )}
+      {more && (
+        <div className="flex flex-col gap-2 px-2 pb-1">
+          <p className="text-caption text-ash">{t('puppet.hint.tap')}</p>
+          <Puppet phone />
+        </div>
+      )}
+    </div>
+  );
+});
+
+/**
  * The Terrarium palette (EXPERIMENT-SHAPE §Layout): stimuli to put in the experiment or drag into
- * the dish, the puppet keys under «ещё». Desktop only: the left column, no panel (phone: `DishSheet`).
+ * the dish, the puppet keys under «ещё». Desktop only: the left column, no panel (phone: `PutPanel`).
  * Dimmed and inert while an experiment runs.
  */
 export const DishPalette = observer(function DishPalette({ input }: { input: PaletteInput }) {
@@ -234,11 +294,11 @@ export const DishPalette = observer(function DishPalette({ input }: { input: Pal
       <div className="flex flex-col gap-6 [@media(max-height:860px)]:gap-3">
         <section aria-label={t('dish.items')} className="flex flex-col gap-0.5">
           <h2 className={heading}>{t('dish.items')}</h2>
-          <ItemButtons input={input} slot />
+          <ItemButtons input={input} />
         </section>
         <section aria-label={t('dish.hands')} className="flex flex-col gap-0.5">
           <h2 className={heading}>{t('dish.hands')}</h2>
-          <HandButtons input={input} slot />
+          <HandButtons input={input} />
         </section>
         <section aria-label={t('puppet.title')} className="flex flex-col gap-1">
           <Button
