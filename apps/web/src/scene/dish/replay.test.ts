@@ -54,6 +54,11 @@ describe('Clip', () => {
     expect(clip.at(99).t).toBe(13);
   });
 
+  it('lists the frames in (from, to]', () => {
+    expect(clip.between(10, 12).map((f) => f.t)).toEqual([11, 12]);
+    expect(clip.between(-Infinity, 10).map((f) => f.t)).toEqual([10]);
+  });
+
   it('lists the events in (from, to]', () => {
     expect(clip.events(10, 13).map((e) => e.t)).toEqual([11, 13]);
     expect(clip.events(11, 12)).toEqual([]);

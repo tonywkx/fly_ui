@@ -24,6 +24,11 @@ export class Take {
 
   constructor(readonly t0: number) {}
 
+  /** The run's first decision so far. */
+  get decision(): DecisionEvent | null {
+    return this.first;
+  }
+
   /** The loop's decisions and world events since the last feed. */
   feed(decisions: readonly DecisionEvent[], events: readonly WorldEvent[]): void {
     this.first ??= decisions.find((x) => x.t >= this.t0) ?? null;

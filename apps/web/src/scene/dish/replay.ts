@@ -92,10 +92,12 @@ export class Clip {
 
   /** Events of the frames with `from < t ≤ to`. */
   events(from: number, to: number): WorldEvent[] {
-    const out: WorldEvent[] = [];
-    for (let i = this.index(from) + 1; i <= this.index(to); i++)
-      out.push(...(this.frames[i] as Frame).events);
-    return out;
+    return this.between(from, to).flatMap((f) => f.events);
+  }
+
+  /** Frames with `from < t ≤ to`. */
+  between(from: number, to: number): readonly Frame[] {
+    return this.frames.slice(this.index(from) + 1, this.index(to) + 1);
   }
 
   /** Index of the last frame with `f.t ≤ t`; −1 before the first. */

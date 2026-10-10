@@ -56,6 +56,8 @@ export class TrialStore {
   /** Bumped on each start: the scene clears the arena and runs the pair. */
   run = 0;
   outcome: Outcome | null = null;
+  /** The result's slow replay is on (EXPERIMENT-SHAPE §Replay). */
+  replaying = false;
   pairs: Record<string, Entry>;
 
   constructor(
@@ -109,6 +111,7 @@ export class TrialStore {
     if (!(this.canRun || (force && this.phase !== 'running' && this.pair))) return false;
     this.phase = 'running';
     this.outcome = null;
+    this.replaying = false;
     this.run++;
     return true;
   }
@@ -124,6 +127,8 @@ export class TrialStore {
     if (this.phase !== 'running' || !p) return;
     const id = pairId(p);
     const old = this.pairs[id];
+    // the very first result plays its replay by itself
+    this.replaying = Object.keys(this.pairs).length === 0;
     if (!old) this.pairs[id] = { bet: this.bet, result: t.result, ms: t.ms, hz: t.hz };
     this.outcome = {
       ...t,
@@ -138,6 +143,17 @@ export class TrialStore {
     this.memory.save({ pairs: toJS(this.pairs), last: id });
   }
 
+  /** «Повтор»: only on a result. */
+  replay(): boolean {
+    if (this.phase !== 'result') return false;
+    this.replaying = true;
+    return true;
+  }
+
+  closeReplay(): void {
+    this.replaying = false;
+  }
+
   /** «ещё раз»: the same pair, no bet. */
   again(): void {
     this.start();
@@ -148,6 +164,7 @@ export class TrialStore {
     if (this.phase === 'running') return;
     this.phase = 'setup';
     this.outcome = null;
+    this.replaying = false;
   }
 
   /** «Повторить опыт» from a discovery (or `?exp=`): fills the slots. */

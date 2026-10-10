@@ -76,6 +76,8 @@ export class DishLoop {
   readonly peak: Rates = { jump: 0, back: 0, eat: 0, court: 0, gate: 0 };
   /** Scripted delivery (`delivery(stim)`), called before each world step; reset drops it. */
   script: ((w: World) => void) | null = null;
+  /** Called after each world step with its sim time and events (the replay tape); reset drops it. */
+  record: ((t: number, events: readonly WorldEvent[]) => void) | null = null;
   private readonly meter: CommandMeter;
   /** Per sense: rising edge, last tick on and side (null = off for longer than `TAIL_MS`). */
   private onset: Partial<Record<Sense, { t0: number; last: number; side: Side | null }>> = {};
@@ -112,6 +114,7 @@ export class DishLoop {
       this.track(s);
       for (const op of this.verdicts.tick(this.t, s, r, this.action, step)) this.changed.add(op);
       this.send(senseDrive(s, this.senses));
+      this.record?.(this.t, step);
     }
     return ev;
   }
@@ -127,6 +130,7 @@ export class DishLoop {
     this.decisions.length = 0;
     for (const k of Object.keys(this.peak) as Command[]) this.peak[k] = 0;
     this.script = null;
+    this.record = null;
     this.onset = {};
     this.send(new Map());
   }

@@ -37,6 +37,28 @@ describe('TrialStore', () => {
     expect(s.outcome).toMatchObject({ bet: null, first: true });
   });
 
+  it('replays after the first result ever by itself, later only on ask; close and new runs end it', () => {
+    const { s, mem } = setup();
+    s.setStim('swatter');
+    expect(s.replay()).toBe(false);
+    s.start(true);
+    s.finish(take());
+    expect(s.replaying).toBe(true);
+    s.closeReplay();
+    expect(s.replaying).toBe(false);
+    s.start();
+    s.finish(take());
+    expect(s.replaying).toBe(false);
+    expect(s.replay()).toBe(true);
+    s.start();
+    expect(s.replaying).toBe(false);
+    const again = setup(mem).s;
+    again.setStim('shadow');
+    again.start(true);
+    again.finish(take());
+    expect(again.replaying).toBe(false);
+  });
+
   it('setup → running → result; the first run unlocks its discovery and is remembered', () => {
     const { s, mem } = setup();
     s.setStim('swatter');

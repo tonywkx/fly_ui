@@ -120,6 +120,18 @@ describe('DishLoop', () => {
     expect(loop.script).toBeNull();
   });
 
+  it('records each tick after its step with the step events; reset drops it', () => {
+    const { loop } = setup();
+    const at: [number, string, number][] = [];
+    loop.record = (t, events) => at.push([t, loop.action, events.length]);
+    loop.advance(30, log([0, 1], 20, 200));
+    expect(at).toHaveLength(30);
+    expect(at[0]?.[0]).toBe(1);
+    expect(at.find(([, , n]) => n > 0)?.[1]).toBe('jump');
+    loop.reset();
+    expect(loop.record).toBeNull();
+  });
+
   it('keeps each command peak until reset', () => {
     const { loop } = setup();
     loop.advance(60, log([0, 1], 20, 60));

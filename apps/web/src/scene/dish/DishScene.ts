@@ -1,13 +1,4 @@
-import {
-  type Action,
-  ARENA_R,
-  type ItemKind,
-  PATHS,
-  SWAT_MS,
-  SWAT_R,
-  type World,
-  type WorldEvent,
-} from '@fly/sim';
+import { type Action, ARENA_R, type ItemKind, PATHS, SWAT_MS, SWAT_R, type WorldEvent } from '@fly/sim';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import {
@@ -58,7 +49,11 @@ import { type ItemView, itemView } from './items';
 import type { DecisionEvent } from './loop';
 import { BONE, dark, glow, SAFFRON } from './materials';
 import { floorHit, type Spot } from './place';
+import type { Shown } from './replay';
 import { cut, RUN_MS, threadAt } from './thread';
+
+type Look = NonNullable<ReturnType<typeof threadAt>>;
+
 import { Trail } from './trail';
 import type { Op } from './verdict';
 import { facing, seamDistance, type ZoomDir, zoomAt } from './zoom';
@@ -148,6 +143,8 @@ export class DishScene {
   private marks = new Set<Op>();
   /** The running thread: its decision and wall ms since. */
   private thread: { e: DecisionEvent; age: number } | null = null;
+  /** A replay sets the thread's look itself (`upTo`: hops drawn, the signal stopping at a silent one). */
+  private replayed: { e: DecisionEvent | null; look: Look | null; upTo: number | null } | null = null;
   private readonly threadPos = new BufferAttribute(new Float32Array(THREAD_MAX * 3), 3);
   private readonly threadLine: LineSegments;
   private readonly threadAlpha = uniform(0);
@@ -285,7 +282,7 @@ export class DishScene {
   }
 
   /** Mirrors the world at sim time `t` (after `events` happened on the way there); `marked` = an operation is on. */
-  sync(world: World, action: Action, t: number, events: readonly WorldEvent[], marked = false): void {
+  sync(world: Shown, action: Action, t: number, events: readonly WorldEvent[], marked = false): void {
     const f = world.fly;
     for (const e of events) {
       if (e.kind === 'takeoff') {
@@ -358,6 +355,12 @@ export class DishScene {
   /** A decision: its thread runs sense organ → hologram path → legs. */
   decide(e: DecisionEvent): void {
     this.thread = { e, age: 0 };
+  }
+
+  /** Replay: the thread as given (null look = not drawn); null hands it back to live decisions. */
+  replayThread(r: { e: DecisionEvent | null; look: Look | null; upTo: number | null } | null): void {
+    this.replayed = r;
+    this.thread = null;
   }
 
   /** A zoom is flying (input waits). */
@@ -435,18 +438,25 @@ export class DishScene {
     this.holo?.heat(heat);
     const th = this.thread;
     if (th) th.age = this.opts.still ? RUN_MS : th.age + dt;
-    const look = th && this.holo ? threadAt(th.age, this.opts.reducedMotion) : null;
+    const rp = this.replayed;
+    const e = rp ? rp.e : th?.e;
+    const look = !this.holo ? null : rp ? rp.look : th ? threadAt(th.age, this.opts.reducedMotion) : null;
     this.threadLine.visible = this.head.visible = !!look;
-    if (!th || !look || !this.holo) {
+    if (!e || !look || !this.holo) {
       if (!look) this.thread = null;
       return;
     }
-    const { action, side, ms } = th.e;
+    const { action, side, ms } = e;
     const hops = this.holo.path(action, side);
     // a sensed decision starts at the organ; forced cells (no sense) start at the command neuron
     const sensed = ms !== null;
     const from = sensed ? this.fly.organ(PATHS[action].organ, side) : hops.at(-1);
-    const pts = [from, ...(sensed ? hops : []), this.fly.organ('legs', null)]
+    const upTo = rp?.upTo ?? null;
+    const pts = (
+      upTo === null
+        ? [from, ...(sensed ? hops : []), this.fly.organ('legs', null)]
+        : [from, ...hops.slice(0, upTo)]
+    )
       .filter((p) => !!p)
       .map((p) => p.toArray() as Vec3);
     const line = cut(pts, look.drawn).slice(0, THREAD_MAX / 2 + 1);
@@ -511,6 +521,11 @@ export class DishScene {
   /** Forget the trail and the fly's flight (dish reset). */
   clear(): void {
     this.thread = null;
+    for (const r of this.rings) {
+      this.scene.remove(r.mesh);
+      (r.mesh.material as { dispose(): void }).dispose();
+    }
+    this.rings.length = 0;
     this.trail.clear();
     this.lastTrail = null;
     this.fly.reset();
