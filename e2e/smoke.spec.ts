@@ -105,22 +105,38 @@ test('tour completes', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-// The live brain: MDN switched on makes the fly back off with nothing bitter around.
-test('terrarium loads + an operation changes behaviour', async ({ page }) => {
+// Home = the Terrarium: a bare link (no `view`, no `snap`) opens the dish on a first visit.
+test('home is the terrarium', async ({ page }) => {
+  const { errors, bytes } = watch(page);
+  await page.goto(url({ snap: '0' }));
+  await ready(page);
+  const mb = bytes.n / 2 ** 20;
+  test.info().annotations.push({ type: 'first frame', description: `${mb.toFixed(1)} MB` });
+  expect(mb, `${mb.toFixed(1)} MB before first frame`).toBeLessThanOrEqual(FIRST_FRAME_MB);
+  await expect(page.locator('canvas').first()).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Experiment' })).toBeVisible();
+  await expect(page.getByText(/The swatter will strike next to the fly/)).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Timeline' })).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+// The loop on the live brain: bet → run → result next to the norm → discovery 1/12.
+test('an experiment reaches a result and unlocks a discovery', async ({ page }) => {
   // the dish clock runs in wall time on the live sim; without a GPU the frames crawl
   test.skip(!!process.env.CI, 'live sim in wall time; too slow without a GPU');
   const { errors } = watch(page);
-  await page.goto(url({ view: 'dish', snap: '0' }));
+  await page.goto(url({ snap: '0', exp: 'sugar', onb: '0' }));
   await ready(page);
-  await expect(page.locator('canvas').first()).toBeVisible();
-  const ops = page.getByRole('region', { name: 'Neurosurgeon' });
-  await expect(page.getByText(/backs off for no reason/)).toHaveCount(0);
+  const card = page.getByRole('region', { name: 'Experiment' });
+  await expect(card.getByRole('tab', { name: /Discoveries 0\/12/ })).toBeVisible();
 
-  await ops.getByRole('button', { name: /Retreat neuron/ }).dispatchEvent('click');
-  await ops.getByRole('button', { name: 'Switch on' }).dispatchEvent('click');
-  await expect(
-    page.getByRole('status').filter({ hasText: 'Retreat neuron: backs off for no reason' }),
-  ).toHaveCount(1, { timeout: 30_000 });
+  await card.getByRole('button', { name: 'eats', exact: true }).dispatchEvent('click');
+  const run = card.getByRole('button', { name: 'Run', exact: true });
+  await expect(run).toBeEnabled({ timeout: 30_000 }); // the live brain has booted
+  await run.dispatchEvent('click');
+
+  await expect(card.getByRole('status').filter({ hasText: /now: / })).toHaveCount(1, { timeout: 30_000 });
+  await expect(card.getByRole('tab', { name: /Discoveries 1\/12/ })).toBeVisible({ timeout: 10_000 });
   expect(errors).toEqual([]);
 });
 
