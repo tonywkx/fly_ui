@@ -99,6 +99,23 @@ describe('DishLoop', () => {
     expect(loop.decisions.map((d) => [d.action, d.ms])).toEqual([['jump', null]]);
   });
 
+  it("names the sense that was on when the path's own was off (swatter × DNp01 off → MDN)", () => {
+    const { loop } = setup();
+    loop.world.add('sugar', 1.6, 0);
+    loop.world.fly.heading = 0;
+    loop.advance(200, log([2], 30, 300));
+    const d = loop.decisions[0];
+    expect(d?.action).toBe('back');
+    expect(d?.ms).toBeNull();
+    expect(d?.via).toEqual({ sense: 'sugar', ms: (d?.t ?? 0) - 1 });
+  });
+
+  it("has no `via` without any sense or with the path's own", () => {
+    const { loop } = setup();
+    loop.advance(100, log([0, 1], 20, 200));
+    expect(loop.decisions[0]?.via).toBeUndefined();
+  });
+
   it('resets world, clock and drive', () => {
     const { loop, drives } = setup();
     loop.world.add('sugar', 1.6, 0);

@@ -42,6 +42,8 @@ export interface DecisionEvent {
   side: Side | null;
   /** No sense, but the visitor held this puppet key (set by `DishRun`). */
   pull?: PuppetKey;
+  /** The path's own sense was off, another was on (swatter × DNp01 off: the shadow → MDN). */
+  via?: { sense: Sense; ms: number };
 }
 
 /** A sense's level and stronger side. */
@@ -146,7 +148,14 @@ export class DishLoop {
 
   private decided(action: Decision): void {
     const o = this.onset[PATHS[action].sense];
-    this.decisions.push({ action, t: this.t, ms: o ? this.t - o.t0 : null, side: o?.side ?? null });
+    const d: DecisionEvent = { action, t: this.t, ms: o ? this.t - o.t0 : null, side: o?.side ?? null };
+    if (!o) {
+      // the earliest sense still on
+      const [sense, v] =
+        (Object.entries(this.onset) as [Sense, { t0: number }][]).sort((a, b) => a[1].t0 - b[1].t0)[0] ?? [];
+      if (sense && v) d.via = { sense, ms: this.t - v.t0 };
+    }
+    this.decisions.push(d);
   }
 
   private send(next: Map<number, number>): void {

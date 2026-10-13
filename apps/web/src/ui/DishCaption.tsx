@@ -1,6 +1,6 @@
-import { PATHS } from '@fly/sim';
+import { type Decision, OPERATIONS, PATHS } from '@fly/sim';
 import { observer } from 'mobx-react-lite';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { num, t } from '@/i18n';
 import { cn } from '@/lib/utils';
@@ -20,10 +20,14 @@ const SHOW_MS = 4000;
 export const DishCaption = observer(function DishCaption() {
   const d = dish.decision;
   const [shown, setShown] = useState(false);
+  // free play's decisions for screen readers; a run's is the card's to announce
+  const [said, setSaid] = useState('');
+  const line = useRef<HTMLParagraphElement>(null);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: a new decision restarts the timer
   useEffect(() => {
     setShown(!!d);
+    setSaid(d && trial.phase !== 'running' ? (line.current?.textContent ?? '') : '');
     if (!d || app.params.snap) return;
     const id = setTimeout(() => setShown(false), SHOW_MS);
     return () => clearTimeout(id);
@@ -32,14 +36,27 @@ export const DishCaption = observer(function DishCaption() {
   const path = d && PATHS[d.action];
   const sensed = d?.ms !== null && d?.ms !== undefined;
   const pull = d?.pull;
+  // no sense of its own: an operation switched the command on, another sense set it off
+  // (the shadow → MDN), or it fired after the stimulus was gone (swatter × DNp01 off, once struck)
+  const on = !!d && !sensed && !pull && drivenOn(d.action);
+  const via = d && !sensed && !pull && !on ? d.via : undefined;
   const why = !path
     ? ''
     : pull
       ? t('dish.why.puppet', { key: PULL_GLYPH[pull] })
-      : t(sensed ? `dish.why.${path.sense}` : 'dish.why.forced');
+      : t(
+          sensed
+            ? `dish.why.${path.sense}`
+            : via
+              ? `dish.why.${via.sense}`
+              : on
+                ? 'dish.why.forced'
+                : 'dish.why.unprompted',
+        );
   const shownHops = !path ? [] : pull ? puppetHops(pull) : sensed ? path.hops : path.hops.slice(-1);
   const hops = shownHops.map((h) => h.type).join(' → ');
-  const term = d && sensed ? `${hops} · ${t('unit.ms', { v: num(d.ms as number) })}` : hops;
+  const ms = sensed ? (d?.ms as number) : via?.ms;
+  const term = ms === undefined ? hops : `${hops} · ${t('unit.ms', { v: num(ms) })}`;
   // the replay's caption is in the card
   if (trial.replaying) return null;
 
@@ -54,7 +71,11 @@ export const DishCaption = observer(function DishCaption() {
       {!d && dish.empty && trial.run === 0 && (
         <p className="hidden text-caption text-ash md:block">{t('pal.hint')}</p>
       )}
+      <p role="status" className="sr-only">
+        {said}
+      </p>
       <p
+        ref={line}
         aria-live="off"
         data-empty={!shown}
         className="text-body font-light text-balance text-bone transition-opacity duration-200 ease-out motion-reduce:transition-none data-[empty=true]:opacity-0"
@@ -84,3 +105,10 @@ export const DishCaption = observer(function DishCaption() {
     </div>
   );
 });
+
+/** An operation (free play or the experiment's) or the brain view drives this decision's command. */
+function drivenOn(action: Decision): boolean {
+  const cmd = PATHS[action].hops.at(-1)?.type ?? '';
+  const ops = [...dish.ops, ...(trial.op === 'none' ? [] : [trial.op])];
+  return !!dish.brain?.on || ops.some((op) => OPERATIONS[op].mode === 'on' && OPERATIONS[op].types.test(cmd));
+}

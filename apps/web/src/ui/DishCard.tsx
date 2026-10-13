@@ -273,7 +273,11 @@ const Bet = observer(function Bet() {
           <Button
             key={r}
             aria-pressed={trial.bet === r}
-            className="h-8 rounded-full px-3 text-caption text-mist ring-1 ring-bone/30 hover:text-bone aria-pressed:text-bone aria-pressed:ring-saffron"
+            // phone: three chips in one row of the sheet
+            className={cn(
+              'h-8 rounded-full text-caption text-mist ring-1 ring-bone/30 hover:text-bone aria-pressed:text-bone aria-pressed:ring-saffron',
+              phone ? 'px-2' : 'px-3',
+            )}
             onClick={() => trial.setBet(trial.bet === r ? null : r)}
           >
             {t(`exp.act.${r}` as Key)}
@@ -776,7 +780,7 @@ function Tabs({
             tabIndex={k === tab ? 0 : -1}
             className={cn(
               'rounded-md px-1 tabular-nums outline-none transition-colors duration-150 focus-visible:ring-1 focus-visible:ring-bone/60',
-              phone && 'h-8 px-1.5 whitespace-nowrap',
+              phone ? 'h-8 px-1.5 whitespace-nowrap' : 'min-h-4',
               k === tab ? 'text-bone' : 'text-ash hover:text-mist',
               locked && k !== tab && 'pointer-events-none',
             )}
