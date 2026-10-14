@@ -1,10 +1,8 @@
 import { when } from 'mobx';
-import { StrictMode } from 'react';
+import { lazy, StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from './App';
-import { data } from './data/store';
 import { app } from './state/app';
-import { bootTour } from './ui/tour/boot';
+import { Boot } from './ui/Boot';
 import './ui/theme.css';
 
 declare global {
@@ -28,7 +26,9 @@ Promise.all(['400 16px "Inter Variable"', '400 12px "Geist Mono"'].map((f) => do
 app.waitFor('data');
 app.waitFor('frame');
 const dish = app.params.view === 'dish';
-(dish ? data.loadManifest() : data.loadFirstFrame(app.params.scenario))
+// dynamic: the manifest parser (zod) stays out of the entry; fetched beside the App chunk
+import('./data/store')
+  .then(({ data }) => (dish ? data.loadManifest() : data.loadFirstFrame(app.params.scenario)))
   .catch((e) => {
     console.error('[data]', e);
     app.markReady('frame'); // nothing will draw; let snap capture the broken state
@@ -36,7 +36,7 @@ const dish = app.params.view === 'dish';
   .finally(() => app.markReady('data'));
 
 // zoomed in from the dish: the visitor came to operate, not for the tour
-if (!dish && app.params.from !== 'dish') bootTour();
+if (!dish && app.params.from !== 'dish') void import('./ui/tour/boot').then((m) => m.bootTour());
 
 when(
   () => app.ready,
@@ -45,10 +45,15 @@ when(
   },
 );
 
+// the scene and the whole UI (~1.7 MB) arrive under the boot paint; data loading above already started
+const App = lazy(() => import('./App').then((m) => ({ default: m.App })));
+
 const root = document.getElementById('root');
 if (!root) throw new Error('#root missing');
 createRoot(root).render(
   <StrictMode>
-    <App />
+    <Suspense fallback={<Boot />}>
+      <App />
+    </Suspense>
   </StrictMode>,
 );
