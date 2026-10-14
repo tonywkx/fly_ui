@@ -117,12 +117,43 @@ test('home is the terrarium', async ({ page }) => {
   // a first visit: the welcome over the dish, then onboarding step 1 in the card
   const welcome = page.getByRole('dialog', { name: "A real fly's brain" });
   await expect(welcome).toBeVisible();
+  await expect(welcome.getByRole('button', { name: 'Start' })).toBeFocused();
   await welcome.getByRole('button', { name: 'Start' }).click();
   await expect(welcome).toHaveCount(0);
   await expect(page.getByRole('region', { name: 'Experiment' })).toBeVisible();
   await expect(page.getByText(/The swatter will strike next to the fly/)).toBeVisible();
   await expect(page.getByRole('region', { name: 'Timeline' })).toHaveCount(0);
   expect(errors).toEqual([]);
+});
+
+// A returning visit: a short splash that leaves by itself once the live brain is up; «?» brings the full one.
+test('returning visit gets a short splash', async ({ page }) => {
+  const { errors } = watch(page);
+  await page.addInitScript(() => localStorage.setItem('fly_ui.welcomed', '1'));
+  await page.goto(url({ snap: '0', onb: '0' }));
+  const splash = page.getByText("A real fly's brain");
+  await expect(splash).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(splash).toHaveCount(0, { timeout: 45_000 });
+
+  const again = page.getByRole('button', { name: 'What is this and how to play' });
+  await again.click();
+  const welcome = page.getByRole('dialog', { name: "A real fly's brain" });
+  await expect(welcome).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(welcome).toHaveCount(0);
+  await expect(again).toBeFocused();
+  expect(errors).toEqual([]);
+});
+
+// Snaps and links to an experiment open straight on the dish.
+test('snap and experiment links skip the welcome', async ({ page }) => {
+  const links: Record<string, string>[] = [{ scenario: 'escape' }, { snap: '0', exp: 'sugar', onb: '0' }];
+  for (const q of links) {
+    await page.goto(url(q));
+    await ready(page);
+    await expect(page.getByText("A real fly's brain")).toHaveCount(0);
+  }
 });
 
 // The loop on the live brain: bet → run → result next to the norm → discovery 1/12.
