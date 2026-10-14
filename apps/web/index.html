@@ -3,10 +3,40 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#000000" />
     <title>fly_ui</title>
+    <!-- first paint before any JS/CSS: void + the dish's wordmark where Dish draws it (no jump on mount) -->
+    <style>
+      html,
+      body,
+      #root {
+        height: 100%;
+        margin: 0;
+        background: #000;
+        color: #fff;
+      }
+      .boot-mark {
+        position: fixed;
+        left: 24px;
+        bottom: 87px;
+        margin: 0;
+        font: 400 42px/1 "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+        letter-spacing: -0.04em;
+        font-feature-settings: "ss01" on;
+        -webkit-font-smoothing: antialiased;
+      }
+      @media (min-width: 768px) {
+        .boot-mark {
+          left: 48px;
+          bottom: 90px;
+          font-size: 78px;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><p class="boot-mark" aria-hidden="true">fly_ui</p></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
