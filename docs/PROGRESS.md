@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-14 — 10.2 Welcome state + progress
+Done: `state/welcome.ts` — `startWelcome` (`?welcome=full|short|0` wins; snap / `exp` / `from=brain` / `view=brain` → off; `fly_ui.welcomed` → short, else full), `welcomeMemory`, `WelcomeStore` (`open`, `reopen` = «?» → `again`, `start` = «Начать» → `onboarding.restart()` only when `again`, `close` = Esc / short leaving; only full saves), `loadPct` (int, ≤99 until ready, null = unknown). Progress: `sim/stream.ts` `readBytes` (getReader) → worker `init(o, onProgress)` (total = manifest `graph.bytes + meta.bytes`, 100 ms throttle) → `LiveClient.start(…, onProgress)` via comlink `proxy` → `DishRun` `totalBytes`/`onProgress` → `dish.loading`.
+State: tests 635, typecheck, lint green. `ui/Dish.tsx` gates `onboarding.begin` on `when(welcome.mode === 'off')`, but does NOT open the welcome yet (no UI to close it → onboarding would hang); the commented line at the gate is what 10.4 enables.
+Next: 10.3 first paint (inline black + wordmark in `index.html`, measure main chunk).
+Gotchas: manifest `bytes` = decoded size (`process/bake.ts:23`), so % is gzip-safe. `git` failed this session: Xcode license not accepted (`sudo xcodebuild -license accept`) — 10.2 may be uncommitted.
+
 ## 2026-10-14 — 10.1 Welcome shape
 Done: `docs/WELCOME-SHAPE.md` approved — full welcome = left column (≤440 px) over a left-edge scrim, live dish bright on the right, palette/card hidden while open; phone = bottom-anchored column, full-width pill; short splash = centred title + progress, `role="status"`. Copy RU/EN (~44 words, `welcome.*` keys), progress/failed states, motion, flow (`?welcome=`, skips, «?» reopens, «Начать» restarts onboarding).
 State: doc only, no code. PLAN 10.1 ticked.
@@ -23,9 +29,3 @@ Done: `state/params.ts` — `view: 'dish' | 'brain'` always set: bare page = dis
 State: tests 621 / typecheck / lint green; visual-qa PASS (home RU/EN, onb 1–4, `?scenario=escape`, `?view=dish`, phone 390 home); ui-critic P1s fixed. Budget: first frame waits on ~1.8 MB JS (+manifest); graph-full (38 MB) still streams to the worker after it, as in Phase 8 — brain view not split out.
 Next: 9.8 phone (sheet tabs for the loop, replay + discoveries + onboarding at 390).
 Gotchas: onboarding boots only at `width >= 48rem` and not when arriving from the brain (phone has no card until 9.8). Snaps of a result need `--t=3000` with `--run=1` (else captured mid-run); step 2 needs `--click=Закрыть` (first result auto-replays). Tour boot unchanged (first brain visit, skipped on `from=dish`). Bottom caption «Нейрон включили → пятится · MDN» after swatter × DNp01 off is still open.
-
-## 2026-10-10 — 9.6 Discoveries
-Done: `ui/DishFound.tsx` (12 tiles, 2 cols; found tile opens across both: `foundLine`, bet, `cellPath` with the operated cell in saffron, op fact, «повторить опыт →»; locked = glyph + «?» + `found.*.tease`; 12/12 line); `DishCard` tablist «Опыт · Открытия n/12» (←/→, locked while running/replaying, panel scrolls, tabs pinned), `Unlock` ✦ flight to the counter (WAAPI, `--ease-in-out`), keyed counter tick; `trial.tab/setTab/allFound`, tab → `exp` on slot change / start / repeat; journal `hz` = the «сейчас» command (`readCell` in `discoveries.ts`); `?tab=found`; snap `--found=<ids|all>` + `--click=<button>`.
-State: tests 610 / typecheck / lint green; visual-qa PASS (RU/EN 1600: 0/12, 4/12 open tile, 12/12, unlock 2/12); ui-critic no P1, P2s fixed.
-Next: 9.7 Terrarium home (default view = dish, `?view=brain`, old links, «Заглянуть в мозг», first-visit onboarding).
-Gotchas: card focus target is a sr-only `h2` (focusing a tab on load showed a ring). The ✦ flight is skipped after the first-ever result (auto-replay ticks the counter directly). WAAPI, not `motion/react` (not a dependency). Live caption after swatter × DNp01 off still reads «Нейрон включили → пятится · MDN» (from 9.4, still open). `?run=1` skips the bet, so no «прогноз» row in those snaps.
