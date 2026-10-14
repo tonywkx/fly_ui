@@ -13,6 +13,7 @@ import {
 } from '@fly/sim';
 import { expose, transfer } from 'comlink';
 import { type Batch, Live, rowMap, watchRows } from './live';
+import { readBytes } from './stream';
 
 export interface LiveInit {
   /** `graph-full` and `meta-full` chunk URLs (fetched here, they never pass through the main thread). */
@@ -20,6 +21,8 @@ export interface LiveInit {
   metaUrl: string;
   /** bodyIds of the scenario rows the scene draws. */
   scenarioBodyIds: Float64Array;
+  /** Decoded size of both chunks (manifest `bytes`: Content-Length is the gzip size on Pages); 0 = unknown. */
+  totalBytes?: number;
   /** Scenario rows driven by Poisson input from t = 0 (the baked run's stimulus). */
   stim: number[];
   seed: number;
@@ -43,19 +46,35 @@ const need = () => {
   return live;
 };
 
-async function bytes(url: string): Promise<ArrayBuffer> {
+/** Loaded fraction 0..1 of `totalBytes`, at most every `PROGRESS_MS`; null = total unknown. */
+export type Progress = (f: number | null) => void;
+const PROGRESS_MS = 100;
+
+async function bytes(url: string, onBytes: (n: number) => void): Promise<ArrayBuffer> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
-  return res.arrayBuffer();
+  return readBytes(res, onBytes);
 }
 
 const api = {
   /** Loads the full graph and starts the scenario at t = 0; returns full-graph size. */
-  async init(o: LiveInit): Promise<{ n: number; edges: number }> {
+  async init(o: LiveInit, onProgress?: Progress): Promise<{ n: number; edges: number }> {
+    const total = o.totalBytes ?? 0;
+    const got: [number, number] = [0, 0];
+    let last = 0;
+    const tick = (i: number) => (n: number) => {
+      got[i] = n;
+      const now = performance.now();
+      if (!onProgress || now - last < PROGRESS_MS) return;
+      last = now;
+      onProgress(total > 0 ? (got[0] + got[1]) / total : null);
+    };
+    if (onProgress) onProgress(total > 0 ? 0 : null);
     const [csr, meta] = await Promise.all([
-      bytes(o.graphUrl).then(decodeGraph),
-      bytes(o.metaUrl).then(decodeMeta),
+      bytes(o.graphUrl, tick(0)).then(decodeGraph),
+      bytes(o.metaUrl, tick(1)).then(decodeMeta),
     ]);
+    if (onProgress) onProgress(total > 0 ? 1 : null);
     graph = {
       csr,
       sign: meta.sign,

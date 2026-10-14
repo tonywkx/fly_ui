@@ -88,12 +88,16 @@ export interface DishStatus {
 export interface DishRunOptions extends DishSceneOptions {
   graphUrl: string;
   metaUrl: string;
+  /** Decoded size of both chunks (manifest), for `onProgress`. */
+  totalBytes?: number;
   /** Snaps: run as fast as the sim allows up to this sim ms, then hold and call `onReady`. */
   until?: number;
   onReady?: () => void;
   onStatus: (s: DishStatus) => void;
   /** Cells per operation, once the live brain is up. */
   onCells?: (n: Record<Op, number>) => void;
+  /** The live brain's bytes loaded (0..1), null with the total unknown; `onCells` = ready. */
+  onProgress?: (f: number | null) => void;
   /** An operation's last encounter changed (the card's «now» line). */
   onVerdict?: (op: Op, o: Outcome) => void;
   /** The fly just decided (the decision caption); null on a reset. */
@@ -320,11 +324,13 @@ export class DishRun {
         {
           graphUrl: this.o.graphUrl,
           metaUrl: this.o.metaUrl,
+          totalBytes: this.o.totalBytes,
           scenarioBodyIds: new Float64Array(0),
           stim: [],
           seed: SEED,
         },
         PACE,
+        this.o.onProgress,
       );
       if (this.disposed) return c.dispose();
       const senses = await c.groups(SENSES);

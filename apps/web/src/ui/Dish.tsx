@@ -16,6 +16,7 @@ import { app } from '@/state/app';
 import { dish } from '@/state/dish';
 import { onbMemory, onboarding, startOnb } from '@/state/onboarding';
 import { trial } from '@/state/trial';
+import { welcome } from '@/state/welcome';
 import { Credit } from './Credit';
 import { DishCaption } from './DishCaption';
 import { DishCard } from './DishCard';
@@ -121,15 +122,19 @@ export const Dish = observer(function Dish() {
     const arriving = from === 'brain';
     // black until the flight out of the head: no chrome over the void
     if (arriving) dish.setZooming(true);
-    // first visit: the card walks through one experiment (phone: the sheet's «Опыт»)
-    if (!arriving)
-      onboarding.begin(
-        startOnb({
+    // 10.4 opens it here with its UI: welcome.open(startWelcome({ params, welcomed: welcomeMemory.welcomed() }))
+    // first visit: the card walks through one experiment (phone: the sheet's «Опыт»), once the welcome is gone
+    const onb = arriving
+      ? 0
+      : startOnb({
           params: app.params,
           done: onbMemory.done(),
           journal: Object.keys(trial.pairs).length > 0,
-        }),
-      );
+        });
+    const welcomed = when(
+      () => welcome.mode === 'off',
+      () => onboarding.begin(onb),
+    );
     if (app.params.exp) trial.repeat(`${app.params.exp.stim}:${app.params.exp.op}`);
     else if (ops?.[0]) {
       trial.setOp(ops[0]);
@@ -160,6 +165,8 @@ export const Dish = observer(function Dish() {
           location.assign(
             viewHref({ dish: false, from: 'dish', scenario: scenarioFor(dish.decision?.action ?? null) }),
           ),
+        totalBytes: graph.bytes + meta.bytes,
+        onProgress: (f) => dish.setLoading(f),
         onCells: (n) => dish.setCells(n),
         onVerdict: (op, o) => dish.setNow(op, o),
         onDecision: (d) => dish.setDecision(d),
@@ -270,6 +277,7 @@ export const Dish = observer(function Dish() {
     });
     return () => {
       disposed = true;
+      welcomed();
       dispose();
     };
   }, [manifest]);

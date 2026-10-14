@@ -1,7 +1,7 @@
 import type { Drive, Group } from '@fly/sim';
-import { type Remote, transfer, wrap } from 'comlink';
+import { proxy, type Remote, transfer, wrap } from 'comlink';
 import { SpikeLog } from './feed';
-import type { LiveInit, SimApi, Tuning } from './sim.worker';
+import type { LiveInit, Progress, SimApi, Tuning } from './sim.worker';
 
 /** Sim time kept buffered ahead of the display clock, and the size of one Worker request (ms). */
 const AHEAD_MS = 100;
@@ -43,11 +43,12 @@ export class LiveClient {
   static async start(
     init: LiveInit,
     pace: Pace = { aheadMs: AHEAD_MS, chunkMs: CHUNK_MS },
+    onProgress?: Progress,
   ): Promise<LiveClient> {
     const c = new LiveClient(pace);
     try {
       const t0 = performance.now();
-      const { n, edges } = await c.api.init(init);
+      const { n, edges } = await c.api.init(init, onProgress && proxy(onProgress));
       console.info(`[sim] live: ${n} neurons, ${edges} edges in ${(performance.now() - t0).toFixed(0)} ms`);
       return c;
     } catch (e) {
