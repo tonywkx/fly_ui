@@ -25,6 +25,8 @@ export class DishStore {
   cells: Record<Op, number> | null = null;
   /** The live brain's bytes loaded (0..1) until `cells`; null = not started or total unknown. */
   loading: number | null = null;
+  /** The live brain didn't load (fetch / decode); the dish runs on without it. */
+  failed = false;
   /** Each operation's last live encounter. */
   now: Partial<Record<Op, Outcome>> = {};
   /** The operation whose outcome changed last (announced). */
@@ -44,6 +46,10 @@ export class DishStore {
 
   setLoading(f: number | null): void {
     this.loading = f;
+  }
+
+  setFailed(on: boolean): void {
+    this.failed = on;
   }
 
   setBrain(n: { off: number; on: number } | null): void {

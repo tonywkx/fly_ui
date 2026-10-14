@@ -96,6 +96,8 @@ export interface DishRunOptions extends DishSceneOptions {
   onStatus: (s: DishStatus) => void;
   /** Cells per operation, once the live brain is up. */
   onCells?: (n: Record<Op, number>) => void;
+  /** The live brain failed to load; the dish runs on without it. */
+  onFailed?: () => void;
   /** The live brain's bytes loaded (0..1), null with the total unknown; `onCells` = ready. */
   onProgress?: (f: number | null) => void;
   /** An operation's last encounter changed (the card's «now» line). */
@@ -372,6 +374,7 @@ export class DishRun {
       console.info(`[dish] live brain in ${(performance.now() - t0).toFixed(0)} ms`);
     } catch (e) {
       console.error('[dish] live sim failed', e);
+      if (!this.disposed) this.o.onFailed?.();
       this.o.onReady?.();
     }
   }

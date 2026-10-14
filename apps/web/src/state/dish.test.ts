@@ -26,3 +26,12 @@ describe('DishStore phone sheet', () => {
     expect(s.put).toBe(false);
   });
 });
+
+describe('DishStore live brain', () => {
+  it('a failed load is flagged', () => {
+    const { s } = store();
+    expect(s.failed).toBe(false);
+    s.setFailed(true);
+    expect(s.failed).toBe(true);
+  });
+});
