@@ -1,15 +1,21 @@
-import { useSyncExternalStore } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 
 const QUERY = '(width >= 48rem)';
 
-/** Desktop layout (Tailwind's `md`): the phone gets its own chrome, not just hidden copies. */
-export function useWide(): boolean {
-  return useSyncExternalStore(
-    (on) => {
-      const m = matchMedia(QUERY);
+/** Whether a media query matches, kept in sync with resizes. */
+export function useMedia(query: string): boolean {
+  const subscribe = useCallback(
+    (on: () => void) => {
+      const m = matchMedia(query);
       m.addEventListener('change', on);
       return () => m.removeEventListener('change', on);
     },
-    () => matchMedia(QUERY).matches,
+    [query],
   );
+  return useSyncExternalStore(subscribe, () => matchMedia(query).matches);
+}
+
+/** Desktop layout (Tailwind's `md`): the phone gets its own chrome, not just hidden copies. */
+export function useWide(): boolean {
+  return useMedia(QUERY);
 }

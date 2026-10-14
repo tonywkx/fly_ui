@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { type CSSProperties, type ReactNode, useEffect, useId, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { num, t } from '@/i18n';
-import { useWide } from '@/lib/useWide';
+import { useMedia } from '@/lib/useWide';
 import { cn } from '@/lib/utils';
 import { app } from '@/state/app';
 import { dish } from '@/state/dish';
@@ -74,7 +74,8 @@ function rise(i: number): { className: string; style?: CSSProperties } {
 }
 
 function Full({ out }: { out: boolean }) {
-  const wide = useWide();
+  // a landscape phone or a short window takes the phone's bottom column: the left one can't fit the CTA
+  const wide = useMedia('(width >= 48rem) and (height >= 35rem)');
   const title = useId();
   const start = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDivElement>(null);
@@ -184,7 +185,7 @@ function Full({ out }: { out: boolean }) {
           <div className="absolute inset-x-0 bottom-0 flex max-h-full flex-col gap-3 px-4 pt-16 pb-[max(var(--spacing)*4,env(safe-area-inset-bottom))]">
             <div className="flex min-h-0 flex-col gap-3 overflow-y-auto">{items.slice(0, -1)}</div>
             {items.at(-1)}
-            <div className="-mx-1 flex items-center justify-between gap-2">
+            <div className="-mx-1 flex flex-wrap items-center justify-between gap-x-2">
               <LangSwitch />
               <Credit />
             </div>
