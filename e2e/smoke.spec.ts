@@ -114,6 +114,11 @@ test('home is the terrarium', async ({ page }) => {
   test.info().annotations.push({ type: 'first frame', description: `${mb.toFixed(1)} MB` });
   expect(mb, `${mb.toFixed(1)} MB before first frame`).toBeLessThanOrEqual(FIRST_FRAME_MB);
   await expect(page.locator('canvas').first()).toBeVisible();
+  // a first visit: the welcome over the dish, then onboarding step 1 in the card
+  const welcome = page.getByRole('dialog', { name: "A real fly's brain" });
+  await expect(welcome).toBeVisible();
+  await welcome.getByRole('button', { name: 'Start' }).click();
+  await expect(welcome).toHaveCount(0);
   await expect(page.getByRole('region', { name: 'Experiment' })).toBeVisible();
   await expect(page.getByText(/The swatter will strike next to the fly/)).toBeVisible();
   await expect(page.getByRole('region', { name: 'Timeline' })).toHaveCount(0);

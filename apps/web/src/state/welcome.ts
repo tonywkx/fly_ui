@@ -1,6 +1,5 @@
 import { makeAutoObservable } from 'mobx';
 import type { Pair } from '../scene/dish/discoveries';
-import { onboarding } from './onboarding';
 
 /** WELCOME-SHAPE §Flow: the full screen (first visit, «?»), the short splash (returning), or none. */
 export type WelcomeMode = 'full' | 'short' | 'off';
@@ -27,6 +26,19 @@ export function loadPct(loading: number | null, ready: boolean): number | 'ready
   if (ready) return 'ready';
   if (loading === null) return null;
   return Math.min(99, Math.max(0, Math.floor(loading * 100)));
+}
+
+/** The progress line under «Начать» (WELCOME-SHAPE §Progress & states). */
+export function loadLine(
+  pct: number | 'ready' | null,
+  failed: boolean,
+):
+  | { key: 'welcome.loading'; pct: number }
+  | { key: 'welcome.loadingAny' | 'welcome.ready' | 'welcome.failed' } {
+  if (pct === 'ready') return { key: 'welcome.ready' };
+  if (failed) return { key: 'welcome.failed' };
+  if (pct === null) return { key: 'welcome.loadingAny' };
+  return { key: 'welcome.loading', pct };
 }
 
 export interface WelcomeMemory {
@@ -93,4 +105,7 @@ export class WelcomeStore {
   }
 }
 
-export const welcome = new WelcomeStore(onboarding);
+// dynamic: onboarding (trial, discoveries, sim) lives in the App chunk; the welcome is in the entry
+export const welcome = new WelcomeStore({
+  restart: () => void import('./onboarding').then((m) => m.onboarding.restart()),
+});

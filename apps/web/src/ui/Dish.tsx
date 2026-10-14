@@ -122,7 +122,6 @@ export const Dish = observer(function Dish() {
     const arriving = from === 'brain';
     // black until the flight out of the head: no chrome over the void
     if (arriving) dish.setZooming(true);
-    // 10.4 opens it here with its UI: welcome.open(startWelcome({ params, welcomed: welcomeMemory.welcomed() }))
     // first visit: the card walks through one experiment (phone: the sheet's «Опыт»), once the welcome is gone
     const onb = arriving
       ? 0
@@ -168,6 +167,7 @@ export const Dish = observer(function Dish() {
         totalBytes: graph.bytes + meta.bytes,
         onProgress: (f) => dish.setLoading(f),
         onCells: (n) => dish.setCells(n),
+        onFailed: () => dish.setFailed(true),
         onVerdict: (op, o) => dish.setNow(op, o),
         onDecision: (d) => dish.setDecision(d),
         onRecorded: (r) => dish.setRecorded(r),
@@ -309,52 +309,61 @@ export const Dish = observer(function Dish() {
         inert={dish.zooming}
         className={cn('transition-opacity duration-300 ease-out', dish.zooming && 'opacity-0')}
       >
-        <p
-          ref={line}
-          data-band-top
-          aria-live="off"
-          className="pointer-events-none absolute inset-x-0 top-6 text-center font-mono text-caption text-mist tabular-nums md:top-10"
-        />
-        <Button
-          ref={remove}
-          hidden
-          aria-label={t('dish.remove')}
-          className="absolute top-0 left-0 z-10 size-8 rounded-full bg-panel font-mono text-label text-mist backdrop-blur hover:text-bone"
-          onClick={() => {
-            if (hovered.current !== null) run?.input.remove(hovered.current);
-          }}
-        >
-          ×
-        </Button>
-        {run && !trial.replaying && <DishPalette input={run.input} />}
-        {wide && <DishCard progress={progress} onClearBrain={clearBrain} />}
-        <OpsStatus />
-        <DishCaption />
+        {/* hidden under the welcome; back in at its scrim's midpoint (WELCOME-SHAPE §Motion) */}
         <div
-          ref={foot}
-          className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-1 p-4 md:flex-row md:items-end md:justify-between md:p-8"
+          inert={welcome.mode !== 'off'}
+          className={cn(
+            'transition-opacity duration-240 ease-out motion-reduce:transition-none',
+            welcome.mode !== 'off' ? 'opacity-0' : 'delay-330',
+          )}
         >
-          {run && trial.replaying && <ReplayBar run={run} bar={bar} />}
-          {/* phones: the card is the sheet, «Положить» its middle tab */}
-          {!wide && run && <DishCard progress={progress} input={run.input} onClearBrain={clearBrain} />}
-          <div className="flex items-center justify-between md:block">
-            <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
-              fly_ui
-            </h1>
-            <div className="-mx-1 flex items-center gap-1 md:mt-1">
-              <ViewSwitch onPeek={peek} />
-              <LangSwitch />
-              <OnbRestart />
+          <p
+            ref={line}
+            data-band-top
+            aria-live="off"
+            className="pointer-events-none absolute inset-x-0 top-6 text-center font-mono text-caption text-mist tabular-nums md:top-10"
+          />
+          <Button
+            ref={remove}
+            hidden
+            aria-label={t('dish.remove')}
+            className="absolute top-0 left-0 z-10 size-8 rounded-full bg-panel font-mono text-label text-mist backdrop-blur hover:text-bone"
+            onClick={() => {
+              if (hovered.current !== null) run?.input.remove(hovered.current);
+            }}
+          >
+            ×
+          </Button>
+          {run && !trial.replaying && <DishPalette input={run.input} />}
+          {wide && <DishCard progress={progress} onClearBrain={clearBrain} />}
+          <OpsStatus />
+          <DishCaption />
+          <div
+            ref={foot}
+            className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-1 p-4 md:flex-row md:items-end md:justify-between md:p-8"
+          >
+            {run && trial.replaying && <ReplayBar run={run} bar={bar} />}
+            {/* phones: the card is the sheet, «Положить» its middle tab */}
+            {!wide && run && <DishCard progress={progress} input={run.input} onClearBrain={clearBrain} />}
+            <div className="flex items-center justify-between md:block">
+              <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
+                fly_ui
+              </h1>
+              <div className="-mx-1 flex items-center gap-1 md:mt-1">
+                <ViewSwitch onPeek={peek} />
+                <LangSwitch />
+                <OnbRestart />
+              </div>
             </div>
+            <Credit />
           </div>
-          <Credit />
         </div>
       </div>
     </>
   );
 });
 
-/** «?»: the first-visit steps again (desktop: they live in the card). */
+/** «?»: the welcome again; its «Начать» walks the onboarding again (desktop: it lives in the card). */
 const OnbRestart = observer(function OnbRestart() {
   const label = t('onb.again');
   return (
@@ -362,7 +371,7 @@ const OnbRestart = observer(function OnbRestart() {
       aria-label={label}
       title={label}
       disabled={trial.phase === 'running' || trial.replaying || onboarding.step === 1}
-      onClick={() => onboarding.restart()}
+      onClick={() => welcome.reopen()}
       className="pointer-events-auto hidden h-6 w-6 rounded-full font-mono text-caption md:inline-flex"
     >
       ?

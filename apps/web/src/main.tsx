@@ -2,7 +2,9 @@ import { when } from 'mobx';
 import { lazy, StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { app } from './state/app';
+import { startWelcome, welcome, welcomeMemory } from './state/welcome';
 import { Boot } from './ui/Boot';
+import { Welcome } from './ui/Welcome';
 import './ui/theme.css';
 
 declare global {
@@ -35,6 +37,9 @@ import('./data/store')
   })
   .finally(() => app.markReady('data'));
 
+// over the dish from the first React frame; onboarding (in the App chunk) waits for it to close
+welcome.open(startWelcome({ params: app.params, welcomed: welcomeMemory.welcomed() }));
+
 // zoomed in from the dish: the visitor came to operate, not for the tour
 if (!dish && app.params.from !== 'dish') void import('./ui/tour/boot').then((m) => m.bootTour());
 
@@ -55,5 +60,6 @@ createRoot(root).render(
     <Suspense fallback={<Boot />}>
       <App />
     </Suspense>
+    <Welcome />
   </StrictMode>,
 );

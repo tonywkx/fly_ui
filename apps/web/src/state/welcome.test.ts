@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { loadPct, startWelcome, type WelcomeMemory, WelcomeStore } from './welcome';
+import { loadLine, loadPct, startWelcome, type WelcomeMemory, WelcomeStore } from './welcome';
 
 describe('startWelcome', () => {
   const p = (o: Partial<Parameters<typeof startWelcome>[0]['params']> = {}) => ({
@@ -85,5 +85,18 @@ describe('loadPct', () => {
     expect(loadPct(0.5, true)).toBe('ready');
     expect(loadPct(null, true)).toBe('ready');
     expect(loadPct(null, false)).toBeNull();
+  });
+});
+
+describe('loadLine', () => {
+  it('names the progress line by state', () => {
+    expect(loadLine(42, false)).toEqual({ key: 'welcome.loading', pct: 42 });
+    expect(loadLine(null, false)).toEqual({ key: 'welcome.loadingAny' });
+    expect(loadLine('ready', false)).toEqual({ key: 'welcome.ready' });
+  });
+  it('a failed load wins until the brain is up', () => {
+    expect(loadLine(42, true)).toEqual({ key: 'welcome.failed' });
+    expect(loadLine(null, true)).toEqual({ key: 'welcome.failed' });
+    expect(loadLine('ready', true)).toEqual({ key: 'welcome.ready' });
   });
 });
