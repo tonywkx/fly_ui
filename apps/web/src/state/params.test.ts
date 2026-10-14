@@ -212,6 +212,15 @@ describe('parseParams', () => {
     expect(bad.warnings).toHaveLength(1);
   });
 
+  it('reads the welcome (full | short | 0)', () => {
+    expect(parseParams('?welcome=full').params.welcome).toBe('full');
+    expect(parseParams('?welcome=short').params.welcome).toBe('short');
+    expect(parseParams('?welcome=0').params.welcome).toBe('off');
+    const bad = parseParams('?welcome=yes');
+    expect(bad.params.welcome).toBeUndefined();
+    expect(bad.warnings).toHaveLength(1);
+  });
+
   it('reads the zoom arrival and a frozen flight', () => {
     const { params, warnings } = parseParams('?view=dish&from=brain&zoom=700');
     expect(params).toMatchObject({ view: 'dish', from: 'brain', zoom: 700 });

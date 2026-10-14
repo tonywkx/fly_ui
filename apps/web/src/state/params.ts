@@ -10,6 +10,7 @@ import type { OnbStep } from './onboarding';
 import { decodeExperiment, type SharedExperiment } from './share';
 import type { TourStep } from './tour';
 import type { CardTab } from './trial';
+import type { WelcomeMode } from './welcome';
 
 /** Colour modes (2.6) + layer isolation: `cloud` / `shells` show only that background layer. */
 export const DEBUG_MODES = ['soma-dist', 'id', 'nt', 'region', 'cloud', 'shells', 'neurons'] as const;
@@ -78,6 +79,8 @@ export interface Params {
   tour?: TourStep;
   /** Dish, first visit: 0 = off, 1..4 = the onboarding at that step (snaps, see `state/onboarding.ts`). */
   onb?: OnbStep;
+  /** Dish: the welcome (`?welcome=full|short|0`, see `state/welcome.ts`). */
+  welcome?: WelcomeMode;
 }
 
 /** Keys only the brain reads: a link without `view` that has one is an old brain link (the bare page was the brain). */
@@ -198,6 +201,13 @@ export function parseParams(search: string): { params: Params; warnings: string[
   if (onb !== null) {
     if (/^[0-4]$/.test(onb)) params.onb = Number(onb) as OnbStep;
     else warnings.push(`onb: expected 0..4, got "${onb}"`);
+  }
+
+  const welcome = q.get('welcome');
+  if (welcome !== null) {
+    if (welcome === 'full' || welcome === 'short') params.welcome = welcome;
+    else if (welcome === '0') params.welcome = 'off';
+    else warnings.push(`welcome: expected "full" | "short" | "0", got "${welcome}"`);
   }
 
   const sim = q.get('sim');
