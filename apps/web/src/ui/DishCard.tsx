@@ -22,6 +22,7 @@ import { app } from '@/state/app';
 import { dish } from '@/state/dish';
 import { onboarding } from '@/state/onboarding';
 import { type CardTab, type Outcome, trial } from '@/state/trial';
+import { loadPct } from '@/state/welcome';
 import { DishFound } from './DishFound';
 import { GLYPH, type PaletteInput, PutPanel } from './DishPalette';
 import { betLine, headline, OP_CELL as ID, isHe, nowLine, usualLine } from './expText';
@@ -345,7 +346,7 @@ const Setup = observer(function Setup({ onClearBrain }: { onClearBrain: () => vo
             disabled={!live || !trial.canRun}
             onClick={() => trial.start()}
           >
-            {live ? t('exp.run') : t('exp.loading')}
+            {live ? t('exp.run') : runLoading()}
           </Button>
         </div>
       )}
@@ -627,6 +628,7 @@ export const DishCard = observer(function DishCard({
     <Phone.Provider value={phone}>
       <section
         ref={card}
+        data-card
         data-band-right={phone ? undefined : true}
         aria-label={t('exp.tab')}
         className={cn(
@@ -801,4 +803,10 @@ function unlockLine(d: Discovery): string {
     of: DISCOVERIES.length,
     title: t(`found.${d.stim}.${d.op}` as Key),
   });
+}
+
+/** The run pill until the brain is up: the welcome's percentage carries over (WELCOME-SHAPE §Progress). */
+function runLoading(): string {
+  const pct = loadPct(dish.loading, false);
+  return typeof pct === 'number' ? t('exp.loadingPct', { pct }) : t('exp.loading');
 }
