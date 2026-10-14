@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-14 — 10.5 Welcome QA (Phase 10 done)
+Done: `e2e/smoke.spec.ts` — `home is the terrarium` checks Start focus; new `returning visit gets a short splash` (short leaves by itself, «?» → full, Esc returns focus to «?») and `snap and experiment links skip the welcome`. P2 fixes: `lib/useWide.ts` `useMedia(query)`; `ui/Welcome.tsx` uses the phone column below 35rem height (landscape phone hid the CTA); footer row `flex-wrap`, `ui/Credit.tsx` may wrap.
+State: smoke 11/11, tests 638, lint, typecheck green; visual-qa PASS RU/EN 1600/390 full + short + «N %» (throttled net) + ready; ui-critic no P1; `pnpm perf --view=dish` 60.0 fps p95 16.8 ms with and without the welcome (measured on battery + Low Power Mode, so headroom).
+Next: Phase 10 is closed and no Phase 11 is scheduled — user picks from PLAN.md Backlog (ghost of the norm, Sugar/Song mini tours, tablet Inspector, dust).
+Gotchas: `pnpm snap` always shows «brain ready» (snap waits for the brain); for «N %» use CDP `Network.emulateNetworkConditions` (~4 MB/s) on the dev server. A short-splash snap can race its 1 s auto-leave and come out empty — retry. Open P3s: no scroll cue on 320×568, no Tab trap in the dialog, title is `h2` (only `h1` is inert), `translate-y-[8px]` off-grid, StrictMode-only `opener` bug on «?»+Esc; 320 px credit breaks «CC BY / 4.0».
+
 ## 2026-10-14 — 10.4 Welcome UI
 Done: `ui/Welcome.tsx` (full dialog + short splash + `LoadLine`), rendered in `main.tsx` beside the lazy App and opened there (`welcome.open(startWelcome(…))`); `Boot` hides while full. `Dish.tsx` chrome wrapper `inert`/opacity-0 while `welcome.mode !== 'off'`, back with `delay-330`; «?» = `welcome.reopen()`. `state/welcome.ts` `loadLine` + onboarding via dynamic import (keeps trial/sim out of the entry). `dish.failed` ← `DishRun.onFailed`. i18n `welcome.*`, `exp.loadingPct` (card pill shows %), `onb.again` renamed. Smoke `home is the terrarium` now clicks Start.
 State: tests 638, smoke 9/9, lint, typecheck green; visual-qa PASS 1600/390/390×700 RU/EN full + short; ui-critic no P1 (P2s fixed: sr-only live node for ready/failed only, focus ring clip, `justify-center-safe`, blur dropped, Esc after «?» returns focus to «?»).
@@ -23,9 +29,3 @@ Done: `docs/WELCOME-SHAPE.md` approved — full welcome = left column (≤440 px
 State: doc only, no code. PLAN 10.1 ticked.
 Next: 10.2 `state/welcome.ts` + tests, worker byte progress → `dish.loading`.
 Gotchas: total bytes from the manifest (decoded size), not Content-Length — gzip on Pages would push % past 100; cap % at 99 until `dish.cells`. Short splash caps at 4 s (my proposal, user OK'd). Card pill gets «готовлю мозг · N %» (`exp.loadingPct`).
-
-## 2026-10-13 — 9.9 Release check (Phase 9 done)
-Done: smoke — `home is the terrarium` + `an experiment reaches a result and unlocks a discovery` (`e2e/smoke.spec.ts`); `scripts/perf.ts --view=dish` runs live. ui-critic P1s: `onb.4.phone`, unlock line in the card's sr status. Tails: dish caption names the real cause — `DecisionEvent.via` (another sense on, `loop.ts` + tests), «Нейрон включили» only when an op / brain view drives the command (`drivenOn` in `DishCaption.tsx`), else `dish.why.unprompted` «Без повода» (swatter × DNp01 off: MDN fires once struck); free-play decisions → sr-only status in `DishCaption`; phone bet chips `px-2` (3 in a row at 700), onb bet `scrollIntoView` 'start'; desktop tabs `min-h-4`; `MORE` fade 1.5rem; RU «поставить снова →» / EN «set it up again →» (`exp.found.again`, no clash with «Повтор»).
-State: smoke 9/9, tests 623, typecheck, lint green; visual-qa PASS RU/EN 1600/390(844, 700); perf on AC: brain escape 60 fps high/medium/low + webgl2, dish 60 fps, clock 100 %.
-Next: Phase 9 closed; pick from Backlog (user: «призрак нормы» after Phase 9, or Phase 10 Sugar/Song mini tours) and add it to PLAN.md.
-Gotchas: Low Power Mode on battery halves fps (brain 38) — `pmset -g | grep lowpowermode` before any perf. Snap names lack w/h: pass `--name`. Replay caption over the arena glow on 700-tall phones is still pre-existing.
