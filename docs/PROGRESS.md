@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-14 — 10.1 Welcome shape
+Done: `docs/WELCOME-SHAPE.md` approved — full welcome = left column (≤440 px) over a left-edge scrim, live dish bright on the right, palette/card hidden while open; phone = bottom-anchored column, full-width pill; short splash = centred title + progress, `role="status"`. Copy RU/EN (~44 words, `welcome.*` keys), progress/failed states, motion, flow (`?welcome=`, skips, «?» reopens, «Начать» restarts onboarding).
+State: doc only, no code. PLAN 10.1 ticked.
+Next: 10.2 `state/welcome.ts` + tests, worker byte progress → `dish.loading`.
+Gotchas: total bytes from the manifest (decoded size), not Content-Length — gzip on Pages would push % past 100; cap % at 99 until `dish.cells`. Short splash caps at 4 s (my proposal, user OK'd). Card pill gets «готовлю мозг · N %» (`exp.loadingPct`).
+
 ## 2026-10-13 — 9.9 Release check (Phase 9 done)
 Done: smoke — `home is the terrarium` + `an experiment reaches a result and unlocks a discovery` (`e2e/smoke.spec.ts`); `scripts/perf.ts --view=dish` runs live. ui-critic P1s: `onb.4.phone`, unlock line in the card's sr status. Tails: dish caption names the real cause — `DecisionEvent.via` (another sense on, `loop.ts` + tests), «Нейрон включили» only when an op / brain view drives the command (`drivenOn` in `DishCaption.tsx`), else `dish.why.unprompted` «Без повода» (swatter × DNp01 off: MDN fires once struck); free-play decisions → sr-only status in `DishCaption`; phone bet chips `px-2` (3 in a row at 700), onb bet `scrollIntoView` 'start'; desktop tabs `min-h-4`; `MORE` fade 1.5rem; RU «поставить снова →» / EN «set it up again →» (`exp.found.again`, no clash with «Повтор»).
 State: smoke 9/9, tests 623, typecheck, lint green; visual-qa PASS RU/EN 1600/390(844, 700); perf on AC: brain escape 60 fps high/medium/low + webgl2, dish 60 fps, clock 100 %.
@@ -23,9 +29,3 @@ Done: `ui/DishFound.tsx` (12 tiles, 2 cols; found tile opens across both: `found
 State: tests 610 / typecheck / lint green; visual-qa PASS (RU/EN 1600: 0/12, 4/12 open tile, 12/12, unlock 2/12); ui-critic no P1, P2s fixed.
 Next: 9.7 Terrarium home (default view = dish, `?view=brain`, old links, «Заглянуть в мозг», first-visit onboarding).
 Gotchas: card focus target is a sr-only `h2` (focusing a tab on load showed a ring). The ✦ flight is skipped after the first-ever result (auto-replay ticks the counter directly). WAAPI, not `motion/react` (not a dependency). Live caption after swatter × DNp01 off still reads «Нейрон включили → пятится · MDN» (from 9.4, still open). `?run=1` skips the bet, so no «прогноз» row in those snaps.
-
-## 2026-10-10 — 9.5 Decision replay
-Done: `scene/dish/replay.ts` (+test: `snap`, ring `Tape`, `Clip.at/between/events`, `span` = sense onset − 50 → decision + 200 ms, `Recorded`); `DishLoop.record` hook per tick; `threadReplay` (thread by sim time: organ at onset → legs at decision); `DishRun` records frames + heat while a take runs, `replay/toggleReplay/seekReplay/stepReplay` (×60, live dish holds, back-seek = clear + resync), missed decision (none or struck) = norm's decision from its sense onset, thread stops at the silent hop; `ui/ReplayBar.tsx` (play + range, Space/←→/Esc/W), `ui/ReplayCaption.tsx` (was `DishWhy` popover — gone), card «Повтор» / «Закрыть», `trial.replaying` (auto on the first result ever), `?replay=<ms>` (replaces `?why=1`).
-State: tests 605 / typecheck / lint green; visual-qa PASS (shadow RU/EN, swatter × DNp01 off «Почему муха не взлетела?», phone 390); ui-critic P1 fixed.
-Next: 9.6 discoveries grid «Открытия N/12» + unlock moment.
-Gotchas: heat is stored in frames (log keeps only 2 s). `DishRun.zooming` is also true during a replay (input inert). Phone replay = bar + caption panel in place of the sheet (full layout in 9.8). The live caption no longer gets a `why` chain (only the run's first decision is explained). After a swatter hit the fly may «back» forced (MDN) while shattered — ignored for the caption.
