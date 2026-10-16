@@ -44,7 +44,8 @@ export function HoloHere({ ref }: { ref: Ref<HTMLDivElement> }) {
       className="pointer-events-none absolute top-0 left-0 motion-safe:transition-opacity motion-safe:duration-120 motion-safe:ease-out motion-safe:starting:opacity-0"
     >
       <span className="absolute bottom-0 left-0 h-4 w-px bg-bone/40" />
-      <span className="absolute bottom-4 left-0 -translate-x-1/2 pb-0.5 whitespace-nowrap text-caption text-bone text-shadow-halo">
+      {/* backed: the region may sit right under the dish rim's bright ring */}
+      <span className="absolute bottom-4 left-0 -translate-x-1/2 rounded-sm bg-panel px-1 whitespace-nowrap text-caption text-bone backdrop-blur-sm">
         {t('holo.here')}
       </span>
     </div>
