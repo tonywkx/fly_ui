@@ -89,6 +89,8 @@ export const Captions = observer(function Captions() {
         'transition-opacity duration-200 ease-out motion-reduce:transition-none data-[empty=true]:opacity-0',
         // phones: under the tour's FlyCam strip
         bigFlyCam() && 'top-[calc(max(1rem,env(safe-area-inset-top))+17rem)]',
+        // phones: under «← К мухе» and its hint (BackToDish, top centre too)
+        app.params.from === 'dish' && 'top-[calc(max(1rem,env(safe-area-inset-top))+6rem)]',
       )}
     >
       {/* one block: a long term wraps whole onto its own line instead of splitting the sentence */}
