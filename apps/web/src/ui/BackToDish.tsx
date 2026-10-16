@@ -12,7 +12,7 @@ import { viewHref } from './ViewSwitch';
  * Zoomed in from the dish: the way back, top centre (where the dish keeps its timecode; the legend
  * owns the top-left). The link carries the experiment (`x`), so what the visitor silenced or drove
  * here is on in the fly when the dish flies out of her head. The pill counts it; with Silence in
- * hand (the card's «любой нейрон в мозге») the hint says what a click does.
+ * hand (the card's «любой нейрон в мозге») the phone hint says what a click does.
  */
 export const BackToDish = observer(function BackToDish() {
   if (app.params.from !== 'dish') return null;
@@ -26,8 +26,11 @@ export const BackToDish = observer(function BackToDish() {
           {experiment.touched ? t('brain.back', { cells: picksText(n) }) : t('view.back')}
         </a>
       </Button>
+      {/* picking: a phone has no toolbar, so the pill says what a click does; on desktop the
+          Silence tool's own hint does, and the pill keeps «stays off in the fly» */}
       <p className={cn('px-2 pb-1 text-caption text-mist', !picking && 'hidden md:block')}>
-        {t(picking ? 'brain.pickHint' : 'view.backHint')}
+        {picking && <span className="md:hidden">{t('brain.pickHint')}</span>}
+        <span className={cn(picking && 'hidden md:inline')}>{t('view.backHint')}</span>
       </p>
     </div>
   );
