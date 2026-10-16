@@ -5,7 +5,7 @@ import { type Pair, parsePair } from '../scene/dish/discoveries';
 import { PULLS, type Pull } from '../scene/dish/loop';
 import { OPS, type Op } from '../scene/dish/verdict';
 import { isQuality, QUALITIES, type Quality } from '../scene/quality';
-import { MAX_PROBES } from './experiment';
+import { MAX_PROBES, TOOL_KEYS, type Tool } from './experiment';
 import type { OnbStep } from './onboarding';
 import { decodeExperiment, type SharedExperiment } from './share';
 import type { TourStep } from './tour';
@@ -60,6 +60,8 @@ export interface Params {
   trace?: { from: string; to: string; path: number };
   /** Shared experiment (stimuli, silencing, drive) — `?x=<base64url>`, see `state/share.ts`. */
   experiment?: SharedExperiment;
+  /** Brain view: the tool in hand at start (the dish's «любой нейрон в мозге» comes with `silence`). */
+  tool?: Tool;
   /** Start with the director camera following the activity front. */
   director?: true;
   /** Interface language; overrides the stored choice (scripts pin `en`). */
@@ -294,6 +296,19 @@ export function parseParams(search: string): { params: Params; warnings: string[
     const list = puppet.split(',').map((v) => v.trim());
     if (list.every((v): v is Pull => (PULLS as readonly string[]).includes(v))) params.puppet = list;
     else warnings.push(`puppet: expected a list of ${PULLS.join(' | ')}, got "${puppet}"`);
+  }
+
+  const tool = q.get('tool');
+  if (tool !== null) {
+    if (tool in TOOL_KEYS) params.tool = tool as Tool;
+    else warnings.push(`tool: expected ${Object.keys(TOOL_KEYS).join(' | ')}, got "${tool}"`);
+  }
+
+  // one value per op slot (SURGEON-SHAPE §Flow): the brain's cells win, as on the way back from it
+  if (params.experiment && (params.ops || (params.exp && params.exp.op !== 'none'))) {
+    warnings.push('ops / exp: the op is dropped, `x` brain picks hold the slot');
+    params.ops = undefined;
+    if (params.exp) params.exp = { ...params.exp, op: 'none' };
   }
 
   return { params, warnings };

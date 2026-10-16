@@ -172,6 +172,19 @@ describe('parseParams', () => {
     expect(warnings).toHaveLength(2);
   });
 
+  it('reads the brain view tool; brain picks win over an op in the same link', () => {
+    expect(parseParams('?view=brain&tool=silence').params.tool).toBe('silence');
+    const bad = parseParams('?tool=hammer');
+    expect(bad.params.tool).toBeUndefined();
+    expect(bad.warnings).toHaveLength(1);
+    const x = encodeExperiment({ stimulated: [], silenced: [10001], stim: { hz: 150, gain: 1 } });
+    const both = parseParams(`?view=dish&x=${x}&exp=shadow:panic&ops=moon`);
+    expect(both.params.exp).toEqual({ stim: 'shadow', op: 'none' });
+    expect(both.params.ops).toBeUndefined();
+    expect(both.warnings).toHaveLength(1);
+    expect(parseParams(`?view=dish&x=${x}&exp=shadow`).warnings).toEqual([]);
+  });
+
   it('reads dish operations, dropping a bad list', () => {
     expect(parseParams('?view=dish&ops=panic,p1').params.ops).toEqual(['panic', 'p1']);
     expect(parseParams('?view=dish&puppet=up,left').params.puppet).toEqual(['up', 'left']);

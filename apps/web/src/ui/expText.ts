@@ -10,7 +10,7 @@ import {
 } from '../scene/dish/discoveries';
 import { NORM, type Norm } from '../scene/dish/table';
 import type { Op } from '../scene/dish/verdict';
-import type { Entry, Outcome } from '../state/trial';
+import type { Entry, Outcome, Picks } from '../state/trial';
 
 /** The command cell each decision is read from (bridge `COMMANDS`). */
 const CELL: Record<Decision, string> = { jump: 'TTMn', back: 'MDN', eat: 'MN9', court: 'pIP10' };
@@ -27,6 +27,12 @@ const PATH: Record<CardStimulus, readonly string[]> = {
   female: ['LC10a', 'P1', 'pIP10'],
   none: [],
 };
+
+/** Brain picks as their non-zero parts: «выкл. 2 · вкл. 1» (the chip, «← К мухе · …»). */
+export function picksText(p: Picks): string {
+  const part = (n: number, k: Key) => (n > 0 ? [`${t(k)} ${n}`] : []);
+  return [...part(p.off, 'exp.op.offShort'), ...part(p.on, 'exp.op.onShort')].join(' · ');
+}
 
 /** The courting male is the subject for the female stimulus. */
 export const isHe = (stim: CardStimulus) => stim === 'female';

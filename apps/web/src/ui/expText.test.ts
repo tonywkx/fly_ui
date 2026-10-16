@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { NORM } from '../scene/dish/table';
 import type { Outcome } from '../state/trial';
-import { betLine, cellPath, foundLine, headline, nowLine, scaleRow, usualLine } from './expText';
+import { betLine, cellPath, foundLine, headline, nowLine, picksText, scaleRow, usualLine } from './expText';
 
 const peak = { jump: 0, back: 0, eat: 0, court: 0, gate: 0 };
 
@@ -86,5 +86,11 @@ describe('experiment card text (ru)', () => {
       ms: 2,
     });
     expect(scaleRow(outcome({ pair: { stim: 'none', op: 'moon' }, result: 'back' }))).toBeNull();
+  });
+
+  it('brain picks read as their non-zero parts', () => {
+    expect(picksText({ off: 2, on: 0 })).toBe('выкл. 2');
+    expect(picksText({ off: 0, on: 1 })).toBe('вкл. 1');
+    expect(picksText({ off: 3, on: 1 })).toBe('выкл. 3 · вкл. 1');
   });
 });

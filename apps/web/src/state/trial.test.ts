@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { normOf } from '../scene/dish/discoveries';
+import { NORM } from '../scene/dish/table';
 import type { TakeResult } from '../scene/dish/take';
-import { fromLevels, type Journal, parseJournal, type TrialMemory, TrialStore } from './trial';
+import { fromLevels, type Journal, litOf, parseJournal, type TrialMemory, TrialStore } from './trial';
 
 const peak = { jump: 44, back: 160, eat: 0, court: 0, gate: 0 };
 const take = (t: Partial<TakeResult> = {}): TakeResult => ({ result: 'hit', ms: null, hz: 160, peak, ...t });
@@ -188,6 +189,82 @@ describe('TrialStore', () => {
     const b = setup().s;
     b.setStim('female');
     expect(a.chips).toEqual(b.chips);
+  });
+});
+
+describe('surgeon slot', () => {
+  const two = { off: 2, on: 0 };
+
+  it('brain picks fill the slot; a named op switches them off but keeps them', () => {
+    const { s } = setup();
+    s.setStim('shadow');
+    s.setSlot('brain');
+    expect(s.slot).toBe('none');
+    s.setPicks(two);
+    expect(s.slot).toBe('brain');
+    expect(s.op).toBe('none');
+    expect(s.applied).toEqual(two);
+    s.setSlot('panic');
+    expect(s.op).toBe('panic');
+    expect(s.applied).toBeNull();
+    expect(s.picks).toEqual(two);
+    s.setSlot('brain');
+    expect(s.applied).toEqual(two);
+  });
+
+  it('forgetting the picks empties the slot only when it held them', () => {
+    const { s } = setup();
+    s.setPicks(two);
+    s.setSlot('moon');
+    s.forgetPicks();
+    expect(s.picks).toBeNull();
+    expect(s.slot).toBe('moon');
+    s.setPicks(two);
+    s.forgetPicks();
+    expect(s.slot).toBe('none');
+  });
+
+  it('no picks = nothing to carry: empty counts forget them', () => {
+    const { s } = setup();
+    s.setPicks({ off: 0, on: 0 });
+    expect(s.picks).toBeNull();
+    expect(s.slot).toBe('none');
+  });
+
+  it('a brain-picks run asks no bet, records nothing and unlocks nothing', () => {
+    const { s, mem } = setup();
+    s.setStim('shadow');
+    s.setPicks(two);
+    expect(s.needsBet).toBe(false);
+    expect(s.canRun).toBe(true);
+    expect(s.start()).toBe(true);
+    s.finish(take({ result: 'walk' }));
+    expect(s.outcome).toMatchObject({ first: false, unlocked: null, bet: null });
+    expect(s.outcome?.norm).toEqual(NORM.shadow.none);
+    expect(s.pairs).toEqual({});
+    expect(mem.pairs).toEqual({});
+  });
+
+  it('the hovered row lights its region, the whole brain, or nothing', () => {
+    expect(litOf('panic')).toEqual({ region: 'PVLP', mode: 'off' });
+    expect(litOf('moon')).toEqual({ region: 'LAL', mode: 'on' });
+    expect(litOf('brain')).toBe('all');
+    expect(litOf('none')).toBeNull();
+    const { s } = setup();
+    expect(s.lit).toBeNull();
+    s.setPreview('sugar');
+    expect(s.lit).toEqual({ region: 'GNG', mode: 'off' });
+    s.setPreview(null);
+    expect(s.lit).toBeNull();
+  });
+
+  it('the operated mark follows a named op only (brain picks have no site)', () => {
+    const { s } = setup();
+    expect(s.operated).toBeNull();
+    s.setSlot('p1');
+    expect(s.operated).toEqual({ region: 'AVLP', mode: 'off' });
+    s.setPicks(two);
+    expect(s.operated).toBeNull();
   });
 });
 
