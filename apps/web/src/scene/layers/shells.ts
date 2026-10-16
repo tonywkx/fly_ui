@@ -18,7 +18,7 @@ export interface GlassOptions {
   rimPower: number;
   rimGain: number | Node<'float'>;
   /** Faint fill so face-on regions are not a hole. */
-  fill: number;
+  fill: number | Node<'float'>;
 }
 
 /** Glass: additive fresnel rim over a faint fill, no depth writes. */
@@ -35,7 +35,9 @@ export function glassMaterial(
   });
   const rim = pow(oneMinus(abs(dot(normalView, positionViewDirection))), o.rimPower);
   const c = typeof tint === 'number' ? color(tint) : tint;
-  mat.colorNode = c.mul(rim.mul(o.rimGain).add(float(o.fill))).mul(reveal);
+  mat.colorNode = c
+    .mul(rim.mul(o.rimGain).add(typeof o.fill === 'number' ? float(o.fill) : o.fill))
+    .mul(reveal);
   return mat;
 }
 

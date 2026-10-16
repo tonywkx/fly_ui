@@ -1,4 +1,4 @@
-import type { BBox, NeuropilSet } from '@fly/data';
+import type { BBox, NeuropilRange, NeuropilSet } from '@fly/data';
 import { type Decision, FLY_LEN, mulberry32, OPERATIONS, PATHS } from '@fly/sim';
 import { color, instancedBufferAttribute, length, oneMinus, smoothstep, uniform, uv } from 'three/tsl';
 import {
@@ -6,20 +6,35 @@ import {
   BufferAttribute,
   BufferGeometry,
   type Camera,
+  Color,
   Group,
   InstancedBufferAttribute,
   Matrix4,
   Mesh,
   type Node,
+  PlaneGeometry,
   RingGeometry,
   Sprite,
   SpriteNodeMaterial,
   Vector3,
 } from 'three/webgpu';
+import type { Site } from '../../state/trial';
 import { glassMaterial } from '../layers/shells';
 import { centroids, holoFrame, hopSites, type Side, sample, site, type Vec3 } from './hologram';
 import { BONE, glow, SAFFRON } from './materials';
-import type { Op } from './verdict';
+import {
+  approach,
+  boxOf,
+  grown,
+  type Look,
+  PULSE,
+  QUIET,
+  rangeOf,
+  regionLook,
+  type Tint,
+  tagDots,
+  wholeRim,
+} from './surgery';
 
 /** The CNS's width (brain, eye to eye), mm, and its centre's height over the floor (its underside ≈ 2 fly lengths up). */
 const WIDTH = 1.3 * FLY_LEN;
@@ -38,9 +53,19 @@ const LAG_MS = 220;
 const NODE_MM = 0.07;
 const NODE_REST = 0.35;
 const NODE_HOT = 2.2;
-/** Op marks: ring radius (mm). */
-const MARK_R = 0.24;
+/** Op marks: ring radius (mm; ≥ 10 px at rest, SURGEON-SHAPE §Hologram). */
+const MARK_R = 0.48;
 const ASH = 0x6e6e6e;
+/** The op regions' shell tints. */
+const TINT: Record<Tint, number> = { bone: BONE, ash: ASH, saffron: SAFFRON };
+/** Grow / shrink (ms to ~95 %), region light in / out, the choose pulse settling (SURGEON-SHAPE §Motion). */
+const GROW_MS = 320;
+const SHRINK_MS = 260;
+const LIGHT_IN_MS = 120;
+const LIGHT_OUT_MS = 200;
+const SETTLE_MS = 400;
+/** The dust while the op list is open (× rest), so a lit region reads. */
+const DUST_OPEN = 0.6;
 /** Sunk into the head (the zoom): its size then, × the floating one. */
 const SUNK = 0.3;
 
@@ -57,6 +82,38 @@ interface PathNode {
   heat: { value: number };
 }
 
+/** An op region's uniforms: shell rim, fill and tint, its dust's brightness (× rest). */
+const regionUniforms = () => ({
+  rim: uniform(0),
+  fill: uniform(0),
+  tint: uniform(new Color(BONE)),
+  dust: uniform(1),
+});
+
+/** An op region: its shell over the base one, its dust apart, and its look now. */
+interface Region extends ReturnType<typeof regionUniforms> {
+  name: string;
+  /** Its centre (source units), for the «здесь» tag. */
+  at: Vec3;
+  now: Look;
+  /** Wall ms left of the choose pulse. */
+  settle: number;
+}
+
+/** What the op slot asks of the hologram (SURGEON-SHAPE §Hologram). */
+export interface Surgery {
+  listing: boolean;
+  lit: Site | 'all' | null;
+  operated: Site | null;
+  phone: boolean;
+}
+
+export interface HoloOptions {
+  reducedMotion: boolean;
+  /** Snaps: every change lands at once. */
+  still: boolean;
+}
+
 /**
  * The fly's CNS as a glass hologram over her back, oriented like her body (brain forward, VNC
  * behind), following with a soft spring. Holds a node per cell type of the decision paths (live
@@ -68,7 +125,17 @@ export class HoloView {
   private readonly brain = new Group();
   private readonly cents: Map<string, Vec3>;
   private readonly nodes = new Map<string, PathNode>();
-  private readonly marks = new Map<Op, Mesh>();
+  /** Op marks by `region:mode`. */
+  private readonly marks = new Map<string, Mesh>();
+  private readonly regions = new Map<string, Region>();
+  /** The dust's brightness (× rest; dims while the list is open). */
+  private readonly dust = uniform(1);
+  /** The base shell's rim (× rest; the brain row lights all of it). */
+  private readonly whole = uniform(1);
+  private surgery: Surgery = { listing: false, lit: null, operated: null, phone: false };
+  /** The op list's grow (× rest) now. */
+  private grow = 1;
+  private readonly tint = new Color();
   private readonly v = new Vector3();
   /** Half extents seen from the front (mm, floating size): across, up, deep — like the brain view's framing box. */
   readonly half: Vec3;
@@ -83,7 +150,10 @@ export class HoloView {
   /** The CNS box corners (source units), for its screen box. */
   private readonly corners: Vector3[];
 
-  constructor(d: BrainData) {
+  constructor(
+    d: BrainData,
+    private readonly o: HoloOptions = { reducedMotion: false, still: false },
+  ) {
     const f = holoFrame(d.bbox, WIDTH);
     const s = WIDTH / ((d.bbox.max[0] as number) - (d.bbox.min[0] as number));
     this.half = d.bbox.min.map((v, i) => (((d.bbox.max[i] as number) - v) * s) / 2) as Vec3;
@@ -92,14 +162,47 @@ export class HoloView {
     this.root.add(this.brain);
     this.cents = centroids(d.regions);
 
+    // the op regions: a shell each over the base shell, and the dust inside their boxes apart
+    const named = [...new Set(Object.values(OPERATIONS).map((o) => o.region))].flatMap((name) => {
+      const r = rangeOf(d.regions, name);
+      const at = site(this.cents, name, 'L');
+      return r && at ? [{ name, r, at }] : [];
+    });
     const dots = sample(d.cloud, DOTS, mulberry32(8));
-    this.brain.add(sprites(dots, DOT_MM / s, color(DUST), DOT_GAIN));
+    const tags = tagDots(
+      dots,
+      named.map((n) => boxOf(d.regions, n.r)),
+    );
+    const groups: number[][] = [[], ...named.map(() => [])];
+    tags.forEach((k, i) => {
+      groups[k]?.push(dots[i * 3] as number, dots[i * 3 + 1] as number, dots[i * 3 + 2] as number);
+    });
+    const dot = DOT_MM / s;
+    const dust = (k: number, gain: Node<'float'>) => {
+      const g = groups[k] as number[];
+      if (g.length) this.brain.add(sprites(Float32Array.from(g), dot, color(DUST), gain.mul(DOT_GAIN)));
+    };
+    dust(0, this.dust);
 
     const geo = new BufferGeometry();
     geo.setAttribute('position', new BufferAttribute(d.shells.pos, 3));
     geo.setIndex(new BufferAttribute(d.shells.index, 1));
     geo.computeVertexNormals();
-    this.brain.add(new Mesh(geo, glassMaterial(IRIS, { ...SHELL, rimGain: this.rim })));
+    this.brain.add(new Mesh(geo, glassMaterial(IRIS, { ...SHELL, rimGain: this.rim.mul(this.whole) })));
+
+    named.forEach(({ name, r, at }, k) => {
+      const reg: Region = {
+        name,
+        at,
+        ...regionUniforms(),
+        now: { ...QUIET },
+        settle: 0,
+      };
+      dust(k + 1, this.dust.mul(reg.dust));
+      const glass = glassMaterial(reg.tint, { rimPower: SHELL.rimPower, rimGain: reg.rim, fill: reg.fill });
+      this.brain.add(new Mesh(regionGeometry(d.regions, r), glass));
+      this.regions.set(name, reg);
+    });
     const { min, max } = d.bbox;
     this.corners = [0, 1, 2, 3, 4, 5, 6, 7].map(
       (i) =>
@@ -130,13 +233,18 @@ export class HoloView {
         this.nodes.set(h.type, { type: h.type, sprite, heat });
       });
 
-    for (const [op, o] of Object.entries(OPERATIONS) as [Op, (typeof OPERATIONS)[Op]][]) {
+    for (const o of Object.values(OPERATIONS)) {
+      const key = `${o.region}:${o.mode}`;
       const at = site(this.cents, o.region, 'L');
-      if (!at) continue;
-      const ring = new Mesh(
-        new RingGeometry(0.8, 1, 48),
-        glow(o.mode === 'off' ? ASH : SAFFRON, o.mode === 'off' ? 2.4 : 1.8),
-      );
+      if (!at || this.marks.has(key)) continue;
+      const off = o.mode === 'off';
+      const ring = new Mesh(new RingGeometry(0.8, 1, 48), glow(off ? ASH : SAFFRON, off ? 2.4 : 1.8));
+      // switched off: a diagonal strike across the ring (⊘)
+      if (off) {
+        const bar = new Mesh(new PlaneGeometry(1.8, 0.2), ring.material);
+        bar.rotation.z = Math.PI / 4;
+        ring.add(bar);
+      }
       // rings stand in the fly frame facing up-and-back (towards a camera behind and above)
       const p = f.map(at);
       ring.position.set(...p);
@@ -144,7 +252,7 @@ export class HoloView {
       ring.scale.setScalar(MARK_R);
       ring.visible = false;
       this.root.add(ring);
-      this.marks.set(op, ring);
+      this.marks.set(key, ring);
     }
   }
 
@@ -181,7 +289,65 @@ export class HoloView {
 
   private place(): void {
     this.root.position.lerpVectors(this.float, this.head, this.sunk);
-    this.root.scale.setScalar(HoloView.scaleAt(this.sunk));
+    // the list's grow gives way as it sinks into the head
+    this.root.scale.setScalar(HoloView.scaleAt(this.sunk) * (1 + (this.grow - 1) * (1 - this.sunk)));
+  }
+
+  /** What the op slot shows: grown while listing, the hovered row's region, the op in force. */
+  operate(s: Surgery): void {
+    const was = this.surgery.operated;
+    this.surgery = s;
+    const now = s.operated;
+    for (const [key, m] of this.marks) m.visible = !!now && key === `${now.region}:${now.mode}`;
+    // a fresh choice pulses its region before it settles into the mark
+    const fresh = now && (now.region !== was?.region || now.mode !== was?.mode);
+    const reg = fresh ? this.regions.get(now.region) : undefined;
+    if (reg && !this.o.reducedMotion && !this.o.still) {
+      reg.now = { ...PULSE };
+      reg.tint.value.set(TINT[PULSE.tint]);
+      reg.settle = SETTLE_MS;
+    }
+    if (this.o.still) this.tick(0);
+  }
+
+  /** Eases the grow and the regions' looks over `dt` wall ms (it runs while the dish is paused too). */
+  tick(dt: number): void {
+    const { listing, lit, operated, phone } = this.surgery;
+    const now = this.o.still || this.o.reducedMotion;
+    const ease = (cur: number, to: number, ms: number) => approach(cur, to, dt, now ? 0 : ms / 3);
+    const g = this.o.reducedMotion ? 1 : grown(listing, phone);
+    this.grow = ease(this.grow, g, g > this.grow ? GROW_MS : SHRINK_MS);
+    this.dust.value = ease(this.dust.value, listing ? DUST_OPEN : 1, LIGHT_OUT_MS);
+    this.whole.value = ease(this.whole.value, wholeRim(lit), LIGHT_IN_MS);
+    for (const r of this.regions.values()) {
+      const want = regionLook(r.name, lit, operated);
+      r.settle = Math.max(0, r.settle - dt);
+      const ms = r.settle > 0 ? SETTLE_MS : want.rim > r.now.rim ? LIGHT_IN_MS : LIGHT_OUT_MS;
+      r.now = {
+        tint: want.tint,
+        rim: ease(r.now.rim, want.rim, ms),
+        fill: ease(r.now.fill, want.fill, ms),
+        dust: ease(r.now.dust, want.dust, ms),
+      };
+      const c = r.tint.value;
+      this.tint.set(TINT[want.tint]);
+      c.setRGB(ease(c.r, this.tint.r, ms), ease(c.g, this.tint.g, ms), ease(c.b, this.tint.b, ms));
+      r.rim.value = r.now.rim;
+      r.fill.value = r.now.fill;
+      r.dust.value = r.now.dust;
+    }
+    this.place();
+  }
+
+  /** The lit region's centre in canvas px (the «здесь» tag); null with none, the whole brain, or off screen. */
+  litSpot(camera: Camera, w: number, h: number): { x: number; y: number } | null {
+    const l = this.surgery.lit;
+    const r = l && l !== 'all' ? this.regions.get(l.region) : undefined;
+    if (!r || this.sunk > 0) return null;
+    this.root.updateMatrixWorld();
+    const p = this.brain.localToWorld(this.v.set(...r.at)).project(camera);
+    if (p.z > 1) return null;
+    return { x: ((p.x + 1) / 2) * w, y: ((1 - p.y) / 2) * h };
   }
 
   /** The decision flash: rim gain × `k` (1 = rest). */
@@ -215,11 +381,6 @@ export class HoloView {
     for (const n of this.nodes.values()) n.heat.value = levels.get(n.type) ?? 0;
   }
 
-  /** Marks of the operations in force. */
-  setMarks(on: ReadonlySet<Op>): void {
-    for (const [op, m] of this.marks) m.visible = on.has(op);
-  }
-
   /** A decision path's hop points in world space (side from the stimulus); missing neuropils are skipped. */
   path(d: Decision, side: Side | null): Vector3[] {
     this.root.updateMatrixWorld();
@@ -242,8 +403,19 @@ function disc(): Node<'float'> {
   return oneMinus(smoothstep(0.15, 0.5, length(uv().sub(0.5))));
 }
 
+/** A named mesh of `set` on its own (positions copied, indices made local). */
+function regionGeometry(set: NeuropilSet, r: NeuropilRange): BufferGeometry {
+  const geo = new BufferGeometry();
+  const pos = set.pos.slice(r.vertStart * 3, (r.vertStart + r.vertCount) * 3);
+  const index = set.index.slice(r.indexStart, r.indexStart + r.indexCount).map((i) => i - r.vertStart);
+  geo.setAttribute('position', new BufferAttribute(pos, 3));
+  geo.setIndex(new BufferAttribute(index, 1));
+  geo.computeVertexNormals();
+  return geo;
+}
+
 /** Instanced round sprites at `pos` (parent units), `size` across. */
-function sprites(pos: Float32Array, size: number, c: Node<'color'>, gain: number): Sprite {
+function sprites(pos: Float32Array, size: number, c: Node<'color'>, gain: Node<'float'>): Sprite {
   const mat = new SpriteNodeMaterial({ transparent: true, depthWrite: false, blending: AdditiveBlending });
   mat.positionNode = instancedBufferAttribute(
     new InstancedBufferAttribute(pos, 3),

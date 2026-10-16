@@ -22,7 +22,7 @@ import { DishCaption } from './DishCaption';
 import { DishCard } from './DishCard';
 import { OpsStatus } from './DishOps';
 import { DishPalette } from './DishPalette';
-import { HoloLabel, paintLabel } from './HoloLabel';
+import { HoloHere, HoloLabel, paintHere, paintLabel } from './HoloLabel';
 import { LangSwitch } from './LangSwitch';
 import { paintReplay, ReplayBar, type ReplayRefs } from './ReplayBar';
 import { ViewSwitch, viewHref } from './ViewSwitch';
@@ -59,6 +59,7 @@ export const Dish = observer(function Dish() {
   const line = useRef<HTMLParagraphElement>(null);
   const remove = useRef<HTMLButtonElement>(null);
   const label = useRef<HTMLDivElement>(null);
+  const here = useRef<HTMLDivElement>(null);
   const diveTo = useRef<DiveTo>('peek');
   const hovered = useRef<number | null>(null);
   const [run, setRun] = useState<DishRun | null>(null);
@@ -189,6 +190,7 @@ export const Dish = observer(function Dish() {
           if (progress.current) progress.current.style.scale = `${s.trial ?? 0} 1`;
           if (s.replay) paintReplay(bar.current, s.replay);
           paintLabel(label.current, s.label);
+          paintHere(here.current, s.here);
           const b = remove.current;
           hovered.current = s.hover?.id ?? null;
           if (!b) return;
@@ -238,6 +240,12 @@ export const Dish = observer(function Dish() {
         (op) => dish.setOps(op === 'none' ? [] : [op]),
         { fireImmediately: true },
       );
+      // the slot on the hologram: grown while listing, the hovered row lit, the op in force marked
+      const surgeon = reaction(
+        () => ({ listing: trial.listing, lit: trial.lit, operated: trial.operated }),
+        (s) => run.operate({ ...s, phone: !matchMedia('(width >= 48rem)').matches }),
+        { fireImmediately: true },
+      );
       // the brain's cells and the ops take turns in the slot: off before on (a pick may be an op's cell)
       const surgery = reaction(
         () => ({ ops: [...dish.ops], brain: !!trial.applied }),
@@ -265,6 +273,7 @@ export const Dish = observer(function Dish() {
         stops();
         auto();
         slot();
+        surgeon();
         quality();
         surgery();
         puppet();
@@ -330,6 +339,7 @@ export const Dish = observer(function Dish() {
       <div ref={host} className="absolute inset-0" role="img" aria-label={t('dish.label')} />
       {/* outside the chrome: it plays behind the welcome too */}
       <HoloLabel ref={label} />
+      <HoloHere ref={here} />
       {/* not positioned: the chrome still lays out against the page; it steps aside while the zoom flies */}
       <div
         ref={chrome}

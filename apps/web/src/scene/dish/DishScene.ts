@@ -44,7 +44,7 @@ import type { Preset } from '../quality';
 import { arena } from './arena';
 import { FlyView } from './fly';
 import { type Band, frame, type Lens, NO_BAND } from './frame';
-import { type BrainData, HoloView } from './holo';
+import { type BrainData, HoloView, type Surgery } from './holo';
 import type { Vec3 } from './hologram';
 import { type ItemView, itemView } from './items';
 import type { DecisionEvent } from './loop';
@@ -56,7 +56,6 @@ import { cut, FLARE_PEAK, flareAt, RUN_MS, shareTo, threadAt } from './thread';
 type Look = NonNullable<ReturnType<typeof threadAt>>;
 
 import { Trail } from './trail';
-import type { Op } from './verdict';
 import { facing, seamDistance, type ZoomDir, zoomAt } from './zoom';
 
 const FOV = 30;
@@ -143,7 +142,7 @@ export class DishScene {
   private readonly aimRing = new Mesh(new RingGeometry(0.9, 1, 64).rotateX(-Math.PI / 2), glow(BONE, 0.35));
   private ghost: { kind: ItemKind; view: ItemView } | null = null;
   private holo: HoloView | null = null;
-  private marks = new Set<Op>();
+  private surgery: Surgery = { listing: false, lit: null, operated: null, phone: false };
   /** The running thread: its decision and wall ms since. */
   private thread: { e: DecisionEvent; age: number } | null = null;
   /** A replay sets the thread's look itself (`upTo`: hops drawn, the signal stopping at a silent one). */
@@ -341,18 +340,29 @@ export class DishScene {
   /** The brain hologram, once its chunks are in. */
   setBrain(d: BrainData): void {
     if (this.disposed || this.holo) return;
-    this.holo = new HoloView(d);
+    this.holo = new HoloView(d, { reducedMotion: this.opts.reducedMotion, still: !!this.opts.still });
     this.holo.root.traverse((o) => {
       o.renderOrder = HOLO_ORDER;
     });
-    this.holo.setMarks(this.marks);
+    this.holo.operate(this.surgery);
     this.scene.add(this.holo.root);
   }
 
-  /** Operations in force (hologram marks). */
-  setMarks(on: ReadonlySet<Op>): void {
-    this.marks = new Set(on);
-    this.holo?.setMarks(this.marks);
+  /** The op slot on the hologram: grown while listing, the hovered row's region, the op in force. */
+  operate(s: Surgery): void {
+    this.surgery = s;
+    this.holo?.operate(s);
+  }
+
+  /** Wall-clock easing that runs while the dish is paused too (`dt` ms): the op slot's look. */
+  easeHolo(dt: number): void {
+    this.holo?.tick(dt);
+  }
+
+  /** The hologram's lit region in canvas px (the «здесь» tag); null with none. */
+  litSpot(): { x: number; y: number } | null {
+    const { clientWidth: w, clientHeight: h } = this.canvas;
+    return this.holo?.litSpot(this.camera, w, h) ?? null;
   }
 
   /** A decision: the hologram flares, its thread runs from the hologram down to the legs (the sense part drawn at once). */

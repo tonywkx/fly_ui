@@ -20,7 +20,7 @@ import type { Backend } from '../engine';
 import type { Preset } from '../quality';
 import { DishScene, type DishSceneOptions } from './DishScene';
 import type { Band } from './frame';
-import type { BrainData } from './holo';
+import type { BrainData, Surgery } from './holo';
 import { DishInput } from './input';
 import { LABEL_FULL_MS, labelAt } from './label';
 import { type DecisionEvent, DishLoop, type Pull } from './loop';
@@ -88,6 +88,8 @@ export interface DishStatus {
   replay: ReplayStatus | null;
   /** The hologram label: its anchor on the hologram (canvas px), the side it sits on and its look. */
   label: HoloLabel | null;
+  /** The op list's lit region on the hologram (canvas px), for the «здесь» tag. */
+  here: { x: number; y: number } | null;
 }
 
 export interface HoloLabel {
@@ -239,6 +241,12 @@ export class DishRun {
   setOps(ops: Iterable<Op>): void {
     this.ops = new Set(ops);
     this.applyOps();
+  }
+
+  /** The op slot on the hologram (SURGEON-SHAPE §Hologram); opening the list shows the label again. */
+  operate(s: Surgery): void {
+    this.scene.operate(s);
+    if (s.listing) this.showLabel();
   }
 
   /** Puppet mode: the keys held now (cells driven, steering); applied once the live brain is up. */
@@ -429,7 +437,6 @@ export class DishRun {
       else this.applied.delete(op);
     }
     this.applyDrive();
-    this.scene.setMarks(this.applied);
   }
 
   /** Full drive on the cells of «on» operations and held puppet keys; only changes are sent. */
@@ -524,6 +531,7 @@ export class DishRun {
     if (this.flash && (t - this.flash.t > FLASH_MS || t < this.flash.t)) this.flash = null;
     this.scene.sync(this.world, l?.action ?? 'walk', t, ev, this.applied.size > 0 || this.brainOn);
     this.scene.animate(still ? 0 : dt, this.heat);
+    this.scene.easeHolo(dt);
     const id = this.input.hover;
     const it = id === null ? undefined : this.world.items.find((i) => i.id === id);
     this.o.onStatus({
@@ -537,6 +545,7 @@ export class DishRun {
       trial: this.take ? Math.min(1, (t - this.take.take.t0) / TIMEOUT) : null,
       replay: null,
       label: this.holoLabel(dt),
+      here: this.scene.litSpot(),
     });
   }
 
@@ -562,6 +571,7 @@ export class DishRun {
       upTo: r.missed ? (silent >= 0 ? silent + 1 : 1) : null,
     });
     this.scene.animate(dt, this.heat);
+    this.scene.easeHolo(dt);
     // snaps: a replay frame is the picture
     if (this.o.until !== undefined && !this.ready) {
       this.ready = true;
@@ -578,6 +588,7 @@ export class DishRun {
       trial: null,
       replay: { t: rp.t, t0: clip.t0, t1: clip.t1, playing: rp.playing },
       label: this.holoLabel(dt),
+      here: this.scene.litSpot(),
     });
   }
 
