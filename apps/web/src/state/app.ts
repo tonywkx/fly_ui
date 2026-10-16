@@ -1,5 +1,5 @@
 import { makeAutoObservable, observable, reaction } from 'mobx';
-import { type ColorBy, nextColorBy } from '@/data/colorBy';
+import { COLOR_BY, type ColorBy, nextColorBy } from '@/data/colorBy';
 import { isLang, type Lang, lang, setLangValue } from '@/i18n';
 import type { Backend } from '@/scene/engine';
 import type { IntroPhase } from '@/scene/intro';
@@ -61,7 +61,7 @@ export class AppStore {
     this.qualityPinned = !!this.params.quality || this.params.snap;
     // before init the backend is a guess: WebGPU if exposed and not forced off
     const guess = this.params.gl || !('gpu' in navigator) ? 'webgl2' : 'webgpu';
-    this.colorBy = this.params.color ?? 'nt';
+    this.colorBy = this.params.color ?? COLOR_BY[0];
     setLangValue(this.params.lang ?? storedLang() ?? 'ru');
     const d = device(guess);
     // touch = the viewer without tools (PRODUCT.md): the camera tells the story until a drag takes it

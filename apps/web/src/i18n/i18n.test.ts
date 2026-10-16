@@ -65,7 +65,7 @@ describe('t / plural / num', () => {
   });
 
   it('falls back for keys built from data', () => {
-    expect(tOr('group.region.optic lobe', 'x', 'ru')).toBe('зрительная доля');
+    expect(tOr('group.region.optic lobe', 'x', 'ru')).toBe('зрительные доли');
     expect(tOr('group.region.nope', 'nope', 'ru')).toBe('nope');
   });
 

@@ -1,7 +1,7 @@
 import { Command } from 'cmdk';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useMemo, useState } from 'react';
-import { CLASS_GROUPS, type ColorBy, classGroup } from '@/data/colorBy';
+import { CLASS_GROUPS, COLOR_BY, type ColorBy, classGroup } from '@/data/colorBy';
 import { data } from '@/data/store';
 import { findBodyIds, typeIndex } from '@/data/typeIndex';
 import { type Key, t, tOr } from '@/i18n';
@@ -10,12 +10,10 @@ import { experiment, paletteKey } from '@/state/experiment';
 import { shareExperiment } from '@/ui/share';
 import { scenarioTitle } from '@/ui/viewer';
 
-const COLOR_ITEMS: { mode: ColorBy; label: Key }[] = (['nt', 'region', 'class', 'male'] as const).map(
-  (mode) => ({
-    mode,
-    label: `palette.mode.${mode}`,
-  }),
-);
+const COLOR_ITEMS: { mode: ColorBy; label: Key }[] = COLOR_BY.map((mode) => ({
+  mode,
+  label: `palette.mode.${mode}`,
+}));
 /** BodyId matches shown for an all-digits query. */
 const MAX_IDS = 8;
 

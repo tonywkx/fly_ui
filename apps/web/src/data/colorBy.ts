@@ -2,8 +2,8 @@ import { FLAG_MALE_SPECIFIC, type NeuronTable, NONE8, NONE16, NTS } from '@fly/d
 import { CLASS_COLORS, MALE, NT_COLORS, OTHER, REGION_COLORS, type Swatch, UNKNOWN } from '../ui/palette';
 import { isVnc, OPTIC, roiBase } from './bands';
 
-/** What the neurons are tinted by (the glow/activity stays the same). */
-export const COLOR_BY = ['nt', 'region', 'class', 'male'] as const;
+/** What the neurons are tinted by (the glow/activity stays the same); the first is the default. */
+export const COLOR_BY = ['region', 'nt', 'class', 'male'] as const;
 export type ColorBy = (typeof COLOR_BY)[number];
 export const isColorBy = (v: string): v is ColorBy => (COLOR_BY as readonly string[]).includes(v);
 export const nextColorBy = (m: ColorBy): ColorBy =>
@@ -21,6 +21,15 @@ export const REGION_GROUPS = [
   'other VNC',
   'unknown',
 ] as const;
+
+/** The tour's three words a region group sits under in the legend; unknown → none. */
+export type RegionPart = 'eyes' | 'brain' | 'cord';
+export function regionPart(group: string): RegionPart | null {
+  if (group === 'optic lobe') return 'eyes';
+  if (group === 'central brain' || group === 'subesophageal zone') return 'brain';
+  if (group === 'unknown') return null;
+  return 'cord';
+}
 
 /** Superclass groups (`class` is mostly empty in male-cns); last = unknown. */
 export const CLASS_GROUPS = [

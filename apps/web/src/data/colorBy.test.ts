@@ -9,6 +9,7 @@ import {
   nextColorBy,
   REGION_GROUPS,
   regionGroup,
+  regionPart,
 } from './colorBy';
 
 const record = (r: Partial<NeuronRecord>): NeuronRecord => ({
@@ -139,9 +140,20 @@ describe('fillTints', () => {
 });
 
 describe('nextColorBy', () => {
-  it('cycles through the modes', () => {
-    expect(nextColorBy('nt')).toBe('region');
-    expect(nextColorBy('class')).toBe('male');
-    expect(nextColorBy('male')).toBe('nt');
+  it('cycles through the modes, region (the default) first', () => {
+    expect(nextColorBy('region')).toBe('nt');
+    expect(nextColorBy('nt')).toBe('class');
+    expect(nextColorBy('male')).toBe('region');
+  });
+});
+
+describe('regionPart', () => {
+  it("puts each region group under the tour's three words", () => {
+    expect(regionPart('optic lobe')).toBe('eyes');
+    expect(regionPart('central brain')).toBe('brain');
+    expect(regionPart('subesophageal zone')).toBe('brain');
+    for (const g of ['upper tectulum', 'lower tectulum', 'leg neuropils', 'abdominal', 'other VNC'])
+      expect(regionPart(g), g).toBe('cord');
+    expect(regionPart('unknown')).toBeNull();
   });
 });

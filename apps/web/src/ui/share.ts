@@ -1,4 +1,5 @@
 import { observable, runInAction } from 'mobx';
+import { COLOR_BY } from '@/data/colorBy';
 import { data } from '@/data/store';
 import { app } from '@/state/app';
 import { experiment } from '@/state/experiment';
@@ -32,7 +33,7 @@ export function experimentLink(): string {
     scenario: data.scenario ?? undefined,
     x: experimentCode(),
     probes: bodyIds(experiment.probes),
-    color: app.colorBy === 'nt' ? undefined : app.colorBy,
+    color: app.colorBy === COLOR_BY[0] ? undefined : app.colorBy,
   });
   return `${location.origin}${location.pathname}${search}`;
 }
