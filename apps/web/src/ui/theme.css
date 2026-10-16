@@ -45,6 +45,14 @@
 
   --radius-panel: 24px;
   --spacing: 6px;
+
+  /* A popover's exit (Radix waits for it): opacity only. */
+  --animate-fade-out: fade-out 120ms var(--ease-out) forwards;
+  @keyframes fade-out {
+    to {
+      opacity: 0;
+    }
+  }
 }
 
 /* shadcn/ui semantic variables, mapped onto the tokens above so registry components drop in. */

@@ -313,6 +313,7 @@ export const Dish = observer(function Dish() {
 
   // «заглянуть в мозг»: the fly zoom (8.9); a click mid-run / mid-flight is swallowed (no reload);
   // before the scene is up the link navigates
+  const sheetUp = !wide && trial.listing;
   const peek = (to: DiveTo = 'peek') => {
     if (!run) return false;
     if (!run.zooming && trial.phase !== 'running' && !trial.replaying) {
@@ -388,7 +389,14 @@ export const Dish = observer(function Dish() {
                 brain={{ pick: pickBrain, forget: clearBrain }}
               />
             )}
-            <div className="flex items-center justify-between md:block">
+            {/* phone: the op list's sheet runs down over these */}
+            <div
+              inert={sheetUp}
+              className={cn(
+                'flex items-center justify-between transition-opacity duration-200 ease-out md:block',
+                sheetUp && 'pointer-events-none absolute inset-x-4 bottom-4 opacity-0',
+              )}
+            >
               <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
                 fly_ui
               </h1>
@@ -398,7 +406,9 @@ export const Dish = observer(function Dish() {
                 <OnbRestart />
               </div>
             </div>
-            <Credit />
+            <div inert={sheetUp} className={cn(sheetUp && 'pointer-events-none absolute opacity-0')}>
+              <Credit />
+            </div>
           </div>
         </div>
       </div>

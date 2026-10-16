@@ -1,4 +1,3 @@
-import { OPERATIONS } from '@fly/sim';
 import { observer } from 'mobx-react-lite';
 import {
   createContext,
@@ -9,6 +8,7 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
@@ -16,21 +16,18 @@ import { Button } from '@/components/ui/button';
 import { type Key, t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { CARD_STIMULI, type CardStimulus, DISCOVERIES, type Discovery } from '@/scene/dish/discoveries';
-import type { Brain } from '@/scene/dish/table';
-import { OPS, type Op } from '@/scene/dish/verdict';
 import { app } from '@/state/app';
 import { dish } from '@/state/dish';
 import { onboarding } from '@/state/onboarding';
-import { type CardTab, type Slot as Held, type Outcome, trial } from '@/state/trial';
+import { type CardTab, type Outcome, trial } from '@/state/trial';
 import { loadPct } from '@/state/welcome';
 import { DishFound } from './DishFound';
 import { GLYPH, type PaletteInput, PutPanel } from './DishPalette';
-import { betLine, headline, OP_CELL as ID, isHe, nowLine, picksText, scaleRow, usualLine } from './expText';
+import { betLine, headline, isHe, nowLine, opChip, scaleRow, usualLine } from './expText';
+import { OpPicker } from './OpPicker';
 import { ReplayCaption } from './ReplayCaption';
 import { blink, scaleLine } from './scale';
 
-/** Types inferred, not named in the dataset (LB3 = sugar, pC1 = P1): source chip «inferred». */
-const GUESS: ReadonlySet<Op> = new Set(['sugar', 'p1']);
 /** The swatter lands this long after the run starts, sim s (as in free play). */
 const SWAT_S = 0.12;
 
@@ -43,9 +40,6 @@ const Phone = createContext(false);
 
 export const stimName = (s: CardStimulus): string =>
   t(s === 'none' ? 'exp.give.none' : s === 'shadow' || s === 'swatter' ? `dish.hand.${s}` : `dish.item.${s}`);
-
-const opMode = (op: Op) => OPERATIONS[op].mode;
-const opName = (op: Op) => t(`op.${op}.name` as Key);
 
 /** A slot: label, the chosen value as a ghost select, its list under it while open. */
 function Slot({
@@ -194,92 +188,6 @@ const Give = observer(function Give({ open, onToggle }: { open: boolean; onToggl
   );
 });
 
-const Change = observer(function Change({
-  open,
-  onToggle,
-  onPickBrain,
-}: {
-  open: boolean;
-  onToggle: () => void;
-  /** «Выбрать любой нейрон в мозге →»: the dive to the brain view with the Silence tool. */
-  onPickBrain: () => void;
-}) {
-  const { op, picks } = trial;
-  const phone = useContext(Phone);
-  const kept = picks && t('op.pick.kept', { cells: picksText(picks) });
-  const pick = (x: Held) => {
-    trial.setSlot(x);
-    onToggle();
-  };
-  return (
-    <Slot
-      label={t('exp.change')}
-      short={t('exp.change.short')}
-      open={open}
-      onToggle={onToggle}
-      value={
-        <>
-          <span
-            aria-hidden="true"
-            className={cn(
-              'size-1.5 shrink-0 rounded-full',
-              op === 'none' && !trial.applied ? 'ring-1 ring-ash/60' : 'bg-saffron',
-            )}
-          />
-          <span className={cn(phone && 'truncate')}>
-            {trial.applied ? kept : op === 'none' ? t('exp.op.none') : opName(op)}
-          </span>
-        </>
-      }
-      sub={op === 'none' ? undefined : `${t(opMode(op) === 'on' ? 'exp.op.on' : 'exp.op.off')} · ${ID[op]}`}
-    >
-      <Option on={trial.slot === 'none'} onPick={() => pick('none')}>
-        <span className="text-label">{t('exp.op.none')}</span>
-      </Option>
-      {OPS.map((x) => (
-        <Option key={x} on={op === x} onPick={() => pick(x)}>
-          <span className="flex items-baseline justify-between gap-2">
-            <span className="text-label">{opName(x)}</span>
-            <span className="font-mono text-caption text-ash">{ID[x]}</span>
-          </span>
-          <span className="text-caption text-mist">{t(`op.${x}.role` as Key)}</span>
-          {/* the chosen op's fact: the list stays short and still */}
-          <span
-            className={cn(
-              'hidden text-caption text-ash group-aria-pressed:block',
-              phone && '[@media(max-height:759px)]:group-aria-pressed:hidden',
-            )}
-          >
-            {t(`op.${x}.fact` as Key)}
-          </span>
-          <span className="font-mono text-caption text-ash">
-            {t(opMode(x) === 'on' ? 'exp.op.on' : 'exp.op.off')} ·{' '}
-            {t(GUESS.has(x) ? 'op.src.guess' : 'op.src.data')}
-          </span>
-        </Option>
-      ))}
-      {kept && (
-        <Option on={trial.slot === 'brain'} onPick={() => pick('brain')}>
-          <span className="text-label">{kept}</span>
-        </Option>
-      )}
-      <Option
-        on={false}
-        onPick={() => {
-          onToggle();
-          onPickBrain();
-        }}
-      >
-        <span className="flex items-baseline justify-between gap-2">
-          <span className="text-label">{t('op.pick.verb')}</span>
-          <span aria-hidden="true">→</span>
-        </span>
-        <span className="text-caption text-mist">{t('op.pick.role')}</span>
-      </Option>
-    </Slot>
-  );
-});
-
 const Bet = observer(function Bet() {
   const phone = useContext(Phone);
   const stim = trial.stim;
@@ -327,7 +235,10 @@ export interface BrainHands {
 }
 
 const Setup = observer(function Setup({ brain }: { brain: BrainHands }) {
-  const [open, setOpen] = useState<'give' | 'change' | null>(null);
+  // snaps: `?ui=ops[:<op>]` opens the op list
+  const [open, setOpen] = useState<'give' | 'change' | null>(() =>
+    app.params.ui?.split(':')[0] === 'ops' ? 'change' : null,
+  );
   const toggle = (k: 'give' | 'change') => setOpen(open === k ? null : k);
   const live = dish.cells !== null;
   // phone: an open slot's list is the whole body (same tree, so focus stays on its trigger)
@@ -350,12 +261,13 @@ const Setup = observer(function Setup({ brain }: { brain: BrainHands }) {
         {(!solo || open === 'change') && (
           <div className="relative flex flex-col gap-0.5">
             {onboarding.step === 3 && <Glow />}
-            <Change open={open === 'change'} onToggle={() => toggle('change')} onPickBrain={brain.pick} />
-            {trial.applied && !solo && (
-              <Button className="h-8 self-end px-2 text-caption text-mist" onClick={brain.forget}>
-                {t('op.restore')}
-              </Button>
-            )}
+            <OpPicker
+              open={open === 'change'}
+              onToggle={() => toggle('change')}
+              phone={phone}
+              onPickBrain={brain.pick}
+              onForget={brain.forget}
+            />
           </div>
         )}
         {!solo && <Bet />}
@@ -417,11 +329,10 @@ const Skip = ({ className }: { className?: string }) => (
   </Button>
 );
 
-/** One line: what we give × what we changed. */
-function summary(stim: CardStimulus, op: Brain): string {
-  const o =
-    op === 'none' ? '' : ` · ${opName(op)} ${t(opMode(op) === 'on' ? 'exp.op.onShort' : 'exp.op.offShort')}`;
-  return `${stimName(stim)}${o}`;
+/** One line: what we give × what we changed, as the slot's chip («Тень · ⊘ нейрон бегства · выкл.»). */
+function summary(stim: CardStimulus): string {
+  const c = opChip(trial.slot, trial.picks);
+  return c.glyph === '○' ? stimName(stim) : `${stimName(stim)} · ${c.glyph} ${c.text}`;
 }
 
 const Running = observer(function Running({ progress }: { progress: Ref<HTMLDivElement> }) {
@@ -429,7 +340,7 @@ const Running = observer(function Running({ progress }: { progress: Ref<HTMLDivE
   if (!stim) return null;
   return (
     <>
-      <p className="px-2 text-label text-bone">{summary(stim, trial.op)}</p>
+      <p className="px-2 text-label text-bone">{summary(stim)}</p>
       <p className="px-2 text-caption text-mist">
         {t('exp.running', { what: t(`exp.deliver.${stim}` as Key, { t: SWAT_S }) })}
       </p>
@@ -665,10 +576,17 @@ export const DishCard = observer(function DishCard({
   }, [phase, o, replaying, tab, put, onboarding.step]);
   const locked = phase === 'running' || replaying;
   const at: SheetTab = put && !locked ? 'put' : tab;
+  // phone, op list open: the sheet runs down over the wordmark row, its top stays put (SURGEON-SHAPE §Phone)
+  const up = phone && trial.listing;
+  const top = useRef(0);
+  useLayoutEffect(() => {
+    if (!up && card.current) top.current = card.current.getBoundingClientRect().top;
+  });
   return (
     <Phone.Provider value={phone}>
       <section
         ref={card}
+        style={up ? { height: `calc(100svh - ${top.current}px - 1rem)`, maxHeight: 'none' } : undefined}
         data-card
         data-band-right={phone ? undefined : true}
         aria-label={t('exp.tab')}

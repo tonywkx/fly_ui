@@ -187,10 +187,11 @@ export class TrialStore {
     this.preview = s;
   }
 
-  /** Opens / closes the op list (shut during a run); closing drops its preview. */
+  /** Opens / closes the op list (shut during a run); closing it drops its preview (a phone's tap previews after). */
   setListing(on: boolean): void {
+    const was = this.listing;
     this.listing = on && this.phase !== 'running';
-    if (!this.listing) this.preview = null;
+    if (was && !this.listing) this.preview = null;
   }
 
   setBet(b: Result | null): void {
@@ -205,7 +206,8 @@ export class TrialStore {
   start(force = false): boolean {
     if (!(this.canRun || (force && this.phase !== 'running' && this.pair))) return false;
     this.phase = 'running';
-    this.setListing(false);
+    this.listing = false;
+    this.preview = null;
     this.tab = 'exp';
     this.outcome = null;
     this.replaying = false;
