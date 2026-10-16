@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { OPS, type Op } from '@/scene/dish/verdict';
 import { app } from '@/state/app';
 import { type Slot, trial } from '@/state/trial';
+import { Chevron } from './Chevron';
 import { type OpGlyph, opChip, picksText } from './expText';
 
 /** Types inferred, not named in the dataset (LB3 = sugar, pC1 = P1): the hypothesis line. */
@@ -125,6 +126,7 @@ export const OpPicker = observer(function OpPicker({
   const value = (
     <span
       key={trial.slot}
+      id={`${id}-v`}
       className="flex min-w-0 items-center gap-2 motion-safe:transition-[opacity,scale] motion-safe:duration-180 motion-safe:ease-out motion-safe:starting:scale-96 motion-safe:starting:opacity-0"
     >
       <Mark g={chip.glyph} />
@@ -154,21 +156,15 @@ export const OpPicker = observer(function OpPicker({
     <Button
       ref={trigger}
       aria-haspopup="listbox"
+      // named by the slot and its value («What we change in her brain escape neuron · off»)
+      aria-labelledby={`${id}-l ${id}-v`}
       aria-expanded={open}
       aria-controls={open ? id : undefined}
       className="h-auto min-h-8 min-w-0 flex-1 justify-between gap-2 px-2 py-1 text-left text-label text-bone"
       onClick={phone ? onToggle : undefined}
     >
       {value}
-      <span
-        aria-hidden="true"
-        className={cn(
-          'text-caption text-ash transition-transform duration-200 ease-out motion-reduce:transition-none',
-          open && 'rotate-180',
-        )}
-      >
-        ▾
-      </span>
+      <Chevron open={open} className="text-mist" />
     </Button>
   );
 
@@ -204,7 +200,8 @@ export const OpPicker = observer(function OpPicker({
                 document.getElementById(id)?.focus();
               }}
               className={cn(
-                'z-30 flex w-(--radix-popover-trigger-width) flex-col overflow-y-auto rounded-lg bg-panel backdrop-blur-md',
+                // denser than the card: the violet «Запустить» under it would blur into a smudge
+                'z-30 flex w-(--radix-popover-trigger-width) flex-col overflow-y-auto rounded-lg bg-popover backdrop-blur-md',
                 'max-h-(--radix-popover-content-available-height) origin-(--radix-popover-content-transform-origin)',
                 'motion-safe:transition-[opacity,translate,scale] motion-safe:duration-160 motion-safe:ease-out',
                 'motion-safe:starting:-translate-y-1 motion-safe:starting:scale-98 motion-safe:starting:opacity-0',
@@ -382,7 +379,7 @@ function Strip({ row }: { row: Row }) {
   const link = (k: Key) => (
     <button
       type="button"
-      className="cursor-pointer text-ash underline-offset-2 hover:text-bone hover:underline focus-visible:text-bone"
+      className="cursor-pointer text-mist underline decoration-bone/30 underline-offset-2 hover:text-bone hover:decoration-bone focus-visible:text-bone"
       onClick={toggle}
     >
       {t(k)}
