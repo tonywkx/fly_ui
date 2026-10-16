@@ -81,6 +81,8 @@ export class TrialStore {
   picks: Picks | null = null;
   /** The op list's hovered / focused row (the hologram previews it). */
   preview: Slot | null = null;
+  /** The op list is open (the hologram grows). */
+  listing = false;
   phase: Phase = 'setup';
   tab: CardTab = 'exp';
   bet: Result | null = null;
@@ -185,6 +187,12 @@ export class TrialStore {
     this.preview = s;
   }
 
+  /** Opens / closes the op list (shut during a run); closing drops its preview. */
+  setListing(on: boolean): void {
+    this.listing = on && this.phase !== 'running';
+    if (!this.listing) this.preview = null;
+  }
+
   setBet(b: Result | null): void {
     this.bet = b;
   }
@@ -197,6 +205,7 @@ export class TrialStore {
   start(force = false): boolean {
     if (!(this.canRun || (force && this.phase !== 'running' && this.pair))) return false;
     this.phase = 'running';
+    this.setListing(false);
     this.tab = 'exp';
     this.outcome = null;
     this.replaying = false;

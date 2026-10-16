@@ -168,6 +168,7 @@ export const en: Shape<typeof ru> = {
   'palette.types': 'Cell types in {scenario}',
 
   'dish.label': 'Terrarium: a fly in a dish',
+  'holo.here': 'here',
   'holo.label': 'her brain · live',
   'dish.loading': 'wiring the brain…',
   'dish.timecode': '×1/{slow} · high-speed camera · {t} s',
@@ -397,6 +398,17 @@ export const en: Shape<typeof ru> = {
   'op.off': 'Switch off',
   'op.on': 'Switch on',
   'op.restore': 'Restore',
+  'op.chip': '{name} · {mode}',
+  'op.obj': 'the {name}',
+  'op.none.verb': 'Change nothing',
+  'op.none.role': 'A normal fly, the baseline we compare with.',
+  'op.list': 'What we change in the brain',
+  'op.more': 'details',
+  'op.less': 'less',
+  'op.src.data.long':
+    "The dataset itself names these cells. What happens to the fly is our model's prediction.",
+  'op.src.guess.long':
+    "The dataset doesn't name these cells: we identified them by where they sit and what they connect to. That's our hypothesis; what happens to the fly is the model's prediction.",
   'op.clear': 'Undo everything',
   'op.active': 'operated',
   'op.src.data': 'from the connectome',

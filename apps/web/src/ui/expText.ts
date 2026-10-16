@@ -10,7 +10,7 @@ import {
 } from '../scene/dish/discoveries';
 import { NORM, type Norm } from '../scene/dish/table';
 import type { Op } from '../scene/dish/verdict';
-import type { Entry, Outcome, Picks } from '../state/trial';
+import type { Entry, Outcome, Picks, Slot } from '../state/trial';
 
 /** The command cell each decision is read from (bridge `COMMANDS`). */
 const CELL: Record<Decision, string> = { jump: 'TTMn', back: 'MDN', eat: 'MN9', court: 'pIP10' };
@@ -32,6 +32,29 @@ const PATH: Record<CardStimulus, readonly string[]> = {
 export function picksText(p: Picks): string {
   const part = (n: number, k: Key) => (n > 0 ? [`${t(k)} ${n}`] : []);
   return [...part(p.off, 'exp.op.offShort'), ...part(p.on, 'exp.op.onShort')].join(' · ');
+}
+
+/** The surgeon's glyphs (SURGEON-SHAPE §Brief 3): nothing, switched off, switched on. */
+export type OpGlyph = '○' | '⊘' | '●';
+
+const low = (s: string) => s.charAt(0).toLocaleLowerCase() + s.slice(1);
+
+/** The «Что меняем» slot's value: «⊘ нейрон бегства · выкл.», «⊘ клетки из мозга · выкл. 2». */
+export function opChip(s: Slot, picks: Picks | null): { glyph: OpGlyph; text: string } {
+  if (s === 'brain' && picks)
+    return {
+      glyph: picks.off > 0 ? '⊘' : '●',
+      text: low(t('op.pick.kept', { cells: picksText(picks) })),
+    };
+  if (s === 'brain' || s === 'none') return { glyph: '○', text: t('exp.op.none') };
+  const on = OPERATIONS[s].mode === 'on';
+  return {
+    glyph: on ? '●' : '⊘',
+    text: t('op.chip', {
+      name: low(t(`op.${s}.name` as Key)),
+      mode: t(on ? 'exp.op.onShort' : 'exp.op.offShort'),
+    }),
+  };
 }
 
 /** The courting male is the subject for the female stimulus. */

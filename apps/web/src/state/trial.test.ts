@@ -266,6 +266,29 @@ describe('surgeon slot', () => {
     s.setPicks(two);
     expect(s.operated).toBeNull();
   });
+
+  it('the op list: open while setting up, closing it drops the preview', () => {
+    const { s } = setup();
+    s.setListing(true);
+    s.setPreview('panic');
+    expect(s.listing).toBe(true);
+    s.setListing(false);
+    expect(s.listing).toBe(false);
+    expect(s.preview).toBeNull();
+  });
+
+  it('a run closes the op list and keeps it shut', () => {
+    const { s } = setup();
+    s.setStim('none');
+    s.setOp('panic');
+    s.setListing(true);
+    s.setPreview('moon');
+    s.start(true);
+    expect(s.listing).toBe(false);
+    expect(s.preview).toBeNull();
+    s.setListing(true);
+    expect(s.listing).toBe(false);
+  });
 });
 
 describe('journal', () => {

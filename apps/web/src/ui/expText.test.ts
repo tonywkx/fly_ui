@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { NORM } from '../scene/dish/table';
 import type { Outcome } from '../state/trial';
-import { betLine, cellPath, foundLine, headline, nowLine, picksText, scaleRow, usualLine } from './expText';
+import {
+  betLine,
+  cellPath,
+  foundLine,
+  headline,
+  nowLine,
+  opChip,
+  picksText,
+  scaleRow,
+  usualLine,
+} from './expText';
 
 const peak = { jump: 0, back: 0, eat: 0, court: 0, gate: 0 };
 
@@ -92,5 +102,14 @@ describe('experiment card text (ru)', () => {
     expect(picksText({ off: 2, on: 0 })).toBe('выкл. 2');
     expect(picksText({ off: 0, on: 1 })).toBe('вкл. 1');
     expect(picksText({ off: 3, on: 1 })).toBe('выкл. 3 · вкл. 1');
+  });
+
+  it('the slot chip: a glyph and the object with its switch', () => {
+    expect(opChip('none', null)).toEqual({ glyph: '○', text: 'Ничего, обычная муха' });
+    expect(opChip('panic', null)).toEqual({ glyph: '⊘', text: 'нейрон бегства · выкл.' });
+    expect(opChip('moon', null)).toEqual({ glyph: '●', text: 'нейрон заднего хода · вкл.' });
+    expect(opChip('brain', { off: 2, on: 0 })).toEqual({ glyph: '⊘', text: 'клетки из мозга · выкл. 2' });
+    expect(opChip('brain', { off: 0, on: 1 })).toEqual({ glyph: '●', text: 'клетки из мозга · вкл. 1' });
+    expect(opChip('brain', null)).toEqual({ glyph: '○', text: 'Ничего, обычная муха' });
   });
 });
