@@ -1,5 +1,11 @@
 # Progress (newest first, keep ≤5 entries)
 
+## 2026-10-16 — 11.1 Surgeon shape
+Done: `docs/SURGEON-SHAPE.md` (impeccable shape, user-approved): op list = verb + object rows with `○ ⊘ ●` glyphs, a popover over the card (desktop), a taller solo sheet (phone), a fixed role strip + «подробнее» (term, cells, fact, data vs hypothesis); hologram grows 1.8× while open, hover lights the op's region + «здесь», operated marks always; label «её мозг · вживую» only when live; decision flare; chip «⊘ нейрон бегства · выкл.» + «вернуть»; «любой нейрон в мозге» round trip; scale (blink = 100 ms lower bound, poppy-seed chip); brain view plain words (region default, legend headings, raster hint, human names first). Motion table + RU/EN copy keys inside.
+State: docs only, no code. Baseline snaps `snaps/surg-*.png`, `dish-ru-1600.png`, `brain-ru-1600.png` (today: list pushes «Run» off 1000 px, phone list clipped at 220 px, no op mark visible on the hologram).
+Next: 11.2 hologram label + decision flare (`scene/dish/holo.ts`, `thread.ts`, DOM label moved by the frame loop, `?debug=holo-label`).
+Gotchas: `pnpm snap --click` matches the button's accessible name, which for a slot is its current value («Nothing — a normal fly»), not the label. Hologram has no per-cell positions (dust = random skeleton samples), so previews/marks are per neuropil region (`OPERATIONS[op].region`). Copy must say 166 700 neurons (paper), not 176 000 (graph rows) — 11.3 replaces it.
+
 ## 2026-10-14 — 10.5 Welcome QA (Phase 10 done)
 Done: `e2e/smoke.spec.ts` — `home is the terrarium` checks Start focus; new `returning visit gets a short splash` (short leaves by itself, «?» → full, Esc returns focus to «?») and `snap and experiment links skip the welcome`. P2 fixes: `lib/useWide.ts` `useMedia(query)`; `ui/Welcome.tsx` uses the phone column below 35rem height (landscape phone hid the CTA); footer row `flex-wrap`, `ui/Credit.tsx` may wrap.
 State: smoke 11/11, tests 638, lint, typecheck green; visual-qa PASS RU/EN 1600/390 full + short + «N %» (throttled net) + ready; ui-critic no P1; `pnpm perf --view=dish` 60.0 fps p95 16.8 ms with and without the welcome (measured on battery + Low Power Mode, so headroom).
@@ -23,9 +29,3 @@ Done: `state/welcome.ts` — `startWelcome` (`?welcome=full|short|0` wins; snap 
 State: tests 635, typecheck, lint green. `ui/Dish.tsx` gates `onboarding.begin` on `when(welcome.mode === 'off')`, but does NOT open the welcome yet (no UI to close it → onboarding would hang); the commented line at the gate is what 10.4 enables.
 Next: 10.3 first paint (inline black + wordmark in `index.html`, measure main chunk).
 Gotchas: manifest `bytes` = decoded size (`process/bake.ts:23`), so % is gzip-safe. `git` failed this session: Xcode license not accepted (`sudo xcodebuild -license accept`) — 10.2 may be uncommitted.
-
-## 2026-10-14 — 10.1 Welcome shape
-Done: `docs/WELCOME-SHAPE.md` approved — full welcome = left column (≤440 px) over a left-edge scrim, live dish bright on the right, palette/card hidden while open; phone = bottom-anchored column, full-width pill; short splash = centred title + progress, `role="status"`. Copy RU/EN (~44 words, `welcome.*` keys), progress/failed states, motion, flow (`?welcome=`, skips, «?» reopens, «Начать» restarts onboarding).
-State: doc only, no code. PLAN 10.1 ticked.
-Next: 10.2 `state/welcome.ts` + tests, worker byte progress → `dish.loading`.
-Gotchas: total bytes from the manifest (decoded size), not Content-Length — gzip on Pages would push % past 100; cap % at 99 until `dish.cells`. Short splash caps at 4 s (my proposal, user OK'd). Card pill gets «готовлю мозг · N %» (`exp.loadingPct`).
