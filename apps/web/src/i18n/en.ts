@@ -164,6 +164,7 @@ export const en: Shape<typeof ru> = {
   'palette.types': 'Cell types in {scenario}',
 
   'dish.label': 'Terrarium: a fly in a dish',
+  'holo.label': 'her brain · live',
   'dish.loading': 'wiring the brain…',
   'dish.timecode': '×1/{slow} · high-speed camera · {t} s',
   'dish.paused': 'paused',

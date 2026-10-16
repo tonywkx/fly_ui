@@ -22,6 +22,7 @@ import { DishScene, type DishSceneOptions } from './DishScene';
 import type { Band } from './frame';
 import type { BrainData } from './holo';
 import { DishInput } from './input';
+import { LABEL_FULL_MS, labelAt } from './label';
 import { type DecisionEvent, DishLoop, type Pull } from './loop';
 import { Clip, type Recorded, snap, span, Tape } from './replay';
 import { SlowMo } from './slowmo';
@@ -43,6 +44,8 @@ const FLASH_MS = 330;
 /** Hologram nodes glow with the spikes of the last few sim ms; full at `HEAT_HZ` per cell. */
 const HEAT_MS = 8;
 const HEAT_HZ = 100;
+/** The label's anchor in the hologram's screen box: in from its side, down from its top (shares). */
+const ANCHOR = { x: 0.3, y: 0.38 };
 /** Replay: a sim ms takes this many wall ms. */
 export const REPLAY_SLOW = 60;
 
@@ -83,6 +86,17 @@ export interface DishStatus {
   trial: number | null;
   /** The replay playing, or null when the dish is live. */
   replay: ReplayStatus | null;
+  /** The hologram label: its anchor on the hologram (canvas px), the side it sits on and its look. */
+  label: HoloLabel | null;
+}
+
+export interface HoloLabel {
+  x: number;
+  y: number;
+  side: 'left' | 'right';
+  leader: number;
+  text: number;
+  alpha: number;
 }
 
 export interface DishRunOptions extends DishSceneOptions {
@@ -157,6 +171,8 @@ export class DishRun {
   private clock = 0;
   /** The real slow-motion (the world waits for a slow brain): the timecode's «×1/N». */
   private readonly pace = new SlowMo(SLOW);
+  /** The hologram label: wall ms shown (runs while the hologram is on screen) and its side, chosen then. */
+  private label: { age: number; side: 'left' | 'right' | null } | null = null;
   private last = 0;
   private ready = false;
   private disposed = false;
@@ -359,6 +375,8 @@ export class DishRun {
       this.o.onCells?.(
         Object.fromEntries(OPS.map((op) => [op, this.opRows?.[op].all.length ?? 0])) as Record<Op, number>,
       );
+      // snaps keep the dish as it was, unless asked for the label
+      if (this.o.until === undefined || this.o.debug === 'holo-label') this.showLabel();
       this.applyOps();
       const x = this.o.experiment;
       if (x) {
@@ -517,6 +535,7 @@ export class DishRun {
       hover: it ? { id: it.id, ...this.scene.project(it.x, it.y) } : null,
       trial: this.take ? Math.min(1, (t - this.take.take.t0) / TIMEOUT) : null,
       replay: null,
+      label: this.holoLabel(dt),
     });
   }
 
@@ -557,6 +576,7 @@ export class DishRun {
       hover: null,
       trial: null,
       replay: { t: rp.t, t0: clip.t0, t1: clip.t1, playing: rp.playing },
+      label: this.holoLabel(dt),
     });
   }
 
@@ -635,6 +655,39 @@ export class DishRun {
     console.info(
       `[dish] recorded ${a}–${b} ms, ${missed ? 'missed' : 'decision'} ${e ? `${e.action} @${e.t} (${e.ms} ms)` : '—'}`,
     );
+  }
+
+  /**
+   * «Her brain · live» over the hologram, once the live brain runs (SURGEON-SHAPE §Hologram). Shown
+   * again while it is up, it keeps its leader drawn and holds anew.
+   */
+  showLabel(): void {
+    if (!this.client) return;
+    const l = this.label;
+    this.label = l ? { ...l, age: Math.min(l.age, LABEL_FULL_MS) } : { age: 0, side: null };
+  }
+
+  /** The label's look this frame (`dt` wall ms); it waits while the hologram is off screen. */
+  private holoLabel(dt: number): HoloLabel | null {
+    const l = this.label;
+    const b = l && this.scene.holoBox();
+    if (!l || !b) return null;
+    if (this.o.debug === 'holo-label') l.age = LABEL_FULL_MS;
+    else l.age += dt;
+    const look = labelAt(l.age, !!this.o.reducedMotion);
+    if (!look) {
+      this.label = null;
+      return null;
+    }
+    // away from the card: left of the hologram when it is right of centre
+    l.side ??= b.x0 + b.x1 > this.scene.canvas.clientWidth ? 'left' : 'right';
+    const w = b.x1 - b.x0;
+    return {
+      x: l.side === 'left' ? b.x0 + w * ANCHOR.x : b.x1 - w * ANCHOR.x,
+      y: b.y0 + (b.y1 - b.y0) * ANCHOR.y,
+      side: l.side,
+      ...look,
+    };
   }
 
   /** Hologram node levels: path cells' recent spikes, and what the fly senses for the first hops. */

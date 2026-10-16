@@ -22,6 +22,7 @@ import { DishCaption } from './DishCaption';
 import { DishCard } from './DishCard';
 import { OpsStatus } from './DishOps';
 import { DishPalette } from './DishPalette';
+import { HoloLabel, paintLabel } from './HoloLabel';
 import { LangSwitch } from './LangSwitch';
 import { paintReplay, ReplayBar, type ReplayRefs } from './ReplayBar';
 import { ViewSwitch, viewHref } from './ViewSwitch';
@@ -46,6 +47,7 @@ export const Dish = observer(function Dish() {
   const host = useRef<HTMLDivElement>(null);
   const line = useRef<HTMLParagraphElement>(null);
   const remove = useRef<HTMLButtonElement>(null);
+  const label = useRef<HTMLDivElement>(null);
   const hovered = useRef<number | null>(null);
   const [run, setRun] = useState<DishRun | null>(null);
   const chrome = useRef<HTMLDivElement>(null);
@@ -151,6 +153,7 @@ export const Dish = observer(function Dish() {
       const run = new DishRun(el, {
         forceWebGL: gl === 'webgl2',
         reducedMotion: app.reducedMotion,
+        debug: app.params.debug,
         graphUrl: data.url(graph),
         metaUrl: data.url(meta),
         until: snap ? (until ?? 0) : undefined,
@@ -176,6 +179,7 @@ export const Dish = observer(function Dish() {
           if (line.current && line.current.textContent !== text) line.current.textContent = text;
           if (progress.current) progress.current.style.scale = `${s.trial ?? 0} 1`;
           if (s.replay) paintReplay(bar.current, s.replay);
+          paintLabel(label.current, s.label);
           const b = remove.current;
           hovered.current = s.hover?.id ?? null;
           if (!b) return;
@@ -303,6 +307,8 @@ export const Dish = observer(function Dish() {
   return (
     <>
       <div ref={host} className="absolute inset-0" role="img" aria-label={t('dish.label')} />
+      {/* outside the chrome: it plays behind the welcome too */}
+      <HoloLabel ref={label} />
       {/* not positioned: the chrome still lays out against the page; it steps aside while the zoom flies */}
       <div
         ref={chrome}

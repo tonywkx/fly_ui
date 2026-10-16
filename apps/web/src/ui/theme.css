@@ -40,6 +40,9 @@
   /* …and for things moving across the screen. */
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 
+  /* Text over the live scene (the dish rim can glow behind it). */
+  --text-shadow-halo: 0 0 4px var(--color-void), 0 0 12px var(--color-void);
+
   --radius-panel: 24px;
   --spacing: 6px;
 }
