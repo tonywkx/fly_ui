@@ -21,6 +21,7 @@ import { dish } from '@/state/dish';
 import { onboarding } from '@/state/onboarding';
 import { type CardTab, type Outcome, trial } from '@/state/trial';
 import { loadPct } from '@/state/welcome';
+import { Chevron } from './Chevron';
 import { DishFound } from './DishFound';
 import { GLYPH, type PaletteInput, PutPanel } from './DishPalette';
 import { betLine, headline, isHe, nowLine, opChip, scaleRow, usualLine } from './expText';
@@ -95,15 +96,7 @@ function Slot({
           <span className="flex items-center gap-2">{value}</span>
           {sub && !phone && <span className="text-caption text-ash">{sub}</span>}
         </span>
-        <span
-          aria-hidden="true"
-          className={cn(
-            'text-caption text-ash transition-transform duration-200 ease-out motion-reduce:transition-none',
-            open && 'rotate-180',
-          )}
-        >
-          ▾
-        </span>
+        <Chevron open={open} className="text-mist" />
       </Button>
       {open && (
         // biome-ignore lint/a11y/useKeyWithClickEvents: the options are buttons; this only moves focus after a pick

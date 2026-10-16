@@ -14,6 +14,7 @@ import { HAND_KEYS, ITEM_KEYS, SLOT_OF } from '@/scene/dish/input';
 import type { Pull } from '@/scene/dish/loop';
 import { dish, type Hand } from '@/state/dish';
 import { trial } from '@/state/trial';
+import { Chevron } from './Chevron';
 import { PULL_GLYPH, puppetHops } from './puppet';
 
 /** What the palette needs from the dish input. */
@@ -243,15 +244,7 @@ export const PutPanel = observer(function PutPanel({ input }: { input: PaletteIn
           onClick={() => setMore(!more)}
         >
           {more ? t('puppet.title') : t('pal.more')}
-          <span
-            aria-hidden="true"
-            className={cn(
-              'transition-transform duration-200 ease-out motion-reduce:transition-none',
-              more && 'rotate-180',
-            )}
-          >
-            ▾
-          </span>
+          <Chevron open={more} />
         </Button>
       </div>
       <div className="grid grid-cols-2 gap-0.5">
@@ -307,15 +300,7 @@ export const DishPalette = observer(function DishPalette({ input }: { input: Pal
             onClick={() => setMore(!more)}
           >
             {more ? t('puppet.title') : t('pal.more')}
-            <span
-              aria-hidden="true"
-              className={cn(
-                'transition-transform duration-200 ease-out motion-reduce:transition-none',
-                more && 'rotate-180',
-              )}
-            >
-              ▾
-            </span>
+            <Chevron open={more} />
           </Button>
           {more && (
             <>
