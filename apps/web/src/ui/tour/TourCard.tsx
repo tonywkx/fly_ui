@@ -147,7 +147,7 @@ export const TourCard = observer(function TourCard({
   );
 });
 
-/** "N of 176,000 neurons take part in this run" (mono number). */
+/** "N of 166,700 neurons take part in this run" (mono number). */
 const Count = observer(function Count() {
   const meta = data.scenario ? data.get(`${data.scenario}-meta`, 'meta') : undefined;
   if (!meta) return null;

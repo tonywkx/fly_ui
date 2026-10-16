@@ -15,7 +15,7 @@ export interface CardView {
   line?: Key;
   title?: Text;
   body?: Key;
-  /** Step 1: "N of 176,000 neurons take part". */
+  /** Step 1: "N of 166,700 neurons take part". */
   count?: boolean;
   /** Step 4: the key list (desktop) or the "tools are on a computer" line (phone). */
   sheet?: 'keys' | 'phone';
