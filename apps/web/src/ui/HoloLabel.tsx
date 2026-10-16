@@ -33,3 +33,27 @@ export function paintLabel(el: HTMLDivElement | null, l: Look | null): void {
   out.style.scale = `${Math.max(0, l.leader * 2 - 1)} 1`;
   text.style.opacity = `${l.text}`;
 }
+
+/** «здесь» over the op list's lit region (SURGEON-SHAPE §Hologram): a short leader up from its centre. */
+export function HoloHere({ ref }: { ref: Ref<HTMLDivElement> }) {
+  return (
+    <div
+      ref={ref}
+      hidden
+      aria-hidden
+      className="pointer-events-none absolute top-0 left-0 motion-safe:transition-opacity motion-safe:duration-120 motion-safe:ease-out motion-safe:starting:opacity-0"
+    >
+      <span className="absolute bottom-0 left-0 h-4 w-px bg-bone/40" />
+      <span className="absolute bottom-4 left-0 -translate-x-1/2 pb-0.5 whitespace-nowrap text-caption text-bone text-shadow-halo">
+        {t('holo.here')}
+      </span>
+    </div>
+  );
+}
+
+/** Puts «здесь» on the lit region's centre (frame loop: no React renders). */
+export function paintHere(el: HTMLDivElement | null, at: { x: number; y: number } | null): void {
+  if (!el) return;
+  el.hidden = !at;
+  if (at) el.style.transform = `translate(${at.x}px, ${at.y}px)`;
+}
