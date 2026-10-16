@@ -176,6 +176,56 @@ test('an experiment reaches a result and unlocks a discovery', async ({ page }) 
   expect(errors).toEqual([]);
 });
 
+// The Neurosurgeon: pick an op from the list → run → the result is read against the unoperated fly.
+test('an operation reaches the result', async ({ page }) => {
+  test.skip(!!process.env.CI, 'live sim in wall time; too slow without a GPU');
+  const { errors } = watch(page);
+  await page.goto(url({ snap: '0', exp: 'swatter', onb: '0' }));
+  await ready(page);
+  const card = page.getByRole('region', { name: 'Experiment' });
+  const slot = card.getByRole('group', { name: 'What we change in her brain' });
+
+  await slot.locator('[aria-haspopup=listbox]').dispatchEvent('click');
+  const list = page.getByRole('listbox', { name: 'What we change in the brain' });
+  await expect(list.getByRole('option', { name: /Pick any neuron in the brain/ })).toBeVisible();
+  await list.getByRole('option', { name: /Switch off the escape neuron/ }).dispatchEvent('click');
+  await expect(list).toHaveCount(0);
+  await expect(slot.getByText('escape neuron · off')).toBeVisible();
+  await expect(slot.getByRole('button', { name: 'restore' })).toBeVisible();
+
+  await card.getByRole('button', { name: 'takes off', exact: true }).dispatchEvent('click');
+  const run = card.getByRole('button', { name: 'Run', exact: true });
+  await expect(run).toBeEnabled({ timeout: 30_000 });
+  await run.dispatchEvent('click');
+  // no escape neuron → no takeoff, a first discovery (its «why» panel covers the result)
+  await expect(card.getByRole('status').filter({ hasText: /now: too late to take off/ })).toHaveCount(1, {
+    timeout: 30_000,
+  });
+  await expect(card.getByRole('tab', { name: /Discoveries 1\/12/ })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+// «Pick any neuron in the brain»: cells switched off in the brain view come back to the dish slot.
+test('brain picks round trip', async ({ page }) => {
+  test.skip(!!process.env.CI, 'live sim in wall time; too slow without a GPU');
+  const { errors } = watch(page);
+  // two DNp01 silenced (10001, 10010)
+  await page.goto(url({ snap: '0', view: 'brain', from: 'dish', tool: 'silence', x: 'AZYBZAACkU4J' }));
+  await ready(page);
+  await expect(page.getByText('Click a neuron to switch it off')).toBeVisible();
+  const back = page.getByRole('link', { name: '← Back to the fly · off 2' });
+  await expect(back).toBeVisible({ timeout: 30_000 });
+
+  await back.click();
+  await ready(page);
+  const slot = page
+    .getByRole('region', { name: 'Experiment' })
+    .getByRole('group', { name: 'What we change in her brain' });
+  await expect(slot.getByText('cells from the brain · off 2')).toBeVisible({ timeout: 30_000 });
+  await expect(slot.getByRole('button', { name: 'restore' })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
 test('data error shows the fatal screen', async ({ page }) => {
   await page.route('**/data/manifest.json', (r) => r.fulfill({ status: 500, body: 'down' }));
   await page.goto(url({ scenario: 'escape' }));
