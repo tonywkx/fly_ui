@@ -122,9 +122,15 @@ function Full({ out }: { out: boolean }) {
     ),
     lede: <p className="text-body leading-snug">{t('welcome.lede')}</p>,
     what: (
-      <p className="text-label text-mist [@media(max-height:719px)]:text-caption">
-        {t('welcome.what', { n: num(176000) })}
-      </p>
+      <div className="flex flex-col items-start gap-1">
+        <p className="text-label text-mist [@media(max-height:719px)]:text-caption">
+          {t('welcome.what', { n: num(166700) })}
+        </p>
+        {/* the brain only: the count above includes the nerve cord */}
+        <p className="rounded-full border border-bone/30 px-1.5 py-0.5 text-caption text-mist">
+          {t('welcome.scale')}
+        </p>
+      </div>
     ),
     steps: <ol className="flex flex-col gap-1 text-label">{steps}</ol>,
   };
