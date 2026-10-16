@@ -13,7 +13,18 @@ import type { CardTab } from './trial';
 import type { WelcomeMode } from './welcome';
 
 /** Colour modes (2.6) + layer isolation: `cloud` / `shells` show only that background layer. */
-export const DEBUG_MODES = ['soma-dist', 'id', 'nt', 'region', 'cloud', 'shells', 'neurons'] as const;
+export const DEBUG_MODES = [
+  'soma-dist',
+  'id',
+  'nt',
+  'region',
+  'cloud',
+  'shells',
+  'neurons',
+  // the dish: the hologram label held shown, its decision flash held at the peak
+  'holo-label',
+  'holo-flare',
+] as const;
 export type DebugMode = (typeof DEBUG_MODES)[number];
 
 /** App state encoded in the URL (also what `pnpm snap --k=v` sets). */

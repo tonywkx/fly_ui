@@ -5,6 +5,7 @@ import {
   AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
+  type Camera,
   Group,
   InstancedBufferAttribute,
   Matrix4,
@@ -77,6 +78,10 @@ export class HoloView {
   private readonly float = new Vector3();
   private sunk = 0;
   private readonly head = new Vector3();
+  /** The shells' rim gain (the decision flash raises it). */
+  private readonly rim = uniform(SHELL.rimGain);
+  /** The CNS box corners (source units), for its screen box. */
+  private readonly corners: Vector3[];
 
   constructor(d: BrainData) {
     const f = holoFrame(d.bbox, WIDTH);
@@ -94,7 +99,16 @@ export class HoloView {
     geo.setAttribute('position', new BufferAttribute(d.shells.pos, 3));
     geo.setIndex(new BufferAttribute(d.shells.index, 1));
     geo.computeVertexNormals();
-    this.brain.add(new Mesh(geo, glassMaterial(IRIS, SHELL)));
+    this.brain.add(new Mesh(geo, glassMaterial(IRIS, { ...SHELL, rimGain: this.rim })));
+    const { min, max } = d.bbox;
+    this.corners = [0, 1, 2, 3, 4, 5, 6, 7].map(
+      (i) =>
+        new Vector3(
+          (i & 1 ? max : min)[0] as number,
+          (i & 2 ? max : min)[1] as number,
+          (i & 4 ? max : min)[2] as number,
+        ),
+    );
 
     for (const p of Object.values(PATHS))
       p.hops.forEach((h, i) => {
@@ -168,6 +182,32 @@ export class HoloView {
   private place(): void {
     this.root.position.lerpVectors(this.float, this.head, this.sunk);
     this.root.scale.setScalar(HoloView.scaleAt(this.sunk));
+  }
+
+  /** The decision flash: rim gain × `k` (1 = rest). */
+  flare(k: number): void {
+    this.rim.value = SHELL.rimGain * k;
+  }
+
+  /** Its box on screen (px in a `w` × `h` canvas); null sunk into the head or behind the camera. */
+  screenBox(camera: Camera, w: number, h: number): { x0: number; y0: number; x1: number; y1: number } | null {
+    if (this.sunk > 0) return null;
+    this.root.updateMatrixWorld();
+    let x0 = Infinity;
+    let y0 = Infinity;
+    let x1 = -Infinity;
+    let y1 = -Infinity;
+    for (const c of this.corners) {
+      const p = this.v.copy(c).applyMatrix4(this.brain.matrixWorld).project(camera);
+      if (p.z > 1) return null;
+      const x = ((p.x + 1) / 2) * w;
+      const y = ((1 - p.y) / 2) * h;
+      x0 = Math.min(x0, x);
+      y0 = Math.min(y0, y);
+      x1 = Math.max(x1, x);
+      y1 = Math.max(y1, y);
+    }
+    return { x0, y0, x1, y1 };
   }
 
   /** Each path node's activity (0..1) by cell type. */

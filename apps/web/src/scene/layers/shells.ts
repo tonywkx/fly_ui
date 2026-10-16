@@ -16,7 +16,7 @@ const SHELL_GLASS: GlassOptions = { rimPower: 3, rimGain: 0.32, fill: 0.012 };
 export interface GlassOptions {
   /** Higher → thinner rim. */
   rimPower: number;
-  rimGain: number;
+  rimGain: number | Node<'float'>;
   /** Faint fill so face-on regions are not a hole. */
   fill: number;
 }

@@ -37,6 +37,7 @@ import {
   Vector3,
   WebGPURenderer,
 } from 'three/webgpu';
+import type { DebugMode } from '@/state/params';
 import type { Backend } from '../engine';
 import { lerpPose, type Pose, posePosition } from '../intro';
 import type { Preset } from '../quality';
@@ -50,7 +51,7 @@ import type { DecisionEvent } from './loop';
 import { BONE, dark, glow, SAFFRON } from './materials';
 import { floorHit, type Spot } from './place';
 import type { Shown } from './replay';
-import { cut, RUN_MS, threadAt } from './thread';
+import { cut, FLARE_PEAK, flareAt, RUN_MS, shareTo, threadAt } from './thread';
 
 type Look = NonNullable<ReturnType<typeof threadAt>>;
 
@@ -98,6 +99,8 @@ export interface DishSceneOptions {
   still?: boolean;
   /** Arrived from the brain view: black until `arrive()` flies out of the head. */
   arriving?: boolean;
+  /** `holo-flare` holds the hologram's rim at the decision flash's peak (snaps). */
+  debug?: DebugMode;
 }
 
 /** A camera on its orbit (`Pose`) round a target. */
@@ -352,7 +355,7 @@ export class DishScene {
     this.holo?.setMarks(this.marks);
   }
 
-  /** A decision: its thread runs sense organ → hologram path → legs. */
+  /** A decision: the hologram flares, its thread runs from the hologram down to the legs (the sense part drawn at once). */
   decide(e: DecisionEvent): void {
     this.thread = { e, age: 0 };
   }
@@ -438,6 +441,9 @@ export class DishScene {
     this.holo?.heat(heat);
     const th = this.thread;
     if (th) th.age = this.opts.still ? RUN_MS : th.age + dt;
+    this.holo?.flare(
+      this.opts.debug === 'holo-flare' ? FLARE_PEAK : th ? flareAt(th.age, this.opts.reducedMotion) : 1,
+    );
     const rp = this.replayed;
     const e = rp ? rp.e : th?.e;
     const look = !this.holo ? null : rp ? rp.look : th ? threadAt(th.age, this.opts.reducedMotion) : null;
@@ -459,7 +465,9 @@ export class DishScene {
     )
       .filter((p) => !!p)
       .map((p) => p.toArray() as Vec3);
-    const line = cut(pts, look.drawn).slice(0, THREAD_MAX / 2 + 1);
+    // live: the pulse leaves the command neuron (the brain decided); a replay runs it from the organ
+    const s0 = !rp && sensed && hops.length ? shareTo(pts, pts.length - 2) : 0;
+    const line = cut(pts, s0 + (1 - s0) * look.drawn).slice(0, THREAD_MAX / 2 + 1);
     const a = this.threadPos.array as Float32Array;
     for (let i = 1; i < line.length; i++) {
       a.set(line[i - 1] as Vec3, (i - 1) * 6);
@@ -483,6 +491,12 @@ export class DishScene {
     this.ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
     this.ray.setFromCamera(this.ndc, this.camera);
     return floorHit(this.ray.ray.origin, this.ray.ray.direction);
+  }
+
+  /** The hologram's box in canvas px; null before it loads or while sunk into the head. */
+  holoBox(): { x0: number; y0: number; x1: number; y1: number } | null {
+    const { clientWidth: w, clientHeight: h } = this.canvas;
+    return this.holo?.screenBox(this.camera, w, h) ?? null;
   }
 
   /** A floor point in canvas px. */
