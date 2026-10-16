@@ -5,10 +5,10 @@ import { cn } from '@/lib/utils';
 import type { WhyHop } from '@/scene/dish/why';
 import { dish } from '@/state/dish';
 import { trial } from '@/state/trial';
+import { cellKey } from './cellKey';
 
 /** Path cells with a plain name; the rest are «interneuron». */
-const NAMED = new Set(['LC4', 'DNp01', 'TTMn', 'LB3', 'LB1', 'MN9', 'MDN', 'LC10a', 'pIP10']);
-const name = (type: string) => t(`why.cell.${NAMED.has(type) ? type : 'other'}` as Key);
+const name = (type: string) => t(cellKey(type) ?? 'why.cell.other');
 const ms = (v: number) => t('unit.ms', { v: `+${num(Math.round(v))}` });
 
 function Hop({ h, last }: { h: WhyHop; last: boolean }) {

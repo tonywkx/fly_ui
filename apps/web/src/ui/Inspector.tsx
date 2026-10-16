@@ -8,6 +8,7 @@ import { num, plural, t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { app } from '@/state/app';
 import { experiment } from '@/state/experiment';
+import { CellName } from '@/ui/CellName';
 import { FOCUS, MALE, NT_COLORS } from '@/ui/palette';
 import { scenarioTitle } from '@/ui/viewer';
 
@@ -75,7 +76,7 @@ const Body = observer(function Body({ s: { row, n, p } }: { s: Shown }) {
             tabIndex={-1}
             className="truncate text-body leading-tight font-normal text-bone outline-none"
           >
-            {n.type ?? t('neuron.untyped')}
+            <CellName type={n.type} />
           </h2>
           <p className="font-mono text-caption text-ash tabular-nums">{n.bodyId}</p>
         </div>

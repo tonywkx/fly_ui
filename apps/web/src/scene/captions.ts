@@ -13,6 +13,8 @@ export interface Beat<T extends string = string> {
   text: T;
   /** The dataset's name for it (cell type, region), shown as is after the phrase; none → the time. */
   term?: string;
+  /** The term in plain words (a dictionary key in `SCRIPTS`), said before it: «… · name (term)». */
+  name?: T;
   /** Not reached `byMs` after the onset (the scenario's first beat) → say so (a silenced link). */
   missing?: { byMs: number; text: T; term?: string };
 }
@@ -25,6 +27,7 @@ export const SCRIPTS: Record<string, readonly Beat<Key>[]> = {
       when: { types: /^(LC4|LPLC2)$/ },
       text: 'cap.escape.shadow',
       term: 'LC4, LPLC2',
+      name: 'cap.term.looming',
     },
     // 2.9
     {
@@ -105,6 +108,7 @@ export interface CaptionEvent {
   at: number;
   text: string;
   term?: string;
+  name?: string;
   missed: boolean;
 }
 
@@ -148,8 +152,8 @@ export class Narrator {
     const found: CaptionEvent[] = [];
     const reach = (b: number, at: number) => {
       this.reachedAt[b] = at;
-      const { text, term } = this.beats[b] as Beat;
-      found.push({ beat: b, at, text, term, missed: false });
+      const { text, term, name } = this.beats[b] as Beat;
+      found.push({ beat: b, at, text, term, name, missed: false });
     };
 
     const [i0, i1] = log.span(this.t, t);

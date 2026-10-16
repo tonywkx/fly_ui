@@ -5,6 +5,7 @@ import { data } from '@/data/store';
 import { t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { app } from '@/state/app';
+import { CellName } from '@/ui/CellName';
 import { NT_COLORS } from '@/ui/palette';
 
 /** Offset from the pointer (px); flips to the other side near the viewport edge. */
@@ -62,7 +63,9 @@ export const NeuronTooltip = observer(function NeuronTooltip() {
     >
       {n && (
         <>
-          <p className="text-label leading-tight font-normal text-bone">{n.type ?? t('neuron.untyped')}</p>
+          <p className="text-label leading-tight font-normal text-bone">
+            <CellName type={n.type} />
+          </p>
           <p className="font-mono text-caption text-ash tabular-nums">{n.bodyId}</p>
           <div className="mt-2 flex flex-col text-caption text-mist">
             <p className="flex items-center gap-1 whitespace-nowrap">

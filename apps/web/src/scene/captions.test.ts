@@ -9,7 +9,7 @@ const types = ['LC4', 'DNp01', 'TTMn'];
 const meta = { n: 4, type: Uint16Array.from([0, 1, 2, 0xffff]), strings: { types } };
 
 const beats: Beat[] = [
-  { when: { types: /^LC4$/ }, text: 'shadow' },
+  { when: { types: /^LC4$/ }, text: 'shadow', term: 'LC4', name: 'looming' },
   {
     when: { types: /^DNp01$/ },
     text: 'gf',
@@ -139,16 +139,16 @@ describe('Narrator', () => {
     ]);
   });
 
-  it('carries the term of the beat, or of its missing line', () => {
+  it('carries the term (and its plain name) of the beat, or of its missing line', () => {
     const n = new Narrator(beats, mask, still);
     n.update(log([10, 12, 30], [0, 1, 2]), 200);
     const m = new Narrator(beats, mask, still);
     m.update(log([10], [0]), 200);
-    expect(n.events.map((e) => [e.text, e.term])).toEqual([
-      ['shadow', undefined],
-      ['gf', 'DNp01'],
-      ['ttmn', undefined],
-      ['no takeoff', undefined],
+    expect(n.events.map((e) => [e.text, e.term, e.name])).toEqual([
+      ['shadow', 'LC4', 'looming'],
+      ['gf', 'DNp01', undefined],
+      ['ttmn', undefined, undefined],
+      ['no takeoff', undefined, undefined],
     ]);
     expect(m.events.find((e) => e.missed)).toMatchObject({ text: 'gf silent', term: 'DNp01' });
   });

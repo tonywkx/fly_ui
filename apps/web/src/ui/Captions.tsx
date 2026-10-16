@@ -60,8 +60,9 @@ export const Captions = observer(function Captions() {
         line.current.dataset.empty = String(!e);
         if (e) {
           text.current.textContent = tOr(e.text, e.text, lang);
-          // the dataset's term, else when it happened (a body beat); a missing body beat has neither
-          const suffix = e.term ?? (e.missed ? '' : tr('unit.ms', { v: num(e.at, lang, 1) }, lang));
+          // the dataset's term (after its plain name), else when it happened (a body beat); a missing body beat has neither
+          const term = e.term && (e.name ? `${tOr(e.name, e.name, lang)} (${e.term})` : e.term);
+          const suffix = term ?? (e.missed ? '' : tr('unit.ms', { v: num(e.at, lang, 1) }, lang));
           tag.current.textContent = suffix && `· ${suffix}`;
           if (!app.reducedMotion && !app.params.snap)
             line.current.animate([{ transform: 'translateY(4px)' }, { transform: 'none' }], {
@@ -90,7 +91,8 @@ export const Captions = observer(function Captions() {
         bigFlyCam() && 'top-[calc(max(1rem,env(safe-area-inset-top))+17rem)]',
       )}
     >
-      <span ref={text} />
+      {/* one block: a long term wraps whole onto its own line instead of splitting the sentence */}
+      <span ref={text} className="inline-block" />
       <span
         ref={tag}
         className="ml-1 font-mono text-caption whitespace-nowrap text-ash tabular-nums empty:hidden"
