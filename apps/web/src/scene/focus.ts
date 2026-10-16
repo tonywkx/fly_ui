@@ -46,6 +46,7 @@ export function startFocus(
   for (const row of rows('probes', probes)) experiment.toggleProbe(row);
   // a shared experiment: stimulus / silencing make the live sim start (Stage)
   if (shared) experiment.load(rows('x', shared.stimulated), rows('x', shared.silenced), shared.stim);
+  if (app.params.tool) experiment.setTool(app.params.tool);
   if (select !== undefined) {
     const row = meta.bodyIds.indexOf(select);
     if (row < 0) console.warn(`[scene] select: bodyId ${select} not in this scenario`);

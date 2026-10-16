@@ -72,7 +72,7 @@ export const ReplayCaption = observer(function ReplayCaption() {
       </h3>
       {forced ? (
         <p className="text-label text-mist">
-          {t(trial.op !== 'none' || dish.brain ? 'why.forced' : 'why.unprompted', {
+          {t(trial.slot !== 'none' ? 'why.forced' : 'why.unprompted', {
             type: why.at(-1)?.type ?? '',
           })}
         </p>

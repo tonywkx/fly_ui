@@ -37,6 +37,17 @@ function timecode(s: DishStatus): string {
 /** The remove button sits this far (px) up-right of the hovered item's centre. */
 const REMOVE_OFFSET = { x: 24, y: -30 };
 
+/** Where the dive lands: a look at her last decision's circuit, or the op slot's brain picks. */
+type DiveTo = 'peek' | 'pick';
+
+/** The brain view on her last decision's circuit; `pick`: Silence in hand, the slot's kept cells along (`x`). */
+function brainHref(to: DiveTo): string {
+  const scenario = scenarioFor(dish.decision?.action ?? null);
+  if (to === 'peek') return viewHref({ dish: false, from: 'dish', scenario });
+  const x = new URLSearchParams(location.search).get('x') ?? undefined;
+  return viewHref({ dish: false, from: 'dish', scenario, x, tool: 'silence' });
+}
+
 /**
  * The Terrarium (`?view=dish`): the dish scene with its live brain, the timecode line, the palette
  * and the hovered item's remove button. The line and the button are written from the frame loop
@@ -48,6 +59,7 @@ export const Dish = observer(function Dish() {
   const line = useRef<HTMLParagraphElement>(null);
   const remove = useRef<HTMLButtonElement>(null);
   const label = useRef<HTMLDivElement>(null);
+  const diveTo = useRef<DiveTo>('peek');
   const hovered = useRef<number | null>(null);
   const [run, setRun] = useState<DishRun | null>(null);
   const chrome = useRef<HTMLDivElement>(null);
@@ -159,14 +171,11 @@ export const Dish = observer(function Dish() {
         until: snap ? (until ?? 0) : undefined,
         arriving,
         experiment: app.params.experiment,
-        onBrain: (n) => dish.setBrain(n),
+        onBrain: (n) => trial.setPicks(n),
         onReady: () => app.markReady('sim'),
         onZoom: (on) => dish.setZooming(on),
         // the black seam: the page becomes the brain view on the circuit of her last decision
-        onDive: () =>
-          location.assign(
-            viewHref({ dish: false, from: 'dish', scenario: scenarioFor(dish.decision?.action ?? null) }),
-          ),
+        onDive: () => location.assign(brainHref(diveTo.current)),
         totalBytes: graph.bytes + meta.bytes,
         onProgress: (f) => dish.setLoading(f),
         onCells: (n) => dish.setCells(n),
@@ -229,9 +238,14 @@ export const Dish = observer(function Dish() {
         (op) => dish.setOps(op === 'none' ? [] : [op]),
         { fireImmediately: true },
       );
+      // the brain's cells and the ops take turns in the slot: off before on (a pick may be an op's cell)
       const surgery = reaction(
-        () => [...dish.ops],
-        (on) => run.setOps(on),
+        () => ({ ops: [...dish.ops], brain: !!trial.applied }),
+        ({ ops, brain }) => {
+          if (!brain) run.setBrainOn(false);
+          run.setOps(ops);
+          if (brain) run.setBrainOn(true);
+        },
         { fireImmediately: true },
       );
       // puppet mode: arrows held (snaps hold them by `puppet=`)
@@ -290,14 +304,21 @@ export const Dish = observer(function Dish() {
 
   // «заглянуть в мозг»: the fly zoom (8.9); a click mid-run / mid-flight is swallowed (no reload);
   // before the scene is up the link navigates
-  const peek = () => {
+  const peek = (to: DiveTo = 'peek') => {
     if (!run) return false;
-    if (!run.zooming && trial.phase !== 'running' && !trial.replaying) run.dive();
+    if (!run.zooming && trial.phase !== 'running' && !trial.replaying) {
+      diveTo.current = to;
+      run.dive();
+    }
     return true;
+  };
+  // «Выбрать любой нейрон в мозге →»: the same dive, Silence in hand
+  const pickBrain = () => {
+    if (!peek('pick')) location.assign(brainHref('pick'));
   };
 
   const clearBrain = () => {
-    run?.clearBrain();
+    trial.forgetPicks();
     // a reload must not bring it back
     const q = new URLSearchParams(location.search);
     q.delete('x');
@@ -341,7 +362,7 @@ export const Dish = observer(function Dish() {
             ×
           </Button>
           {run && !trial.replaying && <DishPalette input={run.input} />}
-          {wide && <DishCard progress={progress} onClearBrain={clearBrain} />}
+          {wide && <DishCard progress={progress} brain={{ pick: pickBrain, forget: clearBrain }} />}
           <OpsStatus />
           <DishCaption />
           <div
@@ -350,13 +371,19 @@ export const Dish = observer(function Dish() {
           >
             {run && trial.replaying && <ReplayBar run={run} bar={bar} />}
             {/* phones: the card is the sheet, «Положить» its middle tab */}
-            {!wide && run && <DishCard progress={progress} input={run.input} onClearBrain={clearBrain} />}
+            {!wide && run && (
+              <DishCard
+                progress={progress}
+                input={run.input}
+                brain={{ pick: pickBrain, forget: clearBrain }}
+              />
+            )}
             <div className="flex items-center justify-between md:block">
               <h1 className="text-heading-sm leading-none font-normal tracking-[-0.04em] md:text-heading-lg">
                 fly_ui
               </h1>
               <div className="-mx-1 flex items-center gap-1 md:mt-1">
-                <ViewSwitch onPeek={peek} />
+                <ViewSwitch onPeek={() => peek()} />
                 <LangSwitch />
                 <OnbRestart />
               </div>

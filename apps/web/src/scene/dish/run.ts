@@ -126,8 +126,8 @@ export interface DishRunOptions extends DishSceneOptions {
   onDive?: () => void;
   /** Cells silenced / driven in the brain view (`?x=`, by bodyId), put on in the fly. */
   experiment?: SharedExperiment;
-  /** Of those, the cells found in the full graph, once the live brain is up; null once cleared. */
-  onBrain?: (n: { off: number; on: number } | null) => void;
+  /** Of those, the cells found in the full graph, once the live brain is up. */
+  onBrain?: (n: { off: number; on: number }) => void;
 }
 
 /** Owns the dish scene, the world, the live sim and the ×1/6 clock. */
@@ -150,6 +150,8 @@ export class DishRun {
   private driven = new Map<number, number>();
   /** The brain view's experiment in full-graph rows (kept across resets, like the operations). */
   private brain: { off: Uint32Array; on: Uint32Array; hz: number; gain: number } | null = null;
+  /** The card's slot holds those cells: they are on in the sim. */
+  private brainOn = false;
   /** Log rows of each path cell type; spikes per type in the heat window. */
   private pathRows: PathRow[] = [];
   /** Cells per sensory group (the «why?» card's first hop). */
@@ -320,7 +322,7 @@ export class DishRun {
     this.applied.clear();
     this.driven = new Map();
     this.applyOps();
-    this.applyBrain(true);
+    if (this.brainOn) this.applyBrain(true);
     this.clock = 0;
     this.pace.reset();
     this.flash = null;
@@ -386,7 +388,7 @@ export class DishRun {
         ]);
         if (this.disposed) return;
         this.brain = { off, on, ...x.stim };
-        this.applyBrain(true);
+        if (this.brainOn) this.applyBrain(true);
         this.o.onBrain?.({ off: off.length, on: on.length });
       }
       console.info(`[dish] live brain in ${(performance.now() - t0).toFixed(0)} ms`);
@@ -397,12 +399,11 @@ export class DishRun {
     }
   }
 
-  /** Takes the brain view's experiment off the fly. */
-  clearBrain(): void {
-    if (!this.brain) return;
-    this.applyBrain(false);
-    this.brain = null;
-    this.o.onBrain?.(null);
+  /** The slot holds the brain view's cells (`on`) or not: they go on / off the sim, kept either way. */
+  setBrainOn(on: boolean): void {
+    if (on === this.brainOn) return;
+    this.brainOn = on;
+    this.applyBrain(on);
   }
 
   /** Puts the brain view's silencing and drive on (or takes it off) the sim. */
@@ -521,7 +522,7 @@ export class DishRun {
       else if (e.kind === 'reassemble') this.flash = { word: 'back_again', t: e.t };
     }
     if (this.flash && (t - this.flash.t > FLASH_MS || t < this.flash.t)) this.flash = null;
-    this.scene.sync(this.world, l?.action ?? 'walk', t, ev, this.applied.size > 0 || !!this.brain);
+    this.scene.sync(this.world, l?.action ?? 'walk', t, ev, this.applied.size > 0 || this.brainOn);
     this.scene.animate(still ? 0 : dt, this.heat);
     const id = this.input.hover;
     const it = id === null ? undefined : this.world.items.find((i) => i.id === id);
@@ -595,7 +596,7 @@ export class DishRun {
     this.rp = null;
     this.scene.replayThread(null);
     this.scene.clear();
-    this.showClip(clip, { t: clip.t1, shown: -Infinity }, this.applied.size > 0 || !!this.brain);
+    this.showClip(clip, { t: clip.t1, shown: -Infinity }, this.applied.size > 0 || this.brainOn);
   }
 
   private clamp(t: number): number {
@@ -649,7 +650,7 @@ export class DishRun {
       e,
       why,
       missed,
-      marked: this.applied.size > 0 || !!this.brain,
+      marked: this.applied.size > 0 || this.brainOn,
     };
     this.o.onRecorded?.({ e, why, missed });
     console.info(

@@ -21,11 +21,11 @@ import { OPS, type Op } from '@/scene/dish/verdict';
 import { app } from '@/state/app';
 import { dish } from '@/state/dish';
 import { onboarding } from '@/state/onboarding';
-import { type CardTab, type Outcome, trial } from '@/state/trial';
+import { type CardTab, type Slot as Held, type Outcome, trial } from '@/state/trial';
 import { loadPct } from '@/state/welcome';
 import { DishFound } from './DishFound';
 import { GLYPH, type PaletteInput, PutPanel } from './DishPalette';
-import { betLine, headline, OP_CELL as ID, isHe, nowLine, scaleRow, usualLine } from './expText';
+import { betLine, headline, OP_CELL as ID, isHe, nowLine, picksText, scaleRow, usualLine } from './expText';
 import { ReplayCaption } from './ReplayCaption';
 import { blink, scaleLine } from './scale';
 
@@ -194,11 +194,21 @@ const Give = observer(function Give({ open, onToggle }: { open: boolean; onToggl
   );
 });
 
-const Change = observer(function Change({ open, onToggle }: { open: boolean; onToggle: () => void }) {
-  const op = trial.op;
+const Change = observer(function Change({
+  open,
+  onToggle,
+  onPickBrain,
+}: {
+  open: boolean;
+  onToggle: () => void;
+  /** «Выбрать любой нейрон в мозге →»: the dive to the brain view with the Silence tool. */
+  onPickBrain: () => void;
+}) {
+  const { op, picks } = trial;
   const phone = useContext(Phone);
-  const pick = (x: Brain) => {
-    trial.setOp(x);
+  const kept = picks && t('op.pick.kept', { cells: picksText(picks) });
+  const pick = (x: Held) => {
+    trial.setSlot(x);
     onToggle();
   };
   return (
@@ -213,15 +223,17 @@ const Change = observer(function Change({ open, onToggle }: { open: boolean; onT
             aria-hidden="true"
             className={cn(
               'size-1.5 shrink-0 rounded-full',
-              op === 'none' ? 'ring-1 ring-ash/60' : 'bg-saffron',
+              op === 'none' && !trial.applied ? 'ring-1 ring-ash/60' : 'bg-saffron',
             )}
           />
-          <span className={cn(phone && 'truncate')}>{op === 'none' ? t('exp.op.none') : opName(op)}</span>
+          <span className={cn(phone && 'truncate')}>
+            {trial.applied ? kept : op === 'none' ? t('exp.op.none') : opName(op)}
+          </span>
         </>
       }
       sub={op === 'none' ? undefined : `${t(opMode(op) === 'on' ? 'exp.op.on' : 'exp.op.off')} · ${ID[op]}`}
     >
-      <Option on={op === 'none'} onPick={() => pick('none')}>
+      <Option on={trial.slot === 'none'} onPick={() => pick('none')}>
         <span className="text-label">{t('exp.op.none')}</span>
       </Option>
       {OPS.map((x) => (
@@ -246,6 +258,24 @@ const Change = observer(function Change({ open, onToggle }: { open: boolean; onT
           </span>
         </Option>
       ))}
+      {kept && (
+        <Option on={trial.slot === 'brain'} onPick={() => pick('brain')}>
+          <span className="text-label">{kept}</span>
+        </Option>
+      )}
+      <Option
+        on={false}
+        onPick={() => {
+          onToggle();
+          onPickBrain();
+        }}
+      >
+        <span className="flex items-baseline justify-between gap-2">
+          <span className="text-label">{t('op.pick.verb')}</span>
+          <span aria-hidden="true">→</span>
+        </span>
+        <span className="text-caption text-mist">{t('op.pick.role')}</span>
+      </Option>
     </Slot>
   );
 });
@@ -290,7 +320,13 @@ const Bet = observer(function Bet() {
   );
 });
 
-const Setup = observer(function Setup({ onClearBrain }: { onClearBrain: () => void }) {
+/** The slot's way to the brain view and back: dive with the Silence tool; forget what it carried back. */
+export interface BrainHands {
+  pick: () => void;
+  forget: () => void;
+}
+
+const Setup = observer(function Setup({ brain }: { brain: BrainHands }) {
   const [open, setOpen] = useState<'give' | 'change' | null>(null);
   const toggle = (k: 'give' | 'change') => setOpen(open === k ? null : k);
   const live = dish.cells !== null;
@@ -314,16 +350,11 @@ const Setup = observer(function Setup({ onClearBrain }: { onClearBrain: () => vo
         {(!solo || open === 'change') && (
           <div className="relative flex flex-col gap-0.5">
             {onboarding.step === 3 && <Glow />}
-            <Change open={open === 'change'} onToggle={() => toggle('change')} />
-            {dish.brain && !solo && (
-              <div className="flex items-center justify-between gap-1 pl-2">
-                <p className="text-caption text-ash">
-                  {t('exp.brainOps', { cells: t('op.brain.cells', dish.brain) })}
-                </p>
-                <Button className="h-8 px-2 text-caption text-mist" onClick={onClearBrain}>
-                  {t('op.restore')}
-                </Button>
-              </div>
+            <Change open={open === 'change'} onToggle={() => toggle('change')} onPickBrain={brain.pick} />
+            {trial.applied && !solo && (
+              <Button className="h-8 self-end px-2 text-caption text-mist" onClick={brain.forget}>
+                {t('op.restore')}
+              </Button>
             )}
           </div>
         )}
@@ -502,7 +533,7 @@ const Result = observer(function Result({
     <>
       <p className="px-2 text-body leading-tight text-bone">{headline(o)}</p>
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 px-2 text-caption tabular-nums">
-        <dt className="font-mono text-ash">{t(dish.brain ? 'exp.usual.noops' : 'exp.usual')}</dt>
+        <dt className="font-mono text-ash">{t(trial.applied ? 'exp.usual.noops' : 'exp.usual')}</dt>
         <dd className="text-ash">{usualLine(o.norm)}</dd>
         {scale?.row === 'usual' && gloss}
         <dt className="font-mono text-mist">{t('exp.now')}</dt>
@@ -602,12 +633,11 @@ function Replay() {
 export const DishCard = observer(function DishCard({
   progress,
   input,
-  onClearBrain,
+  brain,
 }: {
   progress: Ref<HTMLDivElement>;
   input?: PaletteInput;
-  /** Undo what the brain view carried back. */
-  onClearBrain: () => void;
+  brain: BrainHands;
 }) {
   const phone = !!input;
   const o = trial.outcome;
@@ -692,7 +722,7 @@ export const DishCard = observer(function DishCard({
               onLand={shown < n ? () => setShown(trial.found.length) : undefined}
             />
           ) : (
-            <Setup onClearBrain={onClearBrain} />
+            <Setup brain={brain} />
           )}
         </div>
         <p role="status" className="sr-only">

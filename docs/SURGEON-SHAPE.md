@@ -243,6 +243,6 @@ Kept: `op.*.name` (lowercased in the chip), `op.*.role`, `op.*.term`, `op.*.fact
 1. **Neuron count**: settled, 166 700 (§Scale). If the graph's row count is ever shown as "neurons", label it as the model's cells instead.
 2. **Lower tectulum** plain name: «ноги и крылья вместе», settled in 11.4: the MANC premotor study (Cheong et al., eLife 96084) finds circuits "for coordinated action of wings and legs in the lower tectulum".
 3. **Region dimming** of the dust needs a point-in-region test (once, at hologram build, against the `regions` meshes or their boxes). If that costs too much, tint the shell only.
-4. **Brain picks on the hologram.** The dish has no per-cell positions. If the `?x=` round trip can carry each cell's `region` from the meta table, mark those regions too (11.5 decides; otherwise chip only).
-5. **Slot exclusivity**: settled (user, 2026-10-16), one value per slot (§Flow). Smoke and share links that set an op and `?x=` together must pick one; check `state/share.ts` decoding in 11.5.
+4. **Brain picks on the hologram**: settled in 11.5, chip only (`trial.operated` is null for brain picks; the round trip carries bodyIds, not regions).
+5. **Slot exclusivity**: settled (user, 2026-10-16), one value per slot (§Flow). A link with `?x=` and an op (`exp=stim:op` / `ops=`) keeps the brain picks and drops the op with a warning (`state/params.ts`, 11.5). A brain-picks run asks no bet and records nothing.
 6. **Today's op ring** (`setMarks`) wasn't visible in the baseline snap with `panic` set. Check the wiring in 11.6.

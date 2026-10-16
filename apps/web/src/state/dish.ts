@@ -37,8 +37,6 @@ export class DishStore {
   recorded: Recorded | null = null;
   /** The fly ↔ neuron zoom is flying (the chrome steps aside). */
   zooming = false;
-  /** Cells the brain view silenced / drove, now on in the fly (null = none). */
-  brain: { off: number; on: number } | null = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -50,10 +48,6 @@ export class DishStore {
 
   setFailed(on: boolean): void {
     this.failed = on;
-  }
-
-  setBrain(n: { off: number; on: number } | null): void {
-    this.brain = n;
   }
 
   setZooming(on: boolean): void {

@@ -110,5 +110,7 @@ export const DishCaption = observer(function DishCaption() {
 function drivenOn(action: Decision): boolean {
   const cmd = PATHS[action].hops.at(-1)?.type ?? '';
   const ops = [...dish.ops, ...(trial.op === 'none' ? [] : [trial.op])];
-  return !!dish.brain?.on || ops.some((op) => OPERATIONS[op].mode === 'on' && OPERATIONS[op].types.test(cmd));
+  return (
+    !!trial.applied?.on || ops.some((op) => OPERATIONS[op].mode === 'on' && OPERATIONS[op].types.test(cmd))
+  );
 }
