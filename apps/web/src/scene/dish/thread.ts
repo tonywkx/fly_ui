@@ -37,7 +37,31 @@ export function cut(points: readonly Vec3[], share: number): Vec3[] {
   return out;
 }
 
+/** The share of the polyline's arc length up to point `i` (0 for a zero-length line). */
+export function shareTo(points: readonly Vec3[], i: number): number {
+  let to = 0;
+  let all = 0;
+  for (let k = 1; k < points.length; k++) {
+    const l = dist(points[k - 1] as Vec3, points[k] as Vec3);
+    all += l;
+    if (k <= i) to += l;
+  }
+  return all ? to / all : 0;
+}
+
 const dist = (a: Vec3, b: Vec3) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+
+/** Decision flash on the hologram's rim: its gain × this at the peak, reached and left (wall ms). */
+export const FLARE_PEAK = 4;
+const FLARE_IN = 100;
+const FLARE_OUT = 500;
+
+/** Rim gain factor at `ms` wall time since the decision (1 = rest). */
+export function flareAt(ms: number, reducedMotion: boolean): number {
+  if (reducedMotion || ms < 0 || ms >= FLARE_IN + FLARE_OUT) return 1;
+  const k = ms < FLARE_IN ? ms / FLARE_IN : (1 - (ms - FLARE_IN) / FLARE_OUT) ** 2;
+  return 1 + (FLARE_PEAK - 1) * k;
+}
 
 /** Replay: after the decision the thread holds, then fades, sim ms (the clip's tail). */
 export const REPLAY_HOLD = 120;
