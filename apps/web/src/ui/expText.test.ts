@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { NORM } from '../scene/dish/table';
 import type { Outcome } from '../state/trial';
-import { betLine, cellPath, foundLine, headline, nowLine, usualLine } from './expText';
+import { betLine, cellPath, foundLine, headline, nowLine, scaleRow, usualLine } from './expText';
 
 const peak = { jump: 0, back: 0, eat: 0, court: 0, gate: 0 };
 
@@ -73,5 +73,18 @@ describe('experiment card text (ru)', () => {
       { cell: 'MDN', mode: 'on', extra: true },
     ]);
     expect(cellPath({ stim: 'none', op: 'moon' })).toEqual([{ cell: 'MDN', mode: 'on', extra: true }]);
+  });
+
+  it('the scale line sits under the row with the number: сейчас first, else обычно', () => {
+    const same = outcome({ pair: { stim: 'sugar', op: 'none' }, result: 'eat', ms: 61, hz: 259 });
+    expect(scaleRow(same)).toEqual({ row: 'now', ms: 61 });
+    const hit = outcome({ pair: { stim: 'swatter', op: 'panic' }, result: 'hit' });
+    expect(scaleRow(hit)).toEqual({ row: 'usual', ms: 24 });
+    // a decision of its own: its latency, even off the norm
+    expect(scaleRow(outcome({ pair: { stim: 'bitter', op: 'moon' }, result: 'back', ms: 2 }))).toEqual({
+      row: 'now',
+      ms: 2,
+    });
+    expect(scaleRow(outcome({ pair: { stim: 'none', op: 'moon' }, result: 'back' }))).toBeNull();
   });
 });

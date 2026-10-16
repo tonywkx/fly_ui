@@ -66,6 +66,17 @@ export function nowLine(o: Outcome): string {
     : line(did(o.result, o.pair.stim), own ? o.ms : null, cell, hz);
 }
 
+/** The latency «сейчас» shows: the run's own, when it matched the norm or decided something. */
+const nowMs = (o: Outcome): number | null =>
+  o.result === normResult(o.norm) || decides(o.result) ? o.ms : null;
+
+/** Where the scale line goes (SURGEON-SHAPE §Scale): under «сейчас» if it has a number, else «обычно». */
+export function scaleRow(o: Outcome): { row: 'now' | 'usual'; ms: number } | null {
+  const now = nowMs(o);
+  if (now !== null) return { row: 'now', ms: now };
+  return o.norm.ms === null ? null : { row: 'usual', ms: o.norm.ms };
+}
+
 /** «прогноз»: the pair's bet and whether it came true; null with no bet. */
 export function betLine(o: Outcome): string | null {
   if (!o.bet) return null;
