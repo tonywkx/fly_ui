@@ -88,7 +88,17 @@ export const OpPicker = observer(function OpPicker({
   useEffect(() => {
     trial.setListing(open);
   }, [open]);
-  useEffect(() => () => trial.setListing(false), []);
+  // the phone's settling preview: a re-pick restarts it, leaving the card ends it now
+  const settle = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(
+    () => () => {
+      trial.setListing(false);
+      if (settle.current === undefined) return;
+      clearTimeout(settle.current);
+      trial.setPreview(null);
+    },
+    [],
+  );
 
   const close = () => {
     setOpen(false);
@@ -103,7 +113,9 @@ export const OpPicker = observer(function OpPicker({
     // no hover on a phone: the chosen op shows its place, then settles into its mark
     if (phone && r !== 'none') {
       trial.setPreview(r);
-      setTimeout(() => {
+      clearTimeout(settle.current);
+      settle.current = setTimeout(() => {
+        settle.current = undefined;
         if (trial.preview === r && !trial.listing) trial.setPreview(null);
       }, PHONE_PREVIEW_MS);
     }
@@ -281,6 +293,8 @@ const OpList = observer(function OpList({
         tabIndex={0}
         aria-label={t('op.list')}
         aria-activedescendant={active === null ? undefined : `${id}-${active}`}
+        // focus (keys, the phone sheet, the popover opening) starts on the chosen row, visibly
+        onFocus={() => active === null && lit(chosen)}
         onKeyDown={onKey}
         className="flex flex-col outline-none"
       >
@@ -300,13 +314,17 @@ const OpList = observer(function OpList({
               onMouseEnter={() => lit(i)}
               onClick={() => onChoose(r)}
               className={cn(
-                'flex cursor-pointer items-center gap-2 rounded-md px-2 text-label data-active:bg-bone/5',
+                'group flex cursor-pointer items-center gap-2 rounded-md px-2 text-label data-active:bg-bone/10',
                 phone ? 'min-h-7.5' : 'min-h-6',
               )}
             >
               <Mark g={w.glyph} />
               <span className="min-w-0 flex-1 truncate">
-                {w.verb && <span className={r === 'pick' ? 'text-bone' : 'text-mist'}>{w.verb}</span>}
+                {w.verb && (
+                  <span className={r === 'pick' ? 'text-bone' : 'text-mist group-data-active:text-bone'}>
+                    {w.verb}
+                  </span>
+                )}
                 {w.verb && w.obj && ' '}
                 {w.obj && <span className="text-bone">{w.obj}</span>}
               </span>
@@ -378,16 +396,12 @@ function Strip({ row }: { row: Row }) {
       >
         {role(row)} {op && !more && link('op.more')}
       </p>
-      <div
-        className={cn(
-          'grid motion-safe:transition-[grid-template-rows] motion-safe:duration-200 motion-safe:ease-out',
-          op && more ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
-        )}
-      >
-        <div className="flex min-h-0 flex-col gap-1 overflow-hidden">
-          {op && <Details op={op}>{link('op.less')}</Details>}
+      {/* only when open: a collapsed layer would still be read and tabbed; it fades in, no height motion */}
+      {op && more && (
+        <div className="flex flex-col gap-1 motion-safe:transition-opacity motion-safe:duration-150 motion-safe:ease-out motion-safe:starting:opacity-0">
+          <Details op={op}>{link('op.less')}</Details>
         </div>
-      </div>
+      )}
     </div>
   );
 }
