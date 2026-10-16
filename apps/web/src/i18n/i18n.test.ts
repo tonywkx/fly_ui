@@ -29,6 +29,16 @@ describe('dictionaries', () => {
     }
   });
 
+  // OpPicker's strip is a fixed `h-[3lh]` (the list never jumps): ~48 caption chars a line at its
+  // narrowest, less wrap slack, holds the role and «подробнее»
+  it('op roles fit the three-line strip', () => {
+    for (const l of ['ru', 'en'] as const) {
+      const d = DICTS[l] as Record<string, unknown>;
+      for (const key of Object.keys(d).filter((k) => /^op\.\w+\.role$/.test(k)))
+        expect(`${d[key]} ${d['op.more']}`.length, `${l} ${key}`).toBeLessThanOrEqual(115);
+    }
+  });
+
   it('no empty strings', () => {
     for (const l of ['ru', 'en'] as const)
       for (const [key, v] of Object.entries(DICTS[l]))
