@@ -149,7 +149,7 @@ Goal: a visitor from outside understands what they look at without reading, and 
 - [x] 11.4 Brain view plain language: default colour mode = region (eyes / brain / nerve cord, as in the tour), transmitter stays a mode; one line over the raster («каждая точка — сработал один нейрон»); tooltip/inspector show the human name for key cells (`why.cell.*`). Old links with an explicit colour mode keep it. **[V]** **[UI]**
 - [x] 11.5 Surgeon model (pure + tests): op → its cells for the hover preview, «operated» state the hologram draws, «любой нейрон в мозге» = dive to the brain view with the Silence tool and back with the op in the slot (`op.brain`). **[T]**
 - [x] 11.6 Surgeon UI: new picker in `DishCard`, hologram preview + operated marks (`holo.ts`), chip + «вернуть», phone sheet; motion per `animate`; tokens from `ui/theme.css`. **[V]** **[UI]**
-- [ ] 11.7 QA: smoke (pick an op → run → result shows it; brain op round trip), visual-qa RU/EN 1600/390 (picker open, hover preview, operated fly, hologram label, scale line, brain view default), ui-critic no P1, `pnpm perf --view=dish` 60 fps. **[V]** **[UI]**
+- [x] 11.7 QA: smoke (pick an op → run → result shows it; brain op round trip), visual-qa RU/EN 1600/390 (picker open, hover preview, operated fly, hologram label, scale line, brain view default), ui-critic no P1, `pnpm perf --view=dish` 60 fps. **[V]** **[UI]**
 
 ## Backlog / spin-offs (not scheduled)
 - Ghost of the norm: a translucent trail of the unoperated fly in the same situation over the arena (user, 2026-10-10: after Phase 9).
