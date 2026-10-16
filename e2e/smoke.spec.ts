@@ -205,6 +205,34 @@ test('an operation reaches the result', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+// The op list by keys: it opens on the chosen row, arrows move, Enter chooses, Escape hands focus back.
+test('op list works from the keyboard', async ({ page }) => {
+  const { errors } = watch(page);
+  await page.goto(url({ snap: '0', exp: 'swatter', onb: '0' }));
+  await ready(page);
+  const trigger = page.getByRole('button', { name: /^What we change in her brain/ });
+  const list = page.getByRole('listbox', { name: 'What we change in the brain' });
+  const active = list.locator('[data-active]');
+
+  await trigger.focus();
+  await page.keyboard.press('Enter');
+  await expect(list).toBeFocused();
+  await expect(active).toHaveAttribute('aria-selected', 'true');
+  await page.keyboard.press('ArrowDown');
+  await expect(active).toHaveText(/Switch off the escape neuron/);
+  await page.keyboard.press('Enter');
+  await expect(list).toHaveCount(0);
+  await expect(trigger).toHaveAccessibleName(/escape neuron · off/);
+  await expect(trigger).toBeFocused();
+
+  await page.keyboard.press('Enter');
+  await expect(list).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(list).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  expect(errors).toEqual([]);
+});
+
 // «Pick any neuron in the brain»: cells switched off in the brain view come back to the dish slot.
 test('brain picks round trip', async ({ page }) => {
   test.skip(!!process.env.CI, 'live sim in wall time; too slow without a GPU');
@@ -212,7 +240,7 @@ test('brain picks round trip', async ({ page }) => {
   // two DNp01 silenced (10001, 10010)
   await page.goto(url({ snap: '0', view: 'brain', from: 'dish', tool: 'silence', x: 'AZYBZAACkU4J' }));
   await ready(page);
-  await expect(page.getByText('Click a neuron to switch it off')).toBeVisible();
+  await expect(page.getByText('Click or drag across neurons to silence them.')).toBeVisible();
   const back = page.getByRole('link', { name: '← Back to the fly · off 2' });
   await expect(back).toBeVisible({ timeout: 30_000 });
 
