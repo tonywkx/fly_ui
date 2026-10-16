@@ -25,8 +25,9 @@ import { type CardTab, type Outcome, trial } from '@/state/trial';
 import { loadPct } from '@/state/welcome';
 import { DishFound } from './DishFound';
 import { GLYPH, type PaletteInput, PutPanel } from './DishPalette';
-import { betLine, headline, OP_CELL as ID, isHe, nowLine, usualLine } from './expText';
+import { betLine, headline, OP_CELL as ID, isHe, nowLine, scaleRow, usualLine } from './expText';
 import { ReplayCaption } from './ReplayCaption';
+import { blink, scaleLine } from './scale';
 
 /** Types inferred, not named in the dataset (LB3 = sugar, pC1 = P1): source chip «inferred». */
 const GUESS: ReadonlySet<Op> = new Set(['sugar', 'p1']);
@@ -489,14 +490,24 @@ const Result = observer(function Result({
   const step = onboarding.step;
   // phone, a short screen: a repeat run's bet gives way
   const tight = useContext(Phone) && !o.first && SHORT;
+  // a feel for the number, under the row it comes from
+  const scale = scaleRow(o);
+  const cmp = scale && blink(scale.ms);
+  const gloss = scale && cmp && (
+    <dd className="col-start-2 text-mist">
+      <span className="font-mono">{t('unit.ms', { v: scale.ms })}</span> — {cmp}
+    </dd>
+  );
   return (
     <>
       <p className="px-2 text-body leading-tight text-bone">{headline(o)}</p>
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 px-2 text-caption tabular-nums">
         <dt className="font-mono text-ash">{t(dish.brain ? 'exp.usual.noops' : 'exp.usual')}</dt>
         <dd className="text-ash">{usualLine(o.norm)}</dd>
+        {scale?.row === 'usual' && gloss}
         <dt className="font-mono text-mist">{t('exp.now')}</dt>
         <dd className="text-bone">{nowLine(o)}</dd>
+        {scale?.row === 'now' && gloss}
         {bet && (
           <>
             <dt className={cn('font-mono text-ash', tight)}>{t('exp.bet')}</dt>
@@ -686,7 +697,7 @@ export const DishCard = observer(function DishCard({
         </div>
         <p role="status" className="sr-only">
           {o &&
-            `${headline(o)}. ${t('exp.now')}: ${nowLine(o)}${o.unlocked ? `. ${unlockLine(o.unlocked)}` : ''}`}
+            `${headline(o)}. ${t('exp.now')}: ${nowLine(o)}${nowScale(o)}${o.unlocked ? `. ${unlockLine(o.unlocked)}` : ''}`}
         </p>
       </section>
     </Phone.Provider>
@@ -696,6 +707,13 @@ export const DishCard = observer(function DishCard({
 /** `data-more` while a scroller has more below its fold. */
 function markMore(el: HTMLElement): void {
   el.toggleAttribute('data-more', el.scrollHeight - el.scrollTop - el.clientHeight > 4);
+}
+
+/** «. 8 мс — в 12 раз быстрее моргания» for the live region, when the run has its own latency. */
+function nowScale(o: Outcome): string {
+  const s = scaleRow(o);
+  const line = s?.row === 'now' ? scaleLine(s.ms) : null;
+  return line ? `. ${line}` : '';
 }
 
 /** More below: the bottom 1.5rem fades out (3rem ate a whole chip row in a 700-tall sheet). */
