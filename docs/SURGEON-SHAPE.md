@@ -241,7 +241,7 @@ Kept: `op.*.name` (lowercased in the chip), `op.*.role`, `op.*.term`, `op.*.fact
 ## Open (for 11.2–11.6)
 
 1. **Neuron count**: settled, 166 700 (§Scale). If the graph's row count is ever shown as "neurons", label it as the model's cells instead.
-2. **Lower tectulum** plain name: «ноги и крылья вместе» is from memory of Court et al. 2020 (VNC nomenclature; user OK). Verify in 11.4, or fall back to «середина спинного мозга».
+2. **Lower tectulum** plain name: «ноги и крылья вместе», settled in 11.4: the MANC premotor study (Cheong et al., eLife 96084) finds circuits "for coordinated action of wings and legs in the lower tectulum".
 3. **Region dimming** of the dust needs a point-in-region test (once, at hologram build, against the `regions` meshes or their boxes). If that costs too much, tint the shell only.
 4. **Brain picks on the hologram.** The dish has no per-cell positions. If the `?x=` round trip can carry each cell's `region` from the meta table, mark those regions too (11.5 decides; otherwise chip only).
 5. **Slot exclusivity**: settled (user, 2026-10-16), one value per slot (§Flow). Smoke and share links that set an op and `?x=` together must pick one; check `state/share.ts` decoding in 11.5.
