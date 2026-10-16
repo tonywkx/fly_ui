@@ -64,6 +64,8 @@ const SHRINK_MS = 260;
 const LIGHT_IN_MS = 120;
 const LIGHT_OUT_MS = 200;
 const SETTLE_MS = 400;
+/** Op region shells: a thicker rim than the base shell's, so a small region reads. */
+const REGION_RIM_POWER = 2;
 /** The dust while the op list is open (× rest), so a lit region reads. */
 const DUST_OPEN = 0.6;
 /** Sunk into the head (the zoom): its size then, × the floating one. */
@@ -199,7 +201,7 @@ export class HoloView {
         settle: 0,
       };
       dust(k + 1, this.dust.mul(reg.dust));
-      const glass = glassMaterial(reg.tint, { rimPower: SHELL.rimPower, rimGain: reg.rim, fill: reg.fill });
+      const glass = glassMaterial(reg.tint, { rimPower: REGION_RIM_POWER, rimGain: reg.rim, fill: reg.fill });
       this.brain.add(new Mesh(regionGeometry(d.regions, r), glass));
       this.regions.set(name, reg);
     });

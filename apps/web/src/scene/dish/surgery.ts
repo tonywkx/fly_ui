@@ -16,12 +16,12 @@ export interface Look {
 /** Not lit, not operated: the region adds nothing. */
 export const QUIET: Look = { tint: 'bone', rim: 0, fill: 0, dust: 1 };
 /** Hovered / focused in the op list (SURGEON-SHAPE §Hologram: bone at ~35 % rim, a soft fill). */
-const LIT = { tint: 'bone', rim: 0.35, fill: 0.012 } as const;
+const LIT = { tint: 'bone', rim: 1, fill: 0.05 } as const;
 /** In force: off = an ash rim over dimmed dust, on = a warm saffron glow. */
-const OFF = { tint: 'ash', rim: 0.2, fill: 0, dust: 0.25 } as const;
-const ON = { tint: 'saffron', rim: 0.5, fill: 0.02, dust: 1 } as const;
+const OFF = { tint: 'ash', rim: 0.4, fill: 0, dust: 0.25 } as const;
+const ON = { tint: 'saffron', rim: 1, fill: 0.06, dust: 1 } as const;
 /** Where a choice starts before it settles into its mark (the 400 ms pulse). */
-export const PULSE: Look = { tint: 'bone', rim: 0.8, fill: 0.03, dust: 1 };
+export const PULSE: Look = { tint: 'bone', rim: 1.6, fill: 0.1, dust: 1 };
 
 /** The hologram's size while the op list is open (× rest). */
 const GROW = { desk: 1.8, phone: 1.5 };
