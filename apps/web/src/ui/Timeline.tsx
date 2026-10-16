@@ -228,31 +228,35 @@ export const Timeline = observer(function Timeline() {
           {SPEED_LABEL[speed]}
         </Button>
       </div>
-      <ul
-        aria-hidden
-        className="flex shrink-0 flex-col text-caption"
-        // lines up with the canvas bands
-        style={{ gap: GAP_PX, lineHeight: `${BAND_PX}px` }}
-      >
-        {BANDS.map((b, i) => (
-          <li key={b} className={lanes.counts[i] ? 'text-mist' : 'text-ash'}>
-            {tr(`band.${b}`)}
-          </li>
-        ))}
-      </ul>
-      <div className="min-w-0 flex-1">
-        <canvas
-          ref={canvas}
-          role="slider"
-          tabIndex={0}
-          aria-valuemin={Math.round(playback.clock.start)}
-          aria-valuemax={Math.round(playback.clock.end)}
-          aria-valuenow={Math.round(playback.clock.t)}
-          aria-label={tr('timeline.simTime')}
-          onKeyDown={onSliderKey}
-          className="block w-full cursor-ew-resize touch-none rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          style={{ height: BANDS.length * BAND_PX + (BANDS.length - 1) * GAP_PX }}
-        />
+      {/* band names | raster, with what a dot means over the raster */}
+      <div className="grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)] gap-x-1.5">
+        <p className="col-start-2 truncate text-caption text-mist">{tr('raster.hint')}</p>
+        <ul
+          aria-hidden
+          className="flex flex-col text-caption"
+          // lines up with the canvas bands
+          style={{ gap: GAP_PX, lineHeight: `${BAND_PX}px` }}
+        >
+          {BANDS.map((b, i) => (
+            <li key={b} className={lanes.counts[i] ? 'text-mist' : 'text-ash'}>
+              {tr(`band.${b}`)}
+            </li>
+          ))}
+        </ul>
+        <div className="min-w-0">
+          <canvas
+            ref={canvas}
+            role="slider"
+            tabIndex={0}
+            aria-valuemin={Math.round(playback.clock.start)}
+            aria-valuemax={Math.round(playback.clock.end)}
+            aria-valuenow={Math.round(playback.clock.t)}
+            aria-label={tr('timeline.simTime')}
+            onKeyDown={onSliderKey}
+            className="block w-full cursor-ew-resize touch-none rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            style={{ height: BANDS.length * BAND_PX + (BANDS.length - 1) * GAP_PX }}
+          />
+        </div>
       </div>
       <p className="w-12 shrink-0 text-right font-mono text-caption tabular-nums">
         <span ref={readout} className="text-bone">
