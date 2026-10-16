@@ -123,7 +123,8 @@ const Body = observer(function Body({ s: { row, n, p } }: { s: Shown }) {
         )}
       </dl>
 
-      <div className="mt-3 flex items-center gap-1">
+      {/* RU labels are long: the third button takes the next line instead of clipping */}
+      <div className="mt-3 flex flex-wrap items-center gap-1">
         <Button variant="primary" aria-pressed={stimulated} onClick={() => experiment.toggleStim(row)}>
           {t(stimulated ? 'inspector.stopStim' : 'inspector.stimulate')}
         </Button>
