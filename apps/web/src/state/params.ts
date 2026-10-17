@@ -131,7 +131,8 @@ export function parseParams(search: string): { params: Params; warnings: string[
   if (view !== null && view !== 'dish' && view !== 'brain')
     warnings.push(`view: expected "dish" | "brain", got "${view}"`);
   const brain =
-    view === 'brain' || (view !== 'dish' && (q.get('from') === 'dish' || BRAIN_KEYS.some((k) => brainKey(q, k))));
+    view === 'brain' ||
+    (view !== 'dish' && (q.get('from') === 'dish' || BRAIN_KEYS.some((k) => brainKey(q, k))));
   const params: Params = {
     stats: flag(q.get('stats')),
     snap: flag(q.get('snap')),

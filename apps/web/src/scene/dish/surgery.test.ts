@@ -1,6 +1,17 @@
 import type { NeuropilSet } from '@fly/data';
 import { describe, expect, it } from 'vitest';
-import { approach, boxOf, chosen, grown, PULSE, QUIET, rangeOf, regionLook, tagDots, wholeRim } from './surgery';
+import {
+  approach,
+  boxOf,
+  chosen,
+  grown,
+  PULSE,
+  QUIET,
+  rangeOf,
+  regionLook,
+  tagDots,
+  wholeRim,
+} from './surgery';
 
 const panic = { region: 'PVLP', mode: 'off' } as const;
 const moon = { region: 'LAL', mode: 'on' } as const;
