@@ -286,7 +286,11 @@ export const DishPalette = observer(function DishPalette({ input }: { input: Pal
     >
       <div className="flex flex-col gap-6 [@media(max-height:860px)]:gap-3">
         <section aria-label={t('dish.items')} className="flex flex-col gap-0.5">
-          <h2 className={heading}>{t('dish.items')}</h2>
+          {/* the drag hint in plain case: the phone tab and the section name keep the short word */}
+          <h2 className={heading}>
+            {t('dish.items')}
+            <span className="font-sans tracking-normal normal-case"> ({t('dish.items.drag')})</span>
+          </h2>
           <ItemButtons input={input} />
         </section>
         <section aria-label={t('dish.hands')} className="flex flex-col gap-0.5">
