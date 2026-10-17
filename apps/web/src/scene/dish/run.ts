@@ -392,14 +392,19 @@ export class DishRun {
       // the kept cells before `onCells`: a run waits for the cells, so it starts with them in the slot
       const x = this.o.experiment;
       if (x) {
-        const [off, on] = await Promise.all([
-          c.rowsOf(Float64Array.from(x.silenced)),
-          c.rowsOf(Float64Array.from(x.stimulated)),
-        ]);
-        if (this.disposed) return;
-        this.brain = { off, on, ...x.stim };
-        if (this.brainOn) this.applyBrain(true);
-        this.o.onBrain?.({ off: off.length, on: on.length });
+        try {
+          const [off, on] = await Promise.all([
+            c.rowsOf(Float64Array.from(x.silenced)),
+            c.rowsOf(Float64Array.from(x.stimulated)),
+          ]);
+          if (this.disposed) return;
+          this.brain = { off, on, ...x.stim };
+          if (this.brainOn) this.applyBrain(true);
+          this.o.onBrain?.({ off: off.length, on: on.length });
+        } catch (e) {
+          // the cells are lost, the brain is not: the named ops still run
+          console.warn('[dish] kept cells failed', e);
+        }
       }
       this.o.onCells?.(
         Object.fromEntries(OPS.map((op) => [op, this.opRows?.[op].all.length ?? 0])) as Record<Op, number>,
