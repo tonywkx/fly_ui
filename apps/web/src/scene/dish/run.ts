@@ -145,6 +145,8 @@ export class DishRun {
   private ops = new Set<Op>();
   private applied = new Set<Op>();
   private opRows: Record<Op, Group> | null = null;
+  /** The op list was open at the last `operate` (the label shows again on its opening). */
+  private listing = false;
   /** Keys held (puppet mode) and the puppet cells' full-graph rows. */
   private pulls = new Set<Pull>();
   private puppetRows: Record<PuppetKey, Group> | null = null;
@@ -246,7 +248,9 @@ export class DishRun {
   /** The op slot on the hologram (SURGEON-SHAPE §Hologram); opening the list shows the label again. */
   operate(s: Surgery): void {
     this.scene.operate(s);
-    if (s.listing) this.showLabel();
+    // on the list's opening only: each hovered row calls here too, and must not hold the label
+    if (s.listing && !this.listing) this.showLabel();
+    this.listing = s.listing;
   }
 
   /** Puppet mode: the keys held now (cells driven, steering); applied once the live brain is up. */
