@@ -251,7 +251,55 @@ test('brain picks round trip', async ({ page }) => {
     .getByRole('group', { name: 'What we change in her brain' });
   await expect(slot.getByText('cells from the brain · off 2')).toBeVisible({ timeout: 30_000 });
   await expect(slot.getByRole('button', { name: 'restore' })).toBeVisible();
+  // the next dive opens the scenario they were picked in (another one would drop them)
+  expect(new URL(page.url()).searchParams.get('scenario')).toBe('escape');
   expect(errors).toEqual([]);
+});
+
+// `?run=1` waits for the kept cells: the run starts with them in the slot, not on a normal fly.
+test('a run with kept cells starts operated', async ({ page }) => {
+  test.skip(!!process.env.CI, 'live sim in wall time; too slow without a GPU');
+  const { errors } = watch(page);
+  await page.goto(url({ snap: '0', view: 'dish', exp: 'swatter', run: '1', x: 'AZYBZAACkU4J' }));
+  await ready(page);
+  const card = page.getByRole('region', { name: 'Experiment' });
+  await expect(card.getByRole('status').filter({ hasText: /now: too late to take off/ })).toHaveCount(1, {
+    timeout: 30_000,
+  });
+  expect(errors).toEqual([]);
+});
+
+// A phone has no hover: a tap with Silence in hand switches off the neuron under the finger.
+test.describe('touch', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  test('a tap silences a neuron in the brain', async ({ page }) => {
+    test.skip(!!process.env.CI, 'GPU pick readback; too slow without a GPU');
+    const { errors } = watch(page);
+    await page.goto(url({ snap: '0', view: 'brain', from: 'dish', tool: 'silence' }));
+    await ready(page);
+    const back = page.getByRole('link', { name: /^← Back to the fly/ });
+    await expect(back).toHaveAccessibleName('← Back to the fly');
+    // the optic lobes, then the central brain: the first tap on a neuron counts
+    for (const [x, y] of [
+      [80, 400],
+      [310, 400],
+      [150, 340],
+      [240, 340],
+      [195, 470],
+    ] as const) {
+      await page.touchscreen.tap(x, y);
+      const hit = await back
+        .getByText('off 1')
+        .waitFor({ timeout: 1500 })
+        .then(
+          () => true,
+          () => false,
+        );
+      if (hit) break;
+    }
+    await expect(back).toHaveAccessibleName('← Back to the fly · off 1');
+    expect(errors).toEqual([]);
+  });
 });
 
 test('data error shows the fatal screen', async ({ page }) => {
