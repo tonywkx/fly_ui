@@ -386,12 +386,10 @@ export class DishRun {
       );
       this.loop = new DishLoop(this.world, senses, watched, { drive: (d) => void c.drive(d) });
       this.client = c;
-      this.o.onCells?.(
-        Object.fromEntries(OPS.map((op) => [op, this.opRows?.[op].all.length ?? 0])) as Record<Op, number>,
-      );
       // snaps keep the dish as it was, unless asked for the label
       if (this.o.until === undefined || this.o.debug === 'holo-label') this.showLabel();
       this.applyOps();
+      // the kept cells before `onCells`: a run waits for the cells, so it starts with them in the slot
       const x = this.o.experiment;
       if (x) {
         const [off, on] = await Promise.all([
@@ -403,6 +401,9 @@ export class DishRun {
         if (this.brainOn) this.applyBrain(true);
         this.o.onBrain?.({ off: off.length, on: on.length });
       }
+      this.o.onCells?.(
+        Object.fromEntries(OPS.map((op) => [op, this.opRows?.[op].all.length ?? 0])) as Record<Op, number>,
+      );
       console.info(`[dish] live brain in ${(performance.now() - t0).toFixed(0)} ms`);
     } catch (e) {
       console.error('[dish] live sim failed', e);

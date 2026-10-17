@@ -40,12 +40,17 @@ const REMOVE_OFFSET = { x: 24, y: -30 };
 /** Where the dive lands: a look at her last decision's circuit, or the op slot's brain picks. */
 type DiveTo = 'peek' | 'pick';
 
-/** The brain view on her last decision's circuit; `pick`: Silence in hand, the slot's kept cells along (`x`). */
+/**
+ * The brain view on her last decision's circuit; `pick`: Silence in hand, the slot's kept cells along
+ * (`x`) in the scenario they were picked in (the way back carries it; another one would drop them).
+ */
 function brainHref(to: DiveTo): string {
   const scenario = scenarioFor(dish.decision?.action ?? null);
   if (to === 'peek') return viewHref({ dish: false, from: 'dish', scenario });
-  const x = new URLSearchParams(location.search).get('x') ?? undefined;
-  return viewHref({ dish: false, from: 'dish', scenario, x, tool: 'silence' });
+  const q = new URLSearchParams(location.search);
+  const x = q.get('x') ?? undefined;
+  const kept = x && q.get('scenario');
+  return viewHref({ dish: false, from: 'dish', scenario: kept || scenario, x, tool: 'silence' });
 }
 
 /**
@@ -246,12 +251,13 @@ export const Dish = observer(function Dish() {
         (s) => run.operate({ ...s, phone: !matchMedia('(width >= 48rem)').matches }),
         { fireImmediately: true },
       );
-      // the brain's cells and the ops take turns in the slot: off before on (a pick may be an op's cell)
+      // the brain's cells and the ops take turns in the slot: off before on (a pick may be an op's cell).
+      // Both read from the slot in one pass, so no other reaction can run between the two halves.
       const surgery = reaction(
-        () => ({ ops: [...dish.ops], brain: !!trial.applied }),
-        ({ ops, brain }) => {
+        () => ({ op: trial.op, brain: !!trial.applied }),
+        ({ op, brain }) => {
           if (!brain) run.setBrainOn(false);
-          run.setOps(ops);
+          run.setOps(op === 'none' ? [] : [op]);
           if (brain) run.setBrainOn(true);
         },
         { fireImmediately: true },
@@ -332,6 +338,7 @@ export const Dish = observer(function Dish() {
     // a reload must not bring it back
     const q = new URLSearchParams(location.search);
     q.delete('x');
+    q.delete('scenario');
     history.replaceState(null, '', `?${q}`);
   };
 
