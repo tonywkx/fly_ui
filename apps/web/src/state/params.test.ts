@@ -87,6 +87,17 @@ describe('parseParams', () => {
   });
 
   it('drops invalid values with a warning', () => {
+    // a debug mode belongs to one view: the other one drops it
+    for (const q of [
+      '?view=brain&debug=holo-flare',
+      '?scenario=escape&debug=holo-label',
+      '?view=dish&debug=id',
+    ]) {
+      const r = parseParams(q);
+      expect(r.params.debug, q).toBeUndefined();
+      expect(r.warnings.join(), q).toMatch(/debug/);
+    }
+    expect(parseParams('?debug=holo-flare').params.debug).toBe('holo-flare');
     const { params, warnings } = parseParams('?debug=bogus&t=-3&scenario=../x');
     expect(params).toEqual({ stats: false, snap: false, view: 'brain' });
     expect(warnings).toHaveLength(3);

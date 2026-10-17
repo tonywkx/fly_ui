@@ -25,6 +25,8 @@ export const DEBUG_MODES = [
   'holo-label',
   'holo-flare',
 ] as const;
+/** The dish's own debug modes; the rest are the brain view's. */
+const DISH_DEBUG: readonly string[] = ['holo-label', 'holo-flare'];
 export type DebugMode = (typeof DEBUG_MODES)[number];
 
 /** App state encoded in the URL (also what `pnpm snap --k=v` sets). */
@@ -112,9 +114,13 @@ const BRAIN_KEYS = [
   'color',
   'ui',
 ];
-/** Keys the dish shares with the brain: these values are the dish's own (`?ui=ops:panic`, `?debug=holo-flare`). */
+/**
+ * Keys the dish shares with the brain, and the values that are the dish's own: a bare link with one
+ * of these stays on the dish. A new dish value of a shared key goes here (or in `DISH_DEBUG`).
+ */
 const DISH_VALUES: Record<string, (v: string) => boolean> = {
-  debug: (v) => v.startsWith('holo-'),
+  debug: (v) => DISH_DEBUG.includes(v),
+  // the op list open (`ops`), on a row (`ops:<op>`)
   ui: (v) => v === 'ops' || v.startsWith('ops:'),
 };
 const brainKey = (q: URLSearchParams, k: string) => q.has(k) && !DISH_VALUES[k]?.(q.get(k) ?? '');
@@ -180,8 +186,11 @@ export function parseParams(search: string): { params: Params; warnings: string[
 
   const debug = q.get('debug');
   if (debug !== null) {
-    if ((DEBUG_MODES as readonly string[]).includes(debug)) params.debug = debug as DebugMode;
-    else warnings.push(`debug: unknown mode "${debug}" (${DEBUG_MODES.join(' | ')})`);
+    if (!(DEBUG_MODES as readonly string[]).includes(debug))
+      warnings.push(`debug: unknown mode "${debug}" (${DEBUG_MODES.join(' | ')})`);
+    else if (DISH_DEBUG.includes(debug) !== (params.view === 'dish'))
+      warnings.push(`debug: "${debug}" is not a ${params.view} view mode`);
+    else params.debug = debug as DebugMode;
   }
 
   const color = q.get('color');
