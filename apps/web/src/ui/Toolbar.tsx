@@ -33,7 +33,7 @@ export const Toolbar = observer(function Toolbar() {
   useEffect(() => {
     // snaps: `?ui=<tool>` opens with that tool active
     const { ui } = app.params;
-    if (ui && ui in TOOL_KEYS) experiment.setTool(ui as Tool);
+    if (ui && Object.hasOwn(TOOL_KEYS, ui)) experiment.setTool(ui as Tool);
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || typing(e.target)) return;
       const a = keyAction(e);

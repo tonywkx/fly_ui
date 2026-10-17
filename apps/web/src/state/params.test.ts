@@ -176,6 +176,9 @@ describe('parseParams', () => {
     expect(parseParams('?view=brain&tool=silence').params.tool).toBe('silence');
     const bad = parseParams('?tool=hammer');
     expect(bad.params.tool).toBeUndefined();
+    // names off the object prototype are not tools
+    for (const t of ['toString', 'constructor', '__proto__'])
+      expect(parseParams(`?tool=${t}`).params.tool, t).toBeUndefined();
     expect(bad.warnings).toHaveLength(1);
     const x = encodeExperiment({ stimulated: [], silenced: [10001], stim: { hz: 150, gain: 1 } });
     const both = parseParams(`?view=dish&x=${x}&exp=shadow:panic&ops=moon`);
@@ -212,6 +215,9 @@ describe('parseParams', () => {
     for (const q of ['?director=1', '?intro=0', '?sim=live', '?debug=id', '?color=nt', '?ui=x', '?pick=0,0'])
       expect(view(q)).toBe('brain');
     expect(view('?from=dish&scenario=sugar')).toBe('brain');
+    // the dish's own values of the shared keys stay on the dish
+    for (const q of ['?debug=holo-label', '?debug=holo-flare', '?ui=ops', '?ui=ops:panic'])
+      expect(view(q), q).toBe('dish');
     // an explicit view wins: the way back from the brain carries its code
     expect(view('?view=dish&x=zz&from=brain')).toBe('dish');
     expect(view('?view=brain&exp=sugar')).toBe('brain');

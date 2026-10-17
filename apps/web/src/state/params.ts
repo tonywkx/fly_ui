@@ -112,6 +112,12 @@ const BRAIN_KEYS = [
   'color',
   'ui',
 ];
+/** Keys the dish shares with the brain: these values are the dish's own (`?ui=ops:panic`, `?debug=holo-flare`). */
+const DISH_VALUES: Record<string, (v: string) => boolean> = {
+  debug: (v) => v.startsWith('holo-'),
+  ui: (v) => v === 'ops' || v.startsWith('ops:'),
+};
+const brainKey = (q: URLSearchParams, k: string) => q.has(k) && !DISH_VALUES[k]?.(q.get(k) ?? '');
 
 const ITEM_KINDS: readonly ItemKind[] = ['sugar', 'bitter', 'odor', 'female'];
 
@@ -125,7 +131,7 @@ export function parseParams(search: string): { params: Params; warnings: string[
   if (view !== null && view !== 'dish' && view !== 'brain')
     warnings.push(`view: expected "dish" | "brain", got "${view}"`);
   const brain =
-    view === 'brain' || (view !== 'dish' && (q.get('from') === 'dish' || BRAIN_KEYS.some((k) => q.has(k))));
+    view === 'brain' || (view !== 'dish' && (q.get('from') === 'dish' || BRAIN_KEYS.some((k) => brainKey(q, k))));
   const params: Params = {
     stats: flag(q.get('stats')),
     snap: flag(q.get('snap')),
@@ -300,7 +306,7 @@ export function parseParams(search: string): { params: Params; warnings: string[
 
   const tool = q.get('tool');
   if (tool !== null) {
-    if (tool in TOOL_KEYS) params.tool = tool as Tool;
+    if (Object.hasOwn(TOOL_KEYS, tool)) params.tool = tool as Tool;
     else warnings.push(`tool: expected ${Object.keys(TOOL_KEYS).join(' | ')}, got "${tool}"`);
   }
 
