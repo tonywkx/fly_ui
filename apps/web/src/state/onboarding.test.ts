@@ -23,7 +23,14 @@ const run = (trial: TrialStore, result: TakeResult['result']) => {
 };
 
 describe('startOnb', () => {
-  const p = (o: { snap?: boolean; onb?: 0 | 1 | 2 | 3 | 4; exp?: { stim: 'sugar'; op: 'none' } } = {}) => ({
+  const p = (
+    o: {
+      snap?: boolean;
+      onb?: 0 | 1 | 2 | 3 | 4;
+      exp?: { stim: 'sugar'; op: 'none' };
+      experiment?: object;
+    } = {},
+  ) => ({
     snap: false,
     ...o,
   });
@@ -37,6 +44,8 @@ describe('startOnb', () => {
     expect(startOnb({ params: p({ exp: { stim: 'sugar', op: 'none' } }), done: false, journal: false })).toBe(
       0,
     );
+    // so does a link with brain cells (`x`): the walk would empty their slot
+    expect(startOnb({ params: p({ experiment: {} }), done: false, journal: false })).toBe(0);
   });
   it('`?onb=` wins', () => {
     expect(startOnb({ params: p({ snap: true, onb: 3 }), done: true, journal: true })).toBe(3);

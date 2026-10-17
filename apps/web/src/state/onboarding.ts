@@ -15,14 +15,14 @@ const PAIRS: Record<Exclude<OnbStep, 0>, Pair> = {
 
 /** Where a visit opens the onboarding: `?onb=` wins; a snap, a link to an experiment, a past visit = off. */
 export function startOnb(o: {
-  params: { snap: boolean; onb?: OnbStep; exp?: Pair };
+  params: { snap: boolean; onb?: OnbStep; exp?: Pair; experiment?: unknown };
   done: boolean;
   /** Results from before (e.g. Phase 8 puzzles): not a first visit. */
   journal: boolean;
 }): OnbStep {
   const { params, done, journal } = o;
   if (params.onb !== undefined) return params.onb;
-  return params.snap || params.exp || done || journal ? 0 : 1;
+  return params.snap || params.exp || params.experiment || done || journal ? 0 : 1;
 }
 
 export interface OnbMemory {
