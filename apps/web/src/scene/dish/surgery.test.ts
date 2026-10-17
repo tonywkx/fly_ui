@@ -1,6 +1,6 @@
 import type { NeuropilSet } from '@fly/data';
 import { describe, expect, it } from 'vitest';
-import { approach, boxOf, grown, PULSE, QUIET, rangeOf, regionLook, tagDots, wholeRim } from './surgery';
+import { approach, boxOf, chosen, grown, PULSE, QUIET, rangeOf, regionLook, tagDots, wholeRim } from './surgery';
 
 const panic = { region: 'PVLP', mode: 'off' } as const;
 const moon = { region: 'LAL', mode: 'on' } as const;
@@ -33,6 +33,14 @@ describe('surgery on the hologram', () => {
   it('the choose pulse starts brighter than any mark', () => {
     expect(PULSE.rim).toBeGreaterThan(regionLook('LAL', null, moon).rim);
     expect(PULSE.tint).toBe('bone');
+  });
+
+  it('pulses a choice, not an op the hologram finds already in force', () => {
+    expect(chosen(undefined, panic)).toBe(false); // first show: a remembered op, a return from the brain
+    expect(chosen(null, panic)).toBe(true);
+    expect(chosen(panic, moon)).toBe(true);
+    expect(chosen(panic, { ...panic })).toBe(false);
+    expect(chosen(panic, null)).toBe(false);
   });
 
   it('approaches its target, at once with no time constant', () => {

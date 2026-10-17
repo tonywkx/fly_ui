@@ -23,6 +23,14 @@ const ON = { tint: 'saffron', rim: 1, fill: 0.06, dust: 1 } as const;
 /** Where a choice starts before it settles into its mark (the 400 ms pulse). */
 export const PULSE: Look = { tint: 'bone', rim: 1.6, fill: 0.1, dust: 1 };
 
+/**
+ * A new op in force is a choice to pulse; `was` undefined = the hologram's first show, where the op
+ * was already there (remembered from the journal, kept on the way back from the brain).
+ */
+export function chosen(was: Site | null | undefined, now: Site | null): boolean {
+  return was !== undefined && !!now && (now.region !== was?.region || now.mode !== was?.mode);
+}
+
 /** The hologram's size while the op list is open (× rest). */
 const GROW = { desk: 1.8, phone: 1.5 };
 

@@ -25,6 +25,7 @@ import { BONE, glow, SAFFRON } from './materials';
 import {
   approach,
   boxOf,
+  chosen,
   grown,
   type Look,
   PULSE,
@@ -135,6 +136,8 @@ export class HoloView {
   /** The base shell's rim (× rest; the brain row lights all of it). */
   private readonly whole = uniform(1);
   private surgery: Surgery = { listing: false, lit: null, operated: null, phone: false };
+  /** Set by the first `operate`: what it finds in force was not chosen just now. */
+  private shown = false;
   /** The op list's grow (× rest) now. */
   private grow = 1;
   private readonly tint = new Color();
@@ -297,13 +300,13 @@ export class HoloView {
 
   /** What the op slot shows: grown while listing, the hovered row's region, the op in force. */
   operate(s: Surgery): void {
-    const was = this.surgery.operated;
+    const was = this.shown ? this.surgery.operated : undefined;
     this.surgery = s;
+    this.shown = true;
     const now = s.operated;
     for (const [key, m] of this.marks) m.visible = !!now && key === `${now.region}:${now.mode}`;
     // a fresh choice pulses its region before it settles into the mark
-    const fresh = now && (now.region !== was?.region || now.mode !== was?.mode);
-    const reg = fresh ? this.regions.get(now.region) : undefined;
+    const reg = now && chosen(was, now) ? this.regions.get(now.region) : undefined;
     if (reg && !this.o.reducedMotion && !this.o.still) {
       reg.now = { ...PULSE };
       reg.tint.value.set(TINT[PULSE.tint]);
