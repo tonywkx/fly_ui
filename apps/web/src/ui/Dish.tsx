@@ -41,16 +41,15 @@ const REMOVE_OFFSET = { x: 24, y: -30 };
 type DiveTo = 'peek' | 'pick';
 
 /**
- * The brain view on her last decision's circuit; `pick`: Silence in hand, the slot's kept cells along
- * (`x`) in the scenario they were picked in (the way back carries it; another one would drop them).
+ * The brain view on her last decision's circuit; `pick`: Silence in hand. Both take the slot's kept
+ * cells along (`x`, else the way back would drop them) into the scenario they were picked in (the
+ * way back carries it; another one would not have them).
  */
 function brainHref(to: DiveTo): string {
-  const scenario = scenarioFor(dish.decision?.action ?? null);
-  if (to === 'peek') return viewHref({ dish: false, from: 'dish', scenario });
   const q = new URLSearchParams(location.search);
   const x = q.get('x') ?? undefined;
-  const kept = x && q.get('scenario');
-  return viewHref({ dish: false, from: 'dish', scenario: kept || scenario, x, tool: 'silence' });
+  const scenario = (x && q.get('scenario')) || scenarioFor(dish.decision?.action ?? null);
+  return viewHref({ dish: false, from: 'dish', scenario, x, tool: to === 'pick' ? 'silence' : undefined });
 }
 
 /**
@@ -239,15 +238,10 @@ export const Dish = observer(function Dish() {
         () => app.quality,
         (q) => run.applyQuality(QUALITY[q]),
       );
-      // the card's op is live state: free play uses it too
-      const slot = reaction(
-        () => trial.op,
-        (op) => dish.setOps(op === 'none' ? [] : [op]),
-        { fireImmediately: true },
-      );
       // the slot on the hologram: grown while listing, the hovered row lit, the op in force marked
+      // (while the live brain loads too: it applies once up; never if it failed)
       const surgeon = reaction(
-        () => ({ listing: trial.listing, lit: trial.lit, operated: trial.operated }),
+        () => ({ listing: trial.listing, lit: trial.lit, operated: dish.failed ? null : trial.operated }),
         (s) => run.operate({ ...s, phone: !matchMedia('(width >= 48rem)').matches }),
         { fireImmediately: true },
       );
@@ -278,7 +272,6 @@ export const Dish = observer(function Dish() {
         runs();
         stops();
         auto();
-        slot();
         surgeon();
         quality();
         surgery();

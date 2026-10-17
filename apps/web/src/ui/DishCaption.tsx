@@ -106,11 +106,11 @@ export const DishCaption = observer(function DishCaption() {
   );
 });
 
-/** An operation (free play or the experiment's) or the brain view drives this decision's command. */
+/** The slot's operation or the brain's cells drive this decision's command. */
 function drivenOn(action: Decision): boolean {
   const cmd = PATHS[action].hops.at(-1)?.type ?? '';
-  const ops = [...dish.ops, ...(trial.op === 'none' ? [] : [trial.op])];
+  const op = trial.op;
   return (
-    !!trial.applied?.on || ops.some((op) => OPERATIONS[op].mode === 'on' && OPERATIONS[op].types.test(cmd))
+    !!trial.applied?.on || (op !== 'none' && OPERATIONS[op].mode === 'on' && OPERATIONS[op].types.test(cmd))
   );
 }

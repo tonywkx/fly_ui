@@ -13,8 +13,6 @@ export type Hand = 'shadow' | 'swatter';
 export class DishStore {
   hand: Hand | null = null;
   empty = true;
-  /** Operations switched on. */
-  ops = new Set<Op>();
   /** Puppet keys held (arrows). */
   pulls = new Set<Pull>();
   /** The open operation card. */
@@ -52,19 +50,6 @@ export class DishStore {
 
   setZooming(on: boolean): void {
     this.zooming = on;
-  }
-
-  toggleOp(op: Op): void {
-    if (this.ops.has(op)) this.ops.delete(op);
-    else this.ops.add(op);
-  }
-
-  setOps(ops: Iterable<Op>): void {
-    this.ops = new Set(ops);
-  }
-
-  clearOps(): void {
-    this.ops.clear();
   }
 
   /** A puppet key pressed (`on`) or let go. */
