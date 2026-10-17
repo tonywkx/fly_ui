@@ -228,8 +228,8 @@ export class TrialStore {
     // brain picks: no norm pair, nothing to remember (SURGEON-SHAPE §Any neuron)
     const own = !this.applied;
     const old = own ? this.pairs[id] : undefined;
-    // the very first result plays its replay by itself
-    this.replaying = Object.keys(this.pairs).length === 0;
+    // the very first result plays its replay by itself (a brain-picks run is never recorded, so never first)
+    this.replaying = own && Object.keys(this.pairs).length === 0;
     const norm = NORM[p.stim].none;
     const cell = readCell(t.result, norm);
     const hz = decides(t.result) ? t.hz : cell ? Math.round(t.peak[cell]) : 0;

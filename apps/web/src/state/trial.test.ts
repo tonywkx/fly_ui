@@ -243,6 +243,8 @@ describe('surgeon slot', () => {
     expect(s.outcome?.norm).toEqual(NORM.shadow.none);
     expect(s.pairs).toEqual({});
     expect(mem.pairs).toEqual({});
+    // not «the very first result» either: an empty journal stays empty, so no run would stop replaying
+    expect(s.replaying).toBe(false);
   });
 
   it('the hovered row lights its region, the whole brain, or nothing', () => {
