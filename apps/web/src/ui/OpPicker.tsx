@@ -82,12 +82,23 @@ export const OpPicker = observer(function OpPicker({
   const [chipName, chipMode] = chip.text.split(/ · (.*)/s) as [string, string | undefined];
   const setOpen = (v: boolean) => v !== open && onToggle();
 
-  // the hologram grows while the list is open; a closed card lets it go
-  useEffect(() => {
-    trial.setListing(open);
-  }, [open]);
   // the phone's settling preview: a re-pick restarts it, leaving the card ends it now
   const settle = useRef<ReturnType<typeof setTimeout>>(undefined);
+  /** No hover on a phone: the op just chosen shows its place once the list is shut, then its mark. */
+  const settleOn = useRef<Slot | null>(null);
+  // the one writer of `listing` (the card may shut the list too): the hologram grows while it is open
+  useEffect(() => {
+    trial.setListing(open);
+    const r = settleOn.current;
+    if (open || !r) return;
+    settleOn.current = null;
+    trial.setPreview(r);
+    clearTimeout(settle.current);
+    settle.current = setTimeout(() => {
+      settle.current = undefined;
+      if (trial.preview === r && !trial.listing) trial.setPreview(null);
+    }, PHONE_PREVIEW_MS);
+  }, [open]);
   useEffect(
     () => () => {
       trial.setListing(false);
@@ -100,7 +111,6 @@ export const OpPicker = observer(function OpPicker({
 
   const close = () => {
     setOpen(false);
-    trial.setListing(false);
     // desktop: the popover hands focus back itself
     if (phone) trigger.current?.focus();
   };
@@ -108,15 +118,7 @@ export const OpPicker = observer(function OpPicker({
     close();
     if (r === 'pick') return onPickBrain();
     trial.setSlot(r);
-    // no hover on a phone: the chosen op shows its place, then settles into its mark
-    if (phone && r !== 'none') {
-      trial.setPreview(r);
-      clearTimeout(settle.current);
-      settle.current = setTimeout(() => {
-        settle.current = undefined;
-        if (trial.preview === r && !trial.listing) trial.setPreview(null);
-      }, PHONE_PREVIEW_MS);
-    }
+    if (phone && r !== 'none') settleOn.current = r;
   };
   const list = <OpList id={id} phone={phone} onChoose={choose} onClose={close} />;
 
