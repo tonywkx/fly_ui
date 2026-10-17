@@ -37,7 +37,11 @@ export function picksText(p: Picks): string {
 /** The surgeon's glyphs (SURGEON-SHAPE §Brief 3): nothing, switched off, switched on. */
 export type OpGlyph = '○' | '⊘' | '●';
 
-const low = (s: string) => s.charAt(0).toLocaleLowerCase() + s.slice(1);
+export const low = (s: string) => s.charAt(0).toLocaleLowerCase() + s.slice(1);
+/** An op switches its cells on (MDN), the rest switch them off. */
+export const opIsOn = (op: Op) => OPERATIONS[op].mode === 'on';
+/** «нейрон бегства»: the op's cells, in a sentence. */
+export const opName = (op: Op) => low(t(`op.${op}.name` as Key));
 
 /** The «Что меняем» slot's value: «⊘ нейрон бегства · выкл.», «⊘ клетки из мозга · выкл. 2». */
 export function opChip(s: Slot, picks: Picks | null): { glyph: OpGlyph; text: string } {
@@ -47,11 +51,11 @@ export function opChip(s: Slot, picks: Picks | null): { glyph: OpGlyph; text: st
       text: low(t('op.pick.kept', { cells: picksText(picks) })),
     };
   if (s === 'brain' || s === 'none') return { glyph: '○', text: t('exp.op.none') };
-  const on = OPERATIONS[s].mode === 'on';
+  const on = opIsOn(s);
   return {
     glyph: on ? '●' : '⊘',
     text: t('op.chip', {
-      name: low(t(`op.${s}.name` as Key)),
+      name: opName(s),
       mode: t(on ? 'exp.op.onShort' : 'exp.op.offShort'),
     }),
   };

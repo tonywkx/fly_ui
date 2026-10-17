@@ -1,4 +1,3 @@
-import { OPERATIONS } from '@fly/sim';
 import { observer } from 'mobx-react-lite';
 import { useId, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { DISCOVERIES, type Discovery } from '@/scene/dish/discoveries';
 import { type Entry, trial } from '@/state/trial';
 import { GLYPH } from './DishPalette';
-import { cellPath, foundLine, OP_CELL } from './expText';
+import { cellPath, foundLine, OP_CELL, opIsOn } from './expText';
 
 const title = (d: Discovery) => t(`found.${d.stim}.${d.op}` as Key);
 
@@ -23,7 +22,7 @@ function Did({ d }: { d: Discovery }) {
       {d.op !== 'none' && (
         <>
           <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-saffron" />
-          {OP_CELL[d.op]} {t(OPERATIONS[d.op].mode === 'on' ? 'exp.op.onShort' : 'exp.op.offShort')}
+          {OP_CELL[d.op]} {t(opIsOn(d.op) ? 'exp.op.onShort' : 'exp.op.offShort')}
         </>
       )}
     </span>

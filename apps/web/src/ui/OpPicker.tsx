@@ -1,4 +1,3 @@
-import { OPERATIONS } from '@fly/sim';
 import { observer } from 'mobx-react-lite';
 import { Popover } from 'radix-ui';
 import { type KeyboardEvent, type ReactNode, useEffect, useId, useRef, useState } from 'react';
@@ -9,11 +8,11 @@ import { OPS, type Op } from '@/scene/dish/verdict';
 import { app } from '@/state/app';
 import { type Slot, trial } from '@/state/trial';
 import { Chevron } from './Chevron';
-import { type OpGlyph, opChip, picksText } from './expText';
+import { low, type OpGlyph, opChip, opIsOn, opName, picksText } from './expText';
+import { LABEL } from './label';
 
 /** Types inferred, not named in the dataset (LB3 = sugar, pC1 = P1): the hypothesis line. */
 const GUESS: ReadonlySet<Op> = new Set(['sugar', 'p1']);
-const LABEL = 'font-mono text-caption tracking-widest text-ash uppercase';
 /** A phone's tap shows the chosen op's place this long before its mark (SURGEON-SHAPE §Phone). */
 const PHONE_PREVIEW_MS = 1500;
 
@@ -28,7 +27,6 @@ const GLYPH_TONE: Record<Glyph, string> = {
   '⌖': 'text-mist',
 };
 
-const low = (s: string) => s.charAt(0).toLocaleLowerCase() + s.slice(1);
 const isOp = (r: Row): r is Op => (OPS as readonly Row[]).includes(r);
 
 /** «подробнее» stays open for the rest of the visit. */
@@ -36,14 +34,12 @@ let detailsOpen = false;
 
 /** A row's glyph and words: the verb read first (mist), the object standing out (bone). */
 function rowWords(r: Row): { glyph: Glyph; verb: string; obj?: string } {
-  if (isOp(r)) {
-    const on = OPERATIONS[r].mode === 'on';
+  if (isOp(r))
     return {
-      glyph: on ? '●' : '⊘',
-      verb: t(on ? 'op.on' : 'op.off'),
-      obj: t('op.obj', { name: low(t(`op.${r}.name` as Key)) }),
+      glyph: opChip(r, null).glyph,
+      verb: t(opIsOn(r) ? 'op.on' : 'op.off'),
+      obj: t('op.obj', { name: opName(r) }),
     };
-  }
   if (r === 'pick') return { glyph: '⌖', verb: t('op.pick.verb') };
   if (r === 'brain')
     return {
@@ -56,6 +52,7 @@ function rowWords(r: Row): { glyph: Glyph; verb: string; obj?: string } {
 
 function role(r: Row): string {
   if (isOp(r)) return t(`op.${r}.role` as Key);
+  if (r === 'brain') return t('op.kept.role');
   return t(r === 'none' ? 'op.none.role' : 'op.pick.role');
 }
 

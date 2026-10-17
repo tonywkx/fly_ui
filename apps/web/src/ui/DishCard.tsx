@@ -8,7 +8,6 @@ import {
   useContext,
   useEffect,
   useId,
-  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
@@ -25,6 +24,7 @@ import { Chevron } from './Chevron';
 import { DishFound } from './DishFound';
 import { GLYPH, type PaletteInput, PutPanel } from './DishPalette';
 import { betLine, headline, isHe, nowLine, opChip, scaleRow, usualLine } from './expText';
+import { LABEL } from './label';
 import { OpPicker } from './OpPicker';
 import { ReplayCaption } from './ReplayCaption';
 import { blink, scaleLine } from './scale';
@@ -32,7 +32,6 @@ import { blink, scaleLine } from './scale';
 /** The swatter lands this long after the run starts, sim s (as in free play). */
 const SWAT_S = 0.12;
 
-const LABEL = 'font-mono text-caption tracking-widest text-ash uppercase';
 /** Phone, a short screen: what gives way first. */
 const SHORT = '[@media(max-height:759px)]:hidden';
 
@@ -572,9 +571,22 @@ export const DishCard = observer(function DishCard({
   // phone, op list open: the sheet runs down over the wordmark row, its top stays put (SURGEON-SHAPE §Phone)
   const up = phone && trial.listing;
   const top = useRef(0);
-  useLayoutEffect(() => {
-    if (!up && card.current) top.current = card.current.getBoundingClientRect().top;
-  });
+  // the closed sheet's top, kept as it moves: bottom-anchored, it moves with its height and the screen
+  useEffect(() => {
+    const el = card.current;
+    if (!phone || !el) return;
+    const measure = () => {
+      if (!trial.listing) top.current = el.getBoundingClientRect().top;
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    addEventListener('resize', measure);
+    return () => {
+      ro.disconnect();
+      removeEventListener('resize', measure);
+    };
+  }, [phone]);
   return (
     <Phone.Provider value={phone}>
       <section
