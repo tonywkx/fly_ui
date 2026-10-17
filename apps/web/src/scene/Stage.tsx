@@ -310,7 +310,17 @@ function startPicking(engine: Engine, layer: NeuronsLayer): (() => void)[] {
   if (pick) app.waitFor('pick');
   // click = press and release within CLICK_PX without orbiting; applies the tool to the row under the press
   let press: { x: number; y: number; row: number | null; stroke: boolean; moved: boolean } | null = null;
+  // touch has no hover: a lone tap that stays put picks under the finger, then applies the tool (a drag orbits)
+  let touches = 0;
+  let tap: { x: number; y: number } | null = null;
+  let tapped = false;
   const picker = new Picker(engine, layer.pickMesh, (row) => {
+    if (tapped) {
+      tapped = false;
+      if (row !== null) experiment.apply(row);
+      picker.setPointer(null);
+      return;
+    }
     if (row !== app.hover) app.setHover(row);
     if (press?.moved && row !== null) experiment.paint(row);
     if (pick) app.markReady('pick');
@@ -333,6 +343,10 @@ function startPicking(engine: Engine, layer: NeuronsLayer): (() => void)[] {
   };
   // capture phase: runs before OrbitControls' own pointerdown on the canvas, so a stroke can switch it off
   const down = (e: PointerEvent) => {
+    if (e.pointerType === 'touch') {
+      touches++;
+      tap = touches === 1 ? { x: e.clientX, y: e.clientY } : null;
+    }
     const primary = e.button === 0 && e.pointerType !== 'touch';
     const row = app.hover;
     const stroke =
@@ -352,11 +366,27 @@ function startPicking(engine: Engine, layer: NeuronsLayer): (() => void)[] {
     if (press?.stroke) engine.setOrbit(true);
     if (press && !press.moved && !far(e, press)) experiment.apply(press.row);
     press = null;
+    if (e.pointerType !== 'touch') return;
+    touches = Math.max(0, touches - 1);
+    const tool = experiment.tool;
+    if (tap && !far(e, tap) && (tool === 'silence' || tool === 'stimulate')) {
+      const r = canvas.getBoundingClientRect();
+      tapped = true;
+      picker.setPointer([e.clientX - r.left, e.clientY - r.top]);
+    }
+    tap = null;
   };
-  const leave = () => picker.setPointer(null);
+  const cancel = (e: PointerEvent) => {
+    if (e.pointerType !== 'touch') return;
+    touches = Math.max(0, touches - 1);
+    tap = null;
+  };
+  // a lifted finger leaves at once: the tap's pick is still in flight
+  const leave = (e: PointerEvent) => e.pointerType !== 'touch' && picker.setPointer(null);
   canvas.addEventListener('pointermove', move);
   canvas.addEventListener('pointerdown', down, { capture: true });
   canvas.addEventListener('pointerup', up);
+  canvas.addEventListener('pointercancel', cancel);
   canvas.addEventListener('pointerleave', leave);
   if (pick) picker.setPointer([pick[0] * canvas.clientWidth, pick[1] * canvas.clientHeight]);
 
@@ -375,6 +405,7 @@ function startPicking(engine: Engine, layer: NeuronsLayer): (() => void)[] {
       canvas.removeEventListener('pointermove', move);
       canvas.removeEventListener('pointerdown', down, { capture: true });
       canvas.removeEventListener('pointerup', up);
+      canvas.removeEventListener('pointercancel', cancel);
       canvas.removeEventListener('pointerleave', leave);
       picker.dispose();
       app.setHover(null);
