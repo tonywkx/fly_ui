@@ -102,6 +102,30 @@ export class Picker {
     this.dirty = false;
     this.lastView.copy(camera.matrixWorldInverse);
     this.lastProj.copy(camera.projectionMatrix);
+    this.busy = true;
+    this.read(this.pointer)
+      .then((row) => {
+        if (!this.disposed && this.pointer) this.onHit(row);
+      })
+      .catch((e) => console.warn('[pick]', e))
+      .finally(() => {
+        this.busy = false;
+      });
+  }
+
+  /** One pick at `p` (CSS px) apart from the hover, with its own readback (a touch tap); null on a miss. */
+  pickAt(p: [number, number]): Promise<number | null> {
+    if (this.disposed) return Promise.resolve(null);
+    return this.read(p).catch((e) => {
+      console.warn('[pick]', e);
+      return null;
+    });
+  }
+
+  /** Renders the ids and reads the window around `p`: the row nearest its centre. */
+  private read(p: [number, number]): Promise<number | null> {
+    const { camera, renderer } = this.engine;
+    const size = renderer.getDrawingBufferSize(this.size);
     if (size.x !== this.rt.width || size.y !== this.rt.height) this.rt.setSize(size.x, size.y);
 
     this.engine.world.updateMatrixWorld();
@@ -116,8 +140,8 @@ export class Picker {
     const canvas = renderer.domElement;
     const sx = size.x / canvas.clientWidth;
     const sy = size.y / canvas.clientHeight;
-    const px = Math.floor(this.pointer[0] * sx);
-    const py = Math.floor(this.pointer[1] * sy);
+    const px = Math.floor(p[0] * sx);
+    const py = Math.floor(p[1] * sy);
     const half = (WINDOW - 1) / 2;
     const x0 = Math.max(0, Math.min(size.x - WINDOW, px - half));
     const y0 = Math.max(0, Math.min(size.y - WINDOW, py - half));
@@ -129,17 +153,9 @@ export class Picker {
     const cx = px - x0;
     const cy = gl ? h - 1 - (py - y0) : py - y0;
 
-    this.busy = true;
-    renderer
+    return renderer
       .readRenderTargetPixelsAsync(this.rt, x0, readY, w, h)
-      .then((buf) => {
-        if (this.disposed || !this.pointer) return;
-        this.onHit(nearestHit(decodeIds(buf as Uint8Array), w, h, cx, cy));
-      })
-      .catch((e) => console.warn('[pick]', e))
-      .finally(() => {
-        this.busy = false;
-      });
+      .then((buf) => nearestHit(decodeIds(buf as Uint8Array), w, h, cx, cy));
   }
 
   dispose() {

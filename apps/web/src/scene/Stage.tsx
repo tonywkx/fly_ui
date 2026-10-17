@@ -313,14 +313,7 @@ function startPicking(engine: Engine, layer: NeuronsLayer): (() => void)[] {
   // touch has no hover: a lone tap that stays put picks under the finger, then applies the tool (a drag orbits)
   let touches = 0;
   let tap: { x: number; y: number } | null = null;
-  let tapped = false;
   const picker = new Picker(engine, layer.pickMesh, (row) => {
-    if (tapped) {
-      tapped = false;
-      if (row !== null) experiment.apply(row);
-      picker.setPointer(null);
-      return;
-    }
     if (row !== app.hover) app.setHover(row);
     if (press?.moved && row !== null) experiment.paint(row);
     if (pick) app.markReady('pick');
@@ -371,8 +364,10 @@ function startPicking(engine: Engine, layer: NeuronsLayer): (() => void)[] {
     const tool = experiment.tool;
     if (tap && !far(e, tap) && (tool === 'silence' || tool === 'stimulate')) {
       const r = canvas.getBoundingClientRect();
-      tapped = true;
-      picker.setPointer([e.clientX - r.left, e.clientY - r.top]);
+      // its own readback: a hover read in flight (a touchscreen laptop's mouse) can't answer for it
+      void picker
+        .pickAt([e.clientX - r.left, e.clientY - r.top])
+        .then((row) => row !== null && experiment.apply(row));
     }
     tap = null;
   };
@@ -381,8 +376,7 @@ function startPicking(engine: Engine, layer: NeuronsLayer): (() => void)[] {
     touches = Math.max(0, touches - 1);
     tap = null;
   };
-  // a lifted finger leaves at once: the tap's pick is still in flight
-  const leave = (e: PointerEvent) => e.pointerType !== 'touch' && picker.setPointer(null);
+  const leave = () => picker.setPointer(null);
   canvas.addEventListener('pointermove', move);
   canvas.addEventListener('pointerdown', down, { capture: true });
   canvas.addEventListener('pointerup', up);
