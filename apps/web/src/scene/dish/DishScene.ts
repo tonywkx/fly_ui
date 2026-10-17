@@ -55,6 +55,7 @@ import { cut, FLARE_PEAK, flareAt, RUN_MS, shareTo, threadAt } from './thread';
 
 type Look = NonNullable<ReturnType<typeof threadAt>>;
 
+import { ndcToPx } from '../screen';
 import { Trail } from './trail';
 import { facing, seamDistance, type ZoomDir, zoomAt } from './zoom';
 
@@ -513,7 +514,7 @@ export class DishScene {
   project(x: number, y: number): { x: number; y: number } {
     this.v.set(x, 0, -y).project(this.camera);
     const { clientWidth: w, clientHeight: h } = this.canvas;
-    return { x: ((this.v.x + 1) / 2) * w, y: ((1 - this.v.y) / 2) * h };
+    return ndcToPx(this.v.x, this.v.y, w, h);
   }
 
   /** The faint ring under the cursor, with a ghost of the item being placed; null hides both. */

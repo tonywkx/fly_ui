@@ -2,6 +2,7 @@ import type { NeuropilSet } from '@fly/data';
 import type { Mesh } from 'three/webgpu';
 import { Vector3 } from 'three/webgpu';
 import type { Engine } from './engine';
+import { ndcToPx } from './screen';
 
 /**
  * Tour step 1 anatomy labels (docs/TOUR.md §1): each label sits in the void beside its shell with a
@@ -147,7 +148,8 @@ export function startAnatomy(engine: Engine, mesh: Mesh, set: NeuropilSet): () =
     const rect: Rect = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
     const toPx = () => {
       v.applyMatrix4(mesh.matrixWorld).project(engine.camera);
-      return [((v.x + 1) / 2) * w, ((1 - v.y) / 2) * h, v.z] as const;
+      const p = ndcToPx(v.x, v.y, w, h);
+      return [p.x, p.y, v.z] as const;
     };
     for (let i = 0; i < s.points.length; i += 3) {
       v.fromArray(s.points, i);

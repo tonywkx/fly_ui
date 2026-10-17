@@ -20,6 +20,7 @@ import {
 } from 'three/webgpu';
 import type { Site } from '../../state/trial';
 import { glassMaterial } from '../layers/shells';
+import { ndcToPx } from '../screen';
 import { centroids, holoFrame, hopSites, type Side, sample, site, type Vec3 } from './hologram';
 import { BONE, glow, SAFFRON } from './materials';
 import {
@@ -94,6 +95,9 @@ const regionUniforms = () => ({
 });
 
 /** An op region: its shell over the base one, its dust apart, and its look now. */
+/** Below this a region's rim and fill draw nothing worth a pass. */
+const QUIET_EPS = 1e-3;
+
 interface Region extends ReturnType<typeof regionUniforms> {
   name: string;
   /** Its centre (source units), for the «здесь» tag. */
@@ -101,6 +105,8 @@ interface Region extends ReturnType<typeof regionUniforms> {
   now: Look;
   /** Wall ms left of the choose pulse. */
   settle: number;
+  /** Its additive glass: skipped while quiet (it would add black). */
+  glass?: Mesh;
 }
 
 /** What the op slot asks of the hologram (SURGEON-SHAPE §Hologram). */
@@ -205,7 +211,9 @@ export class HoloView {
       };
       dust(k + 1, this.dust.mul(reg.dust));
       const glass = glassMaterial(reg.tint, { rimPower: REGION_RIM_POWER, rimGain: reg.rim, fill: reg.fill });
-      this.brain.add(new Mesh(regionGeometry(d.regions, r), glass));
+      reg.glass = new Mesh(regionGeometry(d.regions, r), glass);
+      reg.glass.visible = false;
+      this.brain.add(reg.glass);
       this.regions.set(name, reg);
     });
     const { min, max } = d.bbox;
@@ -340,6 +348,7 @@ export class HoloView {
       r.rim.value = r.now.rim;
       r.fill.value = r.now.fill;
       r.dust.value = r.now.dust;
+      if (r.glass) r.glass.visible = r.now.rim > QUIET_EPS || r.now.fill > QUIET_EPS;
     }
     this.place();
   }
@@ -352,7 +361,7 @@ export class HoloView {
     this.root.updateMatrixWorld();
     const p = this.brain.localToWorld(this.v.set(...r.at)).project(camera);
     if (p.z > 1) return null;
-    return { x: ((p.x + 1) / 2) * w, y: ((1 - p.y) / 2) * h };
+    return ndcToPx(p.x, p.y, w, h);
   }
 
   /** The decision flash: rim gain × `k` (1 = rest). */
@@ -371,8 +380,7 @@ export class HoloView {
     for (const c of this.corners) {
       const p = this.v.copy(c).applyMatrix4(this.brain.matrixWorld).project(camera);
       if (p.z > 1) return null;
-      const x = ((p.x + 1) / 2) * w;
-      const y = ((1 - p.y) / 2) * h;
+      const { x, y } = ndcToPx(p.x, p.y, w, h);
       x0 = Math.min(x0, x);
       y0 = Math.min(y0, y);
       x1 = Math.max(x1, x);
